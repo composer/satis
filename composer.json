@@ -1,0 +1,29 @@
+{
+    "name": "composer/satis",
+    "description": "Simple Repository Generator",
+    "keywords": ["package", "repository", "generator"],
+    "homepage": "https://github.com/composer/satis",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Jordi Boggiano",
+            "email": "j.boggiano@seld.be",
+            "homepage": "http://seld.be"
+        },
+        {
+            "name": "Nils Adermann",
+            "email": "naderman@naderman.de",
+            "homepage": "http://www.naderman.de"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "composer/composer": "*",
+        "symfony/console": "2.0.6",
+        "symfony/process": "2.0.6"
+    },
+    "autoload": {
+        "psr-0": { "Composer\\Satis": "src/" }
+    }
+}

@@ -1,0 +1,6 @@
+/.settings
+/.project
+/.buildpath
+/satis.phar
+/composer.lock
+/vendor
