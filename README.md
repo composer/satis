@@ -1,7 +1,18 @@
 Satis - Package Repository Generator
 ====================================
 
+Simple static Composer repository generator.
 
+It uses any composer.json file as input and dumps all the required (according
+to their version constraints) packages to a Composer Repository file.
+
+Usage
+-----
+
+- Clone: `git clone http://github.com/composer/satis.git`
+- Download Composer: `wget http://getcomposer.org/composer.phar`
+- Install dependencies: `php composer.phar install`
+- Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
 Contributing
 ------------
