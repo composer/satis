@@ -35,12 +35,6 @@ class Compiler
             unlink($pharFile);
         }
 
-        $process = new Process('git log --pretty="%h" -n1 HEAD');
-        if ($process->run() != 0) {
-            throw new \RuntimeException('The git binary cannot be found.');
-        }
-        $this->version = trim($process->getOutput());
-
         $phar = new \Phar($pharFile, 0, 'satis.phar');
         $phar->setSignatureAlgorithm(\Phar::SHA1);
 
@@ -51,7 +45,7 @@ class Compiler
             ->ignoreVCS(true)
             ->name('*.php')
             ->notName('Compiler.php')
-            ->in(dirname(__DIR__))
+            ->in(__DIR__)
         ;
 
         foreach ($finder as $file) {
@@ -62,7 +56,7 @@ class Compiler
         $finder->files()
             ->ignoreVCS(true)
             ->name('*.php')
-            ->in(__DIR__.'/../../vendor/')
+            ->in(__DIR__.'/../../../vendor/')
         ;
 
         foreach ($finder as $file) {
@@ -78,14 +72,14 @@ class Compiler
 
         $phar->compressFiles(\Phar::GZ);
 
-        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../../LICENSE'), false);
+        $this->addFile($phar, new \SplFileInfo(__DIR__.'/../../../LICENSE'), false);
 
         unset($phar);
     }
 
     private function addFile($phar, $file, $strip = true)
     {
-        $path = str_replace(dirname(dirname(__DIR__)).DIRECTORY_SEPARATOR, '', $file->getRealPath());
+        $path = str_replace(dirname(dirname(dirname(__DIR__))).DIRECTORY_SEPARATOR, '', $file->getRealPath());
 
         if ($strip) {
             $content = php_strip_whitespace($file);
@@ -93,14 +87,12 @@ class Compiler
             $content = "\n".file_get_contents($file)."\n";
         }
 
-        $content = str_replace('@package_version@', $this->version, $content);
-
         $phar->addFromString($path, $content);
     }
 
     private function addSatisBin($phar)
     {
-        $content = file_get_contents(__DIR__.'/../../bin/satis');
+        $content = file_get_contents(__DIR__.'/../../../bin/satis');
         $content = preg_replace('{^#!/usr/bin/env php\s*}', '', $content);
         $phar->addFromString('bin/satis', $content);
     }
