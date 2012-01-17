@@ -75,6 +75,6 @@ EOT
      */
     public function getComposer($file)
     {
-        return ComposerApplication::bootstrapComposer($file);
+        return \Composer\Factory::create($file);
     }
 }
