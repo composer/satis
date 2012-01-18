@@ -22,6 +22,7 @@ use Composer\Console\Application as ComposerApplication;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Json\JsonFile;
+use Composer\IO\IOInterface;
 use Composer\IO\ConsoleIO;
 
 /**
@@ -78,12 +79,12 @@ EOT
     }
 
     /**
-     * @param \Composer\IO\IOInterface $io
-     * @param string                   $file
+     * @param IOInterface $io
+     * @param string      $file
      *
      * @return Composer
      */
-    public function getComposer(\Composer\IO\IOInterface $io, $file)
+    public function getComposer(IOInterface $io, $file)
     {
         return \Composer\Factory::create($io, $file);
     }
