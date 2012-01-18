@@ -21,6 +21,8 @@ use Composer\Console\Application as ComposerApplication;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Json\JsonFile;
+use Composer\IO\IOInterface;
+use Composer\IO\ConsoleIO;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -44,9 +46,14 @@ EOT
         ;
     }
 
+    /**
+     * @param InputInterface  $input  The input instance
+     * @param OutputInterface $output The output instance
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $composer = $this->getComposer($input->getArgument('file'));
+        $io = new ConsoleIO($input, $output, $this->getHelperSet());
+        $composer = $this->getComposer($io, $input->getArgument('file'));
 
         $packages = array();
         $targets = array();
@@ -71,10 +78,13 @@ EOT
     }
 
     /**
+     * @param IOInterface $io
+     * @param string      $file
+     *
      * @return Composer
      */
-    public function getComposer($file)
+    public function getComposer(IOInterface $io, $file)
     {
-        return \Composer\Factory::create($file);
+        return \Composer\Factory::create($io, $file);
     }
 }
