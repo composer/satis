@@ -17,7 +17,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Helper\HelperSet;
 use Composer\Console\Application as ComposerApplication;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\LinkConstraint\VersionConstraint;
@@ -53,7 +52,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new ConsoleIO($input, $output, new HelperSet());
+        $io = new ConsoleIO($input, $output, $this->getHelperSet());
         $composer = $this->getComposer($io, $input->getArgument('file'));
 
         $packages = array();
