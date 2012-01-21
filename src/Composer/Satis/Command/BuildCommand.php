@@ -67,7 +67,7 @@ EOT
             foreach ($repository->getPackages() as $package) {
                 $name = $package->getName();
                 if (isset($targets[$name]) && $targets[$name]->matches(new VersionConstraint('=', $package->getVersion()))) {
-                    $packages[$package->getName()][$package->getVersion()] = $dumper->dump($package);
+                    $packages[$package->getName()]['versions'][$package->getVersion()] = $dumper->dump($package);
                 }
             }
         }
