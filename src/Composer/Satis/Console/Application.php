@@ -18,6 +18,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Composer\Satis\Command;
 use Composer\Console\Application as ComposerApplication;
+use Composer\IO\ConsoleIO;
+use Composer\Factory;
 use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
 
@@ -26,6 +28,7 @@ use Composer\Satis\Satis;
  */
 class Application extends BaseApplication
 {
+    protected $io;
     protected $composer;
 
     public function __construct()
@@ -39,8 +42,26 @@ class Application extends BaseApplication
     public function doRun(InputInterface $input, OutputInterface $output)
     {
         $this->registerCommands();
+        $this->io = new ConsoleIO($input, $output, $this->getHelperSet());
 
         return parent::doRun($input, $output);
+    }
+
+    /**
+     * @return Composer
+     */
+    public function getComposer($required = true, $filename = null)
+    {
+        if (null === $this->composer) {
+            try {
+                $this->composer = Factory::create($this->io, $filename);
+            } catch (\InvalidArgumentException $e) {
+                $this->io->write($e->getMessage());
+                exit(1);
+            }
+        }
+
+        return $this->composer;
     }
 
     /**

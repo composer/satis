@@ -52,8 +52,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new ConsoleIO($input, $output, $this->getHelperSet());
-        $composer = $this->getComposer($io, $input->getArgument('file'));
+        $composer = $this->getApplication()->getComposer(true, $input->getArgument('file'));
 
         $packages = array();
         $targets = array();
@@ -75,16 +74,5 @@ EOT
         $output->writeln('Writing packages.json');
         $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
         $repoJson->write($packages);
-    }
-
-    /**
-     * @param IOInterface $io
-     * @param string      $file
-     *
-     * @return Composer
-     */
-    public function getComposer(IOInterface $io, $file)
-    {
-        return \Composer\Factory::create($io, $file);
     }
 }
