@@ -18,10 +18,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.0",
+        "php": ">=5.3.2",
         "composer/composer": "*",
-        "symfony/console": "2.0.6",
-        "symfony/process": "2.0.6"
+        "symfony/console": "2.1.*",
+        "symfony/process": "2.1.*"
     },
     "autoload": {
         "psr-0": { "Composer\\Satis": "src/" }
