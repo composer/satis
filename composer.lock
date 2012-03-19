@@ -4,22 +4,34 @@
         {
             "package": "composer/composer",
             "version": "dev-master",
-            "source-reference": "3abfa00b117b1d220d1719f3d41bd0ca5c8fe427"
+            "source-reference": "79c2bf139ea5aa9e01c0f89d0e768d947665a930"
         },
         {
             "package": "doctrine/common",
-            "version": "2.2.0"
+            "version": "2.2.1"
+        },
+        {
+            "package": "justinrainbow/json-schema",
+            "version": "dev-master",
+            "source-reference": "bb6175a2790118241c8f6d014ddc04192267e5d1"
+        },
+        {
+            "package": "seld/jsonlint",
+            "version": "dev-master",
+            "source-reference": "869e5d011fe1c82501ae0a3b427a686c21fd5baf"
         },
         {
             "package": "symfony/symfony",
             "version": "dev-master",
-            "source-reference": "42923f30448e4aa5897139c3bec727fc9797cde0",
+            "source-reference": "edac48a824bd04718a346890ca225ee28d2a347b",
             "alias": "2.1.9999999.9999999-dev"
         },
         {
             "package": "twig/twig",
-            "version": "1.6.1"
+            "version": "1.6.2"
         }
     ],
-    "aliases": []
+    "aliases": [
+
+    ]
 }
