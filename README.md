@@ -14,6 +14,9 @@ Usage
 - Install dependencies: `php composer.phar install`
 - Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
+Read the more detailed instructions in the 
+[documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
+
 Contributing
 ------------
 
