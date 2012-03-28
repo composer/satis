@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Command\Command;
 use Composer\Console\Application as ComposerApplication;
 use Composer\Package\Dumper\ArrayDumper;
+use Composer\Package\AliasPackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Json\JsonFile;
 use Composer\IO\IOInterface;
@@ -62,11 +63,23 @@ EOT
             $targets[$link->getTarget()] = $link->getConstraint();
         }
 
+        // run over all packages and store matching ones
         foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
             foreach ($repository->getPackages() as $package) {
+                // skip aliases
+                if ($package instanceof AliasPackage) {
+                    continue;
+                }
+
                 $name = $package->getName();
-                if (isset($targets[$name]) && $targets[$name]->matches(new VersionConstraint('=', $package->getVersion()))) {
-                    $packages[$package->getName()]['versions'][$package->getVersion()] = $dumper->dump($package);
+                $version = $package->getVersion();
+
+                // add matching package if not yet existing yet
+                if (isset($targets[$name])
+                    && $targets[$name]->matches(new VersionConstraint('=', $version))
+                    && !isset($packages[$package->getName()]['versions'][$version])
+                ) {
+                    $packages[$package->getName()]['versions'][$version] = $dumper->dump($package);
                 }
             }
         }
