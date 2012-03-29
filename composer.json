@@ -17,6 +17,7 @@
             "homepage": "http://www.naderman.de"
         }
     ],
+    "bin": ["bin/satis"],
     "require": {
         "php": ">=5.3.2",
         "composer/composer": "*",
