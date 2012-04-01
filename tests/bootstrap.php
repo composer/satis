@@ -10,5 +10,5 @@
  * file that was distributed with this source code.
  */
 
-$loader = require __DIR__.'/../vendor/.composer/autoload.php';
+$loader = require __DIR__.'/../src/bootstrap.php';
 $loader->add('Composer\Test', __DIR__);
