@@ -59,7 +59,6 @@ EOT
 
         $packages = array();
         $targets = array();
-        $result = array();
         $dumper = new ArrayDumper;
 
         foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
@@ -69,12 +68,12 @@ EOT
                     continue;
                 }
 
-                $packages[$package->getName()]['versions'][$package->getVersion()] = $package;
+                $targets[$package->getName()][$package->getVersion()] = $package;
             }
         }
 
         foreach ($composer->getPackage()->getRequires() as $link) {
-            if (!isset($packages[$link->getTarget()])) {
+            if (!isset($targets[$link->getTarget()])) {
                 throw new RuntimeException(sprintf(
                     'The requested package "%s" could not be found.',
                     $link->getTarget()
@@ -83,15 +82,15 @@ EOT
 
             $found = false;
 
-            foreach ($packages[$link->getTarget()]['versions'] as $version) {
+            foreach ($targets[$link->getTarget()] as $version) {
                 if ($link->getConstraint()->matches(new VersionConstraint('=', $version->getVersion()))) {
-                    $result[$version->getName()]['versions'][$version->getVersion()] = $dumper->dump($version);
+                    $packages[$version->getName()]['versions'][$version->getVersion()] = $dumper->dump($version);
 
                     $found = true;
                 }
             }
 
-            if (false === $found) {
+            if (!$found) {
                 throw new RuntimeException(sprintf(
                     'The requested package "%s" with constraint "%s" could not be found.',
                     $link->getTarget(), $link->getConstraint()
@@ -101,6 +100,6 @@ EOT
 
         $output->writeln('Writing packages.json');
         $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
-        $repoJson->write($result);
+        $repoJson->write($packages);
     }
 }
