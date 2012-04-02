@@ -12,6 +12,7 @@
 
 namespace Composer\Satis\Command;
 
+use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -50,6 +51,7 @@ EOT
     /**
      * @param InputInterface  $input  The input instance
      * @param OutputInterface $output The output instance
+     * @throws RuntimeException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -59,11 +61,6 @@ EOT
         $targets = array();
         $dumper = new ArrayDumper;
 
-        foreach ($composer->getPackage()->getRequires() as $link) {
-            $targets[$link->getTarget()] = $link->getConstraint();
-        }
-
-        // run over all packages and store matching ones
         foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
             foreach ($repository->getPackages() as $package) {
                 // skip aliases
@@ -71,16 +68,33 @@ EOT
                     continue;
                 }
 
-                $name = $package->getName();
-                $version = $package->getVersion();
+                $targets[$package->getName()][$package->getVersion()] = $package;
+            }
+        }
 
-                // add matching package if not yet existing yet
-                if (isset($targets[$name])
-                    && $targets[$name]->matches(new VersionConstraint('=', $version))
-                    && !isset($packages[$package->getName()]['versions'][$version])
-                ) {
-                    $packages[$package->getName()]['versions'][$version] = $dumper->dump($package);
+        foreach ($composer->getPackage()->getRequires() as $link) {
+            if (!isset($targets[$link->getTarget()])) {
+                throw new RuntimeException(sprintf(
+                    'The requested package "%s" could not be found.',
+                    $link->getTarget()
+                ));
+            }
+
+            $found = false;
+
+            foreach ($targets[$link->getTarget()] as $version) {
+                if ($link->getConstraint()->matches(new VersionConstraint('=', $version->getVersion()))) {
+                    $packages[$version->getName()]['versions'][$version->getVersion()] = $dumper->dump($version);
+
+                    $found = true;
                 }
+            }
+
+            if (!$found) {
+                throw new RuntimeException(sprintf(
+                    'The requested package "%s" with constraint "%s" could not be found.',
+                    $link->getTarget(), $link->getConstraint()
+                ));
             }
         }
 
