@@ -12,6 +12,7 @@
 
 namespace Composer\Satis\Command;
 
+use RuntimeException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -50,6 +51,7 @@ EOT
     /**
      * @param InputInterface  $input  The input instance
      * @param OutputInterface $output The output instance
+     * @throws RuntimeException
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -57,13 +59,9 @@ EOT
 
         $packages = array();
         $targets = array();
+        $result = array();
         $dumper = new ArrayDumper;
 
-        foreach ($composer->getPackage()->getRequires() as $link) {
-            $targets[$link->getTarget()] = $link->getConstraint();
-        }
-
-        // run over all packages and store matching ones
         foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
             foreach ($repository->getPackages() as $package) {
                 // skip aliases
@@ -71,21 +69,32 @@ EOT
                     continue;
                 }
 
-                $name = $package->getName();
-                $version = $package->getVersion();
-
-                // add matching package if not yet existing yet
-                if (isset($targets[$name])
-                    && $targets[$name]->matches(new VersionConstraint('=', $version))
-                    && !isset($packages[$package->getName()]['versions'][$version])
-                ) {
-                    $packages[$package->getName()]['versions'][$version] = $dumper->dump($package);
-                }
+                $packages[$package->getName()] = $package;
             }
+        }
+
+        foreach ($composer->getPackage()->getRequires() as $link) {
+            if (!isset($packages[$link->getTarget()])) {
+                throw new RuntimeException(sprintf(
+                    'The requested package "%s" could not be found.',
+                    $link->getTarget()
+                ));
+            }
+
+            $package = $packages[$link->getTarget()];
+
+            if (!$link->getConstraint()->matches(new VersionConstraint('=', $package->getVersion()))) {
+                throw new RuntimeException(sprintf(
+                    'The requested package "%s" with constraint "%s" could not be found.',
+                    $link->getTarget(), $link->getConstraint()
+                ));
+            }
+
+            $result[$package->getName()]['versions'][$package->getVersion()] = $dumper->dump($package);
         }
 
         $output->writeln('Writing packages.json');
         $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
-        $repoJson->write($packages);
+        $repoJson->write($result);
     }
 }
