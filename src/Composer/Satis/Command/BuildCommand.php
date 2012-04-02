@@ -69,7 +69,7 @@ EOT
                     continue;
                 }
 
-                $packages[$package->getName()] = $package;
+                $packages[$package->getName()]['versions'][$package->getVersion()] = $package;
             }
         }
 
@@ -81,16 +81,22 @@ EOT
                 ));
             }
 
-            $package = $packages[$link->getTarget()];
+            $found = false;
 
-            if (!$link->getConstraint()->matches(new VersionConstraint('=', $package->getVersion()))) {
+            foreach ($packages[$link->getTarget()]['versions'] as $version) {
+                if ($link->getConstraint()->matches(new VersionConstraint('=', $version->getVersion()))) {
+                    $result[$version->getName()]['versions'][$version->getVersion()] = $dumper->dump($version);
+
+                    $found = true;
+                }
+            }
+
+            if (false === $found) {
                 throw new RuntimeException(sprintf(
                     'The requested package "%s" with constraint "%s" could not be found.',
                     $link->getTarget(), $link->getConstraint()
                 ));
             }
-
-            $result[$package->getName()]['versions'][$package->getVersion()] = $dumper->dump($package);
         }
 
         $output->writeln('Writing packages.json');
