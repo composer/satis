@@ -1,10 +1,10 @@
 {
-    "hash": "444870596bfdd86822964faf8d382ee9",
+    "hash": "fb0f2fe880315c872e660c39731a26d8",
     "packages": [
         {
             "package": "composer/composer",
             "version": "dev-master",
-            "source-reference": "366176fc73c157a36879d429d022e0f2958bb18e"
+            "source-reference": "a6e686b29ef02491ebcab5682cb942a4fe2e44ca"
         },
         {
             "package": "justinrainbow/json-schema",

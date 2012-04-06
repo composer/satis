@@ -55,7 +55,7 @@ EOT
     {
         $composer = $this->getApplication()->getComposer(true, $input->getArgument('file'));
 
-        $packages = array();
+        $repo = array('packages' => array());
         $targets = array();
         $dumper = new ArrayDumper;
 
@@ -77,15 +77,15 @@ EOT
                 // add matching package if not yet existing yet
                 if (isset($targets[$name])
                     && $targets[$name]->matches(new VersionConstraint('=', $version))
-                    && !isset($packages[$package->getName()]['versions'][$version])
+                    && !isset($repo['packages'][$package->getName()][$version])
                 ) {
-                    $packages[$package->getName()]['versions'][$version] = $dumper->dump($package);
+                    $repo['packages'][$package->getName()][$version] = $dumper->dump($package);
                 }
             }
         }
 
         $output->writeln('Writing packages.json');
         $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
-        $repoJson->write($packages);
+        $repoJson->write($repo);
     }
 }
