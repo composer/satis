@@ -82,7 +82,7 @@ EOT
                 // add matching package if not yet selected
                 if (isset($targets[$name])
                     && $targets[$name]['constraint']->matches(new VersionConstraint('=', $version))
-                    && !isset($selected[$package->getName()][$version])
+                    && !isset($selected[$package->getUniqueName()])
                 ) {
                     $targets[$name]['matched'] = true;
                     $selected[$package->getUniqueName()] = $package;
