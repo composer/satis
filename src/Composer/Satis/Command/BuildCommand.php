@@ -57,10 +57,15 @@ EOT
 
         $repo = array('packages' => array());
         $targets = array();
+        $selected = array();
         $dumper = new ArrayDumper;
 
         foreach ($composer->getPackage()->getRequires() as $link) {
-            $targets[$link->getTarget()] = $link->getConstraint();
+            $targets[$link->getTarget()] = array(
+                'matched' => false,
+                'link' => $link,
+                'constraint' => $link->getConstraint()
+            );
         }
 
         // run over all packages and store matching ones
@@ -74,16 +79,28 @@ EOT
                 $name = $package->getName();
                 $version = $package->getVersion();
 
-                // add matching package if not yet existing yet
+                // add matching package if not yet selected
                 if (isset($targets[$name])
-                    && $targets[$name]->matches(new VersionConstraint('=', $version))
-                    && !isset($repo['packages'][$package->getName()][$version])
+                    && $targets[$name]['constraint']->matches(new VersionConstraint('=', $version))
+                    && !isset($selected[$package->getName()][$version])
                 ) {
-                    $repo['packages'][$package->getName()][$version] = $dumper->dump($package);
+                    $targets[$name]['matched'] = true;
+                    $selected[$package->getUniqueName()] = $package;
                 }
             }
         }
 
+        // check for unmatched requirements
+        foreach ($targets as $package => $target) {
+            if (!$target['matched']) {
+                $output->writeln('<error>The '.$target['link']->getTarget().' '.$target['link']->getPrettyConstraint().' requirement did not match any package</error>');
+            }
+        }
+
+        // dump
+        foreach ($selected as $package) {
+            $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
+        }
         $output->writeln('Writing packages.json');
         $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
         $repoJson->write($repo);
