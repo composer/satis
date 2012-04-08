@@ -4,7 +4,7 @@
         {
             "package": "composer/composer",
             "version": "dev-master",
-            "source-reference": "a6e686b29ef02491ebcab5682cb942a4fe2e44ca"
+            "source-reference": "278f0ec3504d4a85af3ba3939cd4a0989db4055c"
         },
         {
             "package": "justinrainbow/json-schema",
