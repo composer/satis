@@ -56,6 +56,7 @@ class Compiler
         $finder->files()
             ->ignoreVCS(true)
             ->name('*.php')
+            ->name('composer-schema.json')
             ->in(__DIR__.'/../../../vendor/')
         ;
 
