@@ -45,7 +45,7 @@ class Compiler
             ->ignoreVCS(true)
             ->name('*.php')
             ->notName('Compiler.php')
-            ->in(__DIR__)
+            ->in(__DIR__.'/../../')
         ;
 
         foreach ($finder as $file) {
