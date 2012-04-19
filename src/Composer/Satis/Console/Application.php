@@ -21,6 +21,7 @@ use Composer\Console\Application as ComposerApplication;
 use Composer\IO\ConsoleIO;
 use Composer\Factory;
 use Composer\Json\JsonFile;
+use Composer\Util\ErrorHandler;
 use Composer\Satis\Satis;
 
 /**
@@ -34,6 +35,7 @@ class Application extends BaseApplication
     public function __construct()
     {
         parent::__construct('Satis', Satis::VERSION);
+        ErrorHandler::register();
     }
 
     /**

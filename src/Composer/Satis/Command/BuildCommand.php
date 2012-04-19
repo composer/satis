@@ -53,7 +53,21 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $composer = $this->getApplication()->getComposer(true, $input->getArgument('file'));
+        $verbose = $input->getOption('verbose');
+        $file = new JsonFile($input->getArgument('file'));
+        if (!$file->exists()) {
+            $output->writeln('<error>File not found: '.$input->getArgument('file').'</error>');
+            exit(1);
+        }
+        $config = $file->read();
+
+        // disable packagist by default
+        $config['repositories'][] = array('packagist' => false);
+
+        // fetch options
+        $requireAll = isset($config['require-all']) && true === $config['require-all'];
+
+        $composer = $this->getApplication()->getComposer(true, $config);
 
         $repo = array('packages' => array());
         $targets = array();
@@ -69,6 +83,7 @@ EOT
         }
 
         // run over all packages and store matching ones
+        $output->writeln('<info>Scanning packages</info>');
         foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
             foreach ($repository->getPackages() as $package) {
                 // skip aliases
@@ -79,11 +94,16 @@ EOT
                 $name = $package->getName();
                 $version = $package->getVersion();
 
+                // skip non-matching packages
+                if (!$requireAll && (!isset($targets[$name]) || !$targets[$name]['constraint']->matches(new VersionConstraint('=', $version)))) {
+                    continue;
+                }
+
                 // add matching package if not yet selected
-                if (isset($targets[$name])
-                    && $targets[$name]['constraint']->matches(new VersionConstraint('=', $version))
-                    && !isset($selected[$package->getUniqueName()])
-                ) {
+                if (!isset($selected[$package->getUniqueName()])) {
+                    if ($verbose) {
+                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                    }
                     $targets[$name]['matched'] = true;
                     $selected[$package->getUniqueName()] = $package;
                 }
@@ -101,7 +121,7 @@ EOT
         foreach ($selected as $package) {
             $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
-        $output->writeln('Writing packages.json');
+        $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
         $repoJson->write($repo);
     }
