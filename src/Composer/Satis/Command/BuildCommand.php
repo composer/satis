@@ -57,7 +57,8 @@ EOT
         $file = new JsonFile($input->getArgument('file'));
         if (!$file->exists()) {
             $output->writeln('<error>File not found: '.$input->getArgument('file').'</error>');
-            exit(1);
+
+            return 1;
         }
         $config = $file->read();
 
@@ -66,6 +67,10 @@ EOT
 
         // fetch options
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
+        if (!$requireAll && !isset($config['require'])) {
+            $output->writeln('No explicit requires defined, enabling require-all');
+            $requireAll = true;
+        }
 
         $composer = $this->getApplication()->getComposer(true, $config);
 
