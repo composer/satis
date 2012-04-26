@@ -17,13 +17,16 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Command\Command;
+use Composer\Composer;
 use Composer\Console\Application as ComposerApplication;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
+use Composer\Package\PackageInterface;
 use Composer\Json\JsonFile;
 use Composer\IO\IOInterface;
 use Composer\IO\ConsoleIO;
+use Composer\Satis\Satis;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -73,11 +76,19 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
 
+        $filename = $input->getArgument('build-dir').'/packages.json';
+        $rootPackage = $composer->getPackage();
+        $this->dumpJson($packages, $output, $filename);
+        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+    }
+
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
+    {
         $repo = array('packages' => array());
         $targets = array();
         $selected = array();
-        $dumper = new ArrayDumper;
 
         foreach ($composer->getPackage()->getRequires() as $link) {
             $targets[$link->getTarget()] = array(
@@ -122,12 +133,78 @@ EOT
             }
         }
 
-        // dump
-        foreach ($selected as $package) {
+        return $selected;
+    }
+
+    private function dumpJson(array $packages, OutputInterface $output, $filename)
+    {
+        $dumper = new ArrayDumper;
+        foreach ($packages as $package) {
             $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
         $output->writeln('<info>Writing packages.json</info>');
-        $repoJson = new JsonFile($input->getArgument('build-dir').'/packages.json');
+        $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
+    }
+
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory)
+    {
+        $templateDir = __DIR__.'/../../../../views';
+        $loader = new \Twig_Loader_Filesystem($templateDir);
+        $twig = new \Twig_Environment($loader);
+
+        $mappedPackages = $this->getMappedPackageList($packages);
+
+        $output->writeln('<info>Writing index.html, pirum.css</info>');
+        $vars = array(
+            'rootPackage'   => $rootPackage,
+            'packages'      => $mappedPackages,
+            'SATIS_VERSION' => Satis::VERSION,
+        );
+        file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
+        copy($templateDir.'/pirum.css', $directory.'/pirum.css');
+    }
+
+    private function getMappedPackageList(array $packages)
+    {
+        $groupedPackages = $this->groupPackagesByName($packages);
+
+        $mappedPackages = array();
+        foreach ($groupedPackages as $name => $packages) {
+            $mappedPackages[$name] = array(
+                'highest' => $this->getHighestVersion($packages),
+                'versions' => $this->getDescSortedVersions($packages),
+            );
+        }
+        return $mappedPackages;
+    }
+
+    private function groupPackagesByName(array $packages)
+    {
+        $groupedPackages = array();
+        foreach ($packages as $package) {
+            $groupedPackages[$package->getName()][] = $package;
+        }
+        return $groupedPackages;
+    }
+
+    private function getHighestVersion(array $packages)
+    {
+        $highestVersion = null;
+        foreach ($packages as $package) {
+            if (null === $highestVersion || version_compare($package->getVersion(), $highestVersion->getVersion(), '>=')) {
+                $highestVersion = $package;
+            }
+        }
+        return $highestVersion;
+    }
+
+    private function getDescSortedVersions(array $packages)
+    {
+        usort($packages, function ($a, $b) {
+            return version_compare($b->getVersion(), $a->getVersion());
+        });
+
+        return $packages;
     }
 }
