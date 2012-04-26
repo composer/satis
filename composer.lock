@@ -1,10 +1,10 @@
 {
-    "hash": "fb0f2fe880315c872e660c39731a26d8",
+    "hash": "3588d5382f8b2022057bd747bd403ae8",
     "packages": [
         {
             "package": "composer/composer",
             "version": "dev-master",
-            "source-reference": "15ab5868a339bd523de739929fdb0f89a01a6a88"
+            "source-reference": "762f469cd93bfea6da8351bf74ec01ca2b8bc0dd"
         },
         {
             "package": "justinrainbow/json-schema",
@@ -17,24 +17,27 @@
         {
             "package": "symfony/console",
             "version": "dev-master",
-            "source-reference": "f354e1e5d59261ae03c0fc768bfa4043c0e6ab9c",
+            "source-reference": "8c69d3a3e26885cad132a38ab0d7f287fb975296",
             "alias": "2.1.9999999.9999999-dev"
         },
         {
             "package": "symfony/finder",
             "version": "dev-master",
-            "source-reference": "6a0f850cac8cac7a0b33f48d3d3d1514d7ed56f8",
+            "source-reference": "5b8658e52eaf424fe943a5857e2404ce95c3b90e",
             "alias": "2.1.9999999.9999999-dev"
         },
         {
             "package": "symfony/process",
             "version": "dev-master",
-            "source-reference": "9f49693318e1f7824a276da6c6556ff06cd3f25a",
+            "source-reference": "3f95a0126588f00d70e745c1ef96631fb10c3a8e",
             "alias": "2.1.9999999.9999999-dev"
+        },
+        {
+            "package": "twig/twig",
+            "version": "dev-master",
+            "source-reference": "75d97b4a275b90956df554fd7d8d7bc6e3d4ae73"
         }
     ],
-    "packages-dev": null,
-    "aliases": [
-
-    ]
+    "packages-dev": [],
+    "aliases": []
 }

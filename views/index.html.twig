@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>{{ rootPackage.name }} Composer Repository</title>
+    <link rel="stylesheet" type="text/css" href="pirum.css" />
+</head>
+<body>
+
+    <div id="doc" class="yui-t7">
+        <div id="hd">
+            <h1>{{ rootPackage.name }} Composer Repository</h1>
+            <p>{{ rootPackage.description }}</p>
+        </div>
+        <div id="bd">
+            <div class="yui-g">
+                Adding the repository to <em>composer.json</em>:
+                <pre><code>{
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "{{ rootPackage.homepage|replace({'http://': ''}) }}"
+        }
+    ]
+}</code></pre>
+
+                {% for name, package in packages %}
+                    <h3>{{ package.highest.name }}</h3>
+                    <p>{{ package.highest.description }}</p>
+                    <table>
+                        <tr>
+                            <th>License</th>
+                            <td>{{ package.highest.license|join(', ') }}</td>
+                        </tr>
+                        <tr>
+                            <th>Authors</th>
+                            <td>
+                                {% for author in package.highest.authors %}
+                                    {% if author.homepage %}
+                                        <a href="{{ author.homepage }}">{{ author.name }}</a>
+                                    {% else %}
+                                        {{ author.name }}
+                                    {% endif %}
+                                    {%- if not loop.last -%}, {%- endif -%}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Releases</th>
+                            <td>
+                                {% for version in package.versions %}
+                                    {% if version.distType %}
+                                        <a href="{{ version.distUrl }}">{{ version.prettyVersion }}</a>
+                                    {% else %}
+                                        <a href="{{ version.sourceUrl }}">{{ version.prettyVersion }}</a>
+                                    {% endif %}
+                                    {%- if not loop.last -%}, {%- endif -%}
+                                {% endfor %}
+                            </td>
+                        </tr>
+                    </table>
+                {% endfor %}
+            </div>
+        </div>
+        <div id="ft">
+            <p><small>The <em>{{ rootPackage.homepage|replace({'http://': ''}) }}</em> Composer Repository is proudly powered by <a href="https://github.com/composer/satis">Satis</a> {{ SATIS_VERSION }}</small></p>
+        </div>
+    </div>
+
+</body>
+</html>
