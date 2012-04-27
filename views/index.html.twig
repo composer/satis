@@ -2,15 +2,15 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>{{ rootPackage.name }} Composer Repository</title>
-    <link rel="stylesheet" type="text/css" href="pirum.css" />
+    <title>{{ name }} Composer Repository</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
 
     <div id="doc" class="yui-t7">
         <div id="hd">
-            <h1>{{ rootPackage.name }} Composer Repository</h1>
-            <p>{{ rootPackage.description }}</p>
+            <h1>{{ name }} Composer Repository</h1>
+            <p>{{ description }}</p>
         </div>
         <div id="bd">
             <div class="yui-g">
@@ -19,7 +19,7 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "{{ rootPackage.homepage|replace({'http://': ''}) }}"
+            "url": "{{ url|replace({'http://': ''}) }}"
         }
     ]
 }</code></pre>
@@ -36,12 +36,12 @@
                             <th>Authors</th>
                             <td>
                                 {% for author in package.highest.authors %}
-                                    {% if author.homepage %}
+                                    {%- if author.homepage -%}
                                         <a href="{{ author.homepage }}">{{ author.name }}</a>
-                                    {% else %}
+                                    {%- else -%}
                                         {{ author.name }}
-                                    {% endif %}
-                                    {%- if not loop.last -%}, {%- endif -%}
+                                    {%- endif -%}
+                                    {%- if not loop.last -%}, {% endif -%}
                                 {% endfor %}
                             </td>
                         </tr>
@@ -49,12 +49,12 @@
                             <th>Releases</th>
                             <td>
                                 {% for version in package.versions %}
-                                    {% if version.distType %}
+                                    {%- if version.distType -%}
                                         <a href="{{ version.distUrl }}">{{ version.prettyVersion }}</a>
-                                    {% else %}
+                                    {%- else -%}
                                         <a href="{{ version.sourceUrl }}">{{ version.prettyVersion }}</a>
-                                    {% endif %}
-                                    {%- if not loop.last -%}, {%- endif -%}
+                                    {%- endif -%}
+                                    {%- if not loop.last -%}, {% endif -%}
                                 {% endfor %}
                             </td>
                         </tr>
@@ -63,7 +63,7 @@
             </div>
         </div>
         <div id="ft">
-            <p><small>The <em>{{ rootPackage.homepage|replace({'http://': ''}) }}</em> Composer Repository is proudly powered by <a href="https://github.com/composer/satis">Satis</a> {{ SATIS_VERSION }}</small></p>
+            <p><small>The <em>{{ url|replace({'http://': ''}) }}</em> Composer Repository is proudly powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }}</small></p>
         </div>
     </div>
 

@@ -155,14 +155,25 @@ EOT
 
         $mappedPackages = $this->getMappedPackageList($packages);
 
-        $output->writeln('<info>Writing index.html, pirum.css</info>');
+        $name = $rootPackage->getPrettyName();
+        if ($name === '__root__') {
+            $name = 'A';
+            $output->writeln('Define a "name" property in your json config to name the repository');
+        }
+
+        if (!$rootPackage->getHomepage()) {
+            $output->writeln('Define a "homepage" property in your json config to configure the repository URL');
+        }
+
+        $output->writeln('<info>Writing web view</info>');
         $vars = array(
-            'rootPackage'   => $rootPackage,
+            'name'          => $name,
+            'url'           => $rootPackage->getHomepage(),
+            'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
-            'SATIS_VERSION' => Satis::VERSION,
         );
         file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
-        copy($templateDir.'/pirum.css', $directory.'/pirum.css');
+        copy($templateDir.'/styles.css', $directory.'/styles.css');
     }
 
     private function getMappedPackageList(array $packages)
