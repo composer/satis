@@ -138,6 +138,7 @@ EOT
 
     private function dumpJson(array $packages, OutputInterface $output, $filename)
     {
+        $repo = array();
         $dumper = new ArrayDumper;
         foreach ($packages as $package) {
             $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
