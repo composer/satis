@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex,nofollow" />
     <title>{{ name }} Composer Repository</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
@@ -10,7 +11,9 @@
     <div id="doc" class="yui-t7">
         <div id="hd">
             <h1>{{ name }} Composer Repository</h1>
-            <p>{{ description }}</p>
+            {% if description %}
+                <p>{{ description }}</p>
+            {% endif %}
         </div>
         <div id="bd">
             <div class="yui-g">
@@ -19,14 +22,16 @@
     "repositories": [
         {
             "type": "composer",
-            "url": "{{ url|replace({'http://': ''}) }}"
+            "url": "{{ url }}"
         }
     ]
 }</code></pre>
 
                 {% for name, package in packages %}
                     <h3>{{ package.highest.name }}</h3>
-                    <p>{{ package.highest.description }}</p>
+                    {% if package.highest.description %}
+                        <p>{{ package.highest.description }}</p>
+                    {% endif %}
                     <table>
                         {% if package.highest.homepage %}
                             <tr>
@@ -34,23 +39,27 @@
                                 <td><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></td>
                             </tr>
                         {% endif %}
-                        <tr>
-                            <th>License</th>
-                            <td>{{ package.highest.license|join(', ') }}</td>
-                        </tr>
-                        <tr>
-                            <th>Authors</th>
-                            <td>
-                                {% for author in package.highest.authors %}
-                                    {%- if author.homepage -%}
-                                        <a href="{{ author.homepage }}">{{ author.name }}</a>
-                                    {%- else -%}
-                                        {{ author.name }}
-                                    {%- endif -%}
-                                    {%- if not loop.last -%}, {% endif -%}
-                                {% endfor %}
-                            </td>
-                        </tr>
+                        {% if package.highest.license %}
+                            <tr>
+                                <th>License</th>
+                                <td>{{ package.highest.license|join(', ') }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if package.highest.authors %}
+                            <tr>
+                                <th>Authors</th>
+                                <td>
+                                    {% for author in package.highest.authors %}
+                                        {%- if author.homepage -%}
+                                            <a href="{{ author.homepage }}">{{ author.name }}</a>
+                                        {%- else -%}
+                                            {{ author.name }}
+                                        {%- endif -%}
+                                        {%- if not loop.last -%}, {% endif -%}
+                                    {% endfor %}
+                                </td>
+                            </tr>
+                        {% endif %}
                         <tr>
                             <th>Releases</th>
                             <td>
@@ -69,7 +78,7 @@
             </div>
         </div>
         <div id="ft">
-            <p><small>The <em>{{ url|replace({'http://': ''}) }}</em> Composer Repository is proudly powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }}</small></p>
+            <p><small>This Composer Repository is proudly powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }}</small></p>
         </div>
     </div>
 
