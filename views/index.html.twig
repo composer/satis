@@ -28,6 +28,12 @@
                     <h3>{{ package.highest.name }}</h3>
                     <p>{{ package.highest.description }}</p>
                     <table>
+                        {% if package.highest.homepage %}
+                            <tr>
+                                <th>Homepage</th>
+                                <td><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></td>
+                            </tr>
+                        {% endif %}
                         <tr>
                             <th>License</th>
                             <td>{{ package.highest.license|join(', ') }}</td>
