@@ -3,3 +3,4 @@
 /.buildpath
 /satis.phar
 /vendor
+phpunit.xml
