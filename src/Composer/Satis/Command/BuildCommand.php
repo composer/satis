@@ -66,6 +66,7 @@ EOT
         }
         $config = $file->read();
 
+        // check if we need a local stylesheet
         $stylesheet = $input->getOption('stylesheet');
         if (!empty($stylesheet)) {
             if (!file_exists($stylesheet) || !is_readable($stylesheet)) {
