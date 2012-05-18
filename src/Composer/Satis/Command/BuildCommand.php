@@ -216,7 +216,7 @@ EOT
             $localStyles = PHP_EOL
                 . PHP_EOL . '/* local style sheet */' . PHP_EOL
                 . file_get_contents($stylesheet);
-            file_put_contents($directory . '/styles.css', $localStyles, FILE_APPEND);
+            file_put_contents($targetStyles, $localStyles, FILE_APPEND);
         }
     }
 
