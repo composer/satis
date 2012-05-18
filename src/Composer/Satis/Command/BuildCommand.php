@@ -41,6 +41,7 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
                 new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
+                new InputOption('--stylesheet', null, InputOption::VALUE_NONE, "Local stylesheet to add")
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file and
@@ -65,6 +66,13 @@ EOT
         }
         $config = $file->read();
 
+        $stylesheet = $input->getOption('stylesheet');
+        if (!empty($stylesheet)) {
+            if (!file_exists($stylesheet) || !is_readable($stylesheet)) {
+                throw new \RuntimeException(sprintf("Could not open your stylesheet '%s'", $stylesheet));
+            }
+        }
+
         // disable packagist by default
         $config['repositories'][] = array('packagist' => false);
 
@@ -81,7 +89,7 @@ EOT
         $filename = $input->getArgument('build-dir').'/packages.json';
         $rootPackage = $composer->getPackage();
         $this->dumpJson($packages, $output, $filename);
-        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'), $stylesheet);
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
@@ -147,7 +155,7 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $stylesheet = '')
     {
         $templateDir = __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -173,7 +181,15 @@ EOT
             'packages'      => $mappedPackages,
         );
         file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
+
         copy($templateDir.'/styles.css', $directory.'/styles.css');
+
+        if (!empty($stylesheet)) {
+            $localStyles = PHP_EOL
+                . PHP_EOL . '/* local style sheet */' . PHP_EOL
+                . file_get_contents($stylesheet);
+            file_put_contents($directory . '/styles.css', $localStyles, FILE_APPEND);
+        }
     }
 
     private function getMappedPackageList(array $packages)
