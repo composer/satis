@@ -41,7 +41,8 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
                 new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
-                new InputOption('--stylesheet', null, InputOption::VALUE_NONE, "Local stylesheet to add")
+                new InputOption('--stylesheet', null, InputOption::VALUE_NONE, "Local stylesheet to add"),
+                new InputOption('--dynamic', null, InputOption::VALUE_OPTIONAL, "Output an 'index.php' instead of 'index.html'", 'no')
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file and
@@ -74,6 +75,12 @@ EOT
             }
         }
 
+        // check if we should output an index.php instead
+        $dynamic = strtolower($input->getOption('dynamic'));
+        if (!in_array($dynamic, array('yes', 'no'))) {
+            throw new \InvalidArgumentException("Please use --dynamic=yes|no");
+        }
+
         // disable packagist by default
         $config['repositories'][] = array('packagist' => false);
 
@@ -90,7 +97,14 @@ EOT
         $filename = $input->getArgument('build-dir').'/packages.json';
         $rootPackage = $composer->getPackage();
         $this->dumpJson($packages, $output, $filename);
-        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'), $stylesheet);
+        $this->dumpWeb(
+            $packages,
+            $output,
+            $rootPackage,
+            $input->getArgument('build-dir'),
+            $stylesheet,
+            $dynamic
+        );
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
@@ -156,8 +170,14 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $stylesheet = '')
-    {
+    private function dumpWeb(
+        array $packages,
+        OutputInterface $output,
+        PackageInterface $rootPackage,
+        $directory,
+        $stylesheet = '',
+        $dynamic
+    ) {
         $templateDir = __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
@@ -181,9 +201,16 @@ EOT
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
         );
-        file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
 
-        copy($templateDir.'/styles.css', $directory.'/styles.css');
+
+        $targetPage = $directory . '/index.html';
+        if ($dynamic == 'yes') {
+            $targetPage = $directory . '/index.php';
+        }
+        file_put_contents($targetPage, $twig->render('index.html.twig', $vars));
+
+        $targetStyles = $directory . '/styles.css';
+        copy($templateDir.'/styles.css', $targetStyles);
 
         if (!empty($stylesheet)) {
             $localStyles = PHP_EOL
