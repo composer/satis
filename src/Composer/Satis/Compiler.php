@@ -13,7 +13,6 @@
 namespace Composer\Satis;
 
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Process\Process;
 
 /**
  * The Compiler class compiles satis into a phar
