@@ -41,6 +41,8 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
                 new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
+                new InputOption('no-html-view', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputOption('template', null, InputOption::VALUE_REQUIRED, ':ocation of a custom Twig template for HTML view', null),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file and
@@ -81,7 +83,10 @@ EOT
         $filename = $input->getArgument('build-dir').'/packages.json';
         $rootPackage = $composer->getPackage();
         $this->dumpJson($packages, $output, $filename);
-        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+
+        if (!$input->getOption('no-html-view')) {
+            $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'), $input->getOption('template'));
+        }
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
@@ -147,10 +152,13 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null)
     {
-        $templateDir = __DIR__.'/../../../../views';
-        $loader = new \Twig_Loader_Filesystem($templateDir);
+        if (!$template) {
+            $template = __DIR__.'/../../../../views/index.html.twig';
+        }
+
+        $loader = new \Twig_Loader_Filesystem(dirname($template));
         $twig = new \Twig_Environment($loader);
 
         $mappedPackages = $this->getMappedPackageList($packages);
@@ -166,14 +174,15 @@ EOT
         }
 
         $output->writeln('<info>Writing web view</info>');
-        $vars = array(
+
+        $content = $twig->render(basename($template), array(
             'name'          => $name,
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
-        );
-        file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
-        copy($templateDir.'/styles.css', $directory.'/styles.css');
+        ));
+
+        file_put_contents($directory.'/index.html', $content);
     }
 
     private function getMappedPackageList(array $packages)
