@@ -42,7 +42,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
                 new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
                 new InputOption('no-html-view', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
-                new InputOption('template', null, InputOption::VALUE_REQUIRED, ':ocation of a custom Twig template for HTML view', null),
+                new InputOption('template', null, InputOption::VALUE_REQUIRED, 'Location of a custom Twig template for HTML view', null),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file and
