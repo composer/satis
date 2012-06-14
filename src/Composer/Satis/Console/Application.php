@@ -15,12 +15,9 @@ namespace Composer\Satis\Console;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Output\ConsoleOutput;
 use Composer\Satis\Command;
-use Composer\Console\Application as ComposerApplication;
 use Composer\IO\ConsoleIO;
 use Composer\Factory;
-use Composer\Json\JsonFile;
 use Composer\Util\ErrorHandler;
 use Composer\Satis\Satis;
 
