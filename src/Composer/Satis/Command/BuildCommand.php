@@ -14,18 +14,14 @@ namespace Composer\Satis\Command;
 
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Command\Command;
 use Composer\Composer;
-use Composer\Console\Application as ComposerApplication;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Package\PackageInterface;
 use Composer\Json\JsonFile;
-use Composer\IO\IOInterface;
-use Composer\IO\ConsoleIO;
 use Composer\Satis\Satis;
 
 /**
@@ -187,6 +183,7 @@ EOT
                 'versions' => $this->getDescSortedVersions($packages),
             );
         }
+
         return $mappedPackages;
     }
 
@@ -196,6 +193,7 @@ EOT
         foreach ($packages as $package) {
             $groupedPackages[$package->getName()][] = $package;
         }
+
         return $groupedPackages;
     }
 
@@ -207,6 +205,7 @@ EOT
                 $highestVersion = $package;
             }
         }
+
         return $highestVersion;
     }
 
