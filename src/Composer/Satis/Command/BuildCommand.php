@@ -129,6 +129,7 @@ EOT
         }
 
         asort($selected, SORT_STRING);
+
         return $selected;
     }
 
