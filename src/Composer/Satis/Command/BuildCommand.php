@@ -15,6 +15,7 @@ namespace Composer\Satis\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Command\Command;
 use Composer\Composer;
 use Composer\Config;
@@ -38,6 +39,7 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
                 new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
+                new InputOption('no-html-view', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file and
@@ -76,9 +78,12 @@ EOT
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
 
         $filename = $input->getArgument('build-dir').'/packages.json';
-        $rootPackage = $composer->getPackage();
         $this->dumpJson($packages, $output, $filename);
-        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+
+        if (!$input->getOption('no-html-view')) {
+            $rootPackage = $composer->getPackage();
+            $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+        }
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
