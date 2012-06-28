@@ -179,14 +179,15 @@ EOT
         }
 
         $output->writeln('<info>Writing web view</info>');
-        $vars = array(
+
+        $content = $twig->render('index.html.twig', array(
             'name'          => $name,
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
-        );
-        file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
-        copy($templateDir.'/styles.css', $directory.'/styles.css');
+        ));
+
+        file_put_contents($directory.'/index.html', $content);
     }
 
     private function getMappedPackageList(array $packages)
