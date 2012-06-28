@@ -35,7 +35,7 @@ class BuildCommand extends Command
     {
         $this
             ->setName('build')
-            ->setDescription('Builds a repository out of a composer json file')
+            ->setDescription('Builds a composer repository out of a json file')
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
