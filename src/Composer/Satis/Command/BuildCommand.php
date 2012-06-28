@@ -37,13 +37,14 @@ class BuildCommand extends Command
             ->setName('build')
             ->setDescription('Builds a repository out of a composer json file')
             ->setDefinition(array(
-                new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
-                new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
-                new InputOption('no-html-view', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
+                new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
+                new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
             ))
             ->setHelp(<<<EOT
-The <info>build</info> command reads the given json file and
-outputs a composer repository in the given build-dir.
+The <info>build</info> command reads the given json file
+(satis.json is used by default) and outputs a composer
+repository in the given output-dir.
 EOT
             )
         ;
@@ -77,12 +78,20 @@ EOT
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
 
-        $filename = $input->getArgument('build-dir').'/packages.json';
+        if (!$outputDir = $input->getArgument('output-dir')) {
+            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+        }
+
+        if ($htmlView = !$input->getOption('no-html-output')) {
+            $htmlView = isset($config['output-html']) ? $config['output-html'] : true;
+        }
+
+        $filename = $outputDir.'/packages.json';
         $this->dumpJson($packages, $output, $filename);
 
-        if (!$input->getOption('no-html-view')) {
+        if ($htmlView) {
             $rootPackage = $composer->getPackage();
-            $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir);
         }
     }
 
