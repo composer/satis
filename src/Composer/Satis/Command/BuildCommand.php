@@ -17,6 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Command\Command;
 use Composer\Composer;
+use Composer\Config;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
@@ -62,7 +63,7 @@ EOT
         $config = $file->read();
 
         // disable packagist by default
-        $config['repositories'][] = array('packagist' => false);
+        unset(Config::$defaultRepositories['packagist']);
 
         // fetch options
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
