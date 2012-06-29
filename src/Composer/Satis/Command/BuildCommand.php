@@ -83,7 +83,7 @@ EOT
         }
 
         if ($htmlView = !$input->getOption('no-html-output')) {
-            $htmlView = isset($config['output-html']) ? $config['output-html'] : true;
+            $htmlView = isset($config['output-html']) ? ('false' != $config['output-html']) : true;
         }
 
         $filename = $outputDir.'/packages.json';
