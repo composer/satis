@@ -1,0 +1,10 @@
+{
+    "name": "Test",
+    "homepage": "http://example.org",
+    "repositories": [
+        { "packagist": true}
+    ],
+    "require": {
+        "composer/composer": "*"
+    }
+}
