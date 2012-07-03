@@ -9,9 +9,8 @@ to their version constraints) packages to a Composer Repository file.
 Usage
 -----
 
-- Clone: `git clone http://github.com/composer/satis.git`
 - Download Composer: `wget http://getcomposer.org/composer.phar`
-- Install dependencies: `php composer.phar install`
+- Install satis: `php composer.phar create-project composer/satis`
 - Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
 Read the more detailed instructions in the 
