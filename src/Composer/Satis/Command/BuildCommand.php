@@ -15,6 +15,7 @@ namespace Composer\Satis\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Command\Command;
 use Composer\Composer;
 use Composer\Config;
@@ -34,14 +35,16 @@ class BuildCommand extends Command
     {
         $this
             ->setName('build')
-            ->setDescription('Builds a repository out of a composer json file')
+            ->setDescription('Builds a composer repository out of a json file')
             ->setDefinition(array(
-                new InputArgument('file', InputArgument::REQUIRED, 'Json file to use'),
-                new InputArgument('build-dir', InputArgument::REQUIRED, 'Location where to output built files'),
+                new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
+                new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
+                new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
             ))
             ->setHelp(<<<EOT
-The <info>build</info> command reads the given json file and
-outputs a composer repository in the given build-dir.
+The <info>build</info> command reads the given json file
+(satis.json is used by default) and outputs a composer
+repository in the given output-dir.
 EOT
             )
         ;
@@ -75,10 +78,21 @@ EOT
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
 
-        $filename = $input->getArgument('build-dir').'/packages.json';
-        $rootPackage = $composer->getPackage();
+        if (!$outputDir = $input->getArgument('output-dir')) {
+            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+        }
+
+        if ($htmlView = !$input->getOption('no-html-output')) {
+            $htmlView = !isset($config['output-html']) || $config['output-html'];
+        }
+
+        $filename = $outputDir.'/packages.json';
         $this->dumpJson($packages, $output, $filename);
-        $this->dumpWeb($packages, $output, $rootPackage, $input->getArgument('build-dir'));
+
+        if ($htmlView) {
+            $rootPackage = $composer->getPackage();
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir);
+        }
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
@@ -165,14 +179,15 @@ EOT
         }
 
         $output->writeln('<info>Writing web view</info>');
-        $vars = array(
+
+        $content = $twig->render('index.html.twig', array(
             'name'          => $name,
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
-        );
-        file_put_contents($directory.'/index.html', $twig->render('index.html.twig', $vars));
-        copy($templateDir.'/styles.css', $directory.'/styles.css');
+        ));
+
+        file_put_contents($directory.'/index.html', $content);
     }
 
     private function getMappedPackageList(array $packages)
