@@ -90,8 +90,8 @@ EOT
             foreach ($packages as $package) {
                 if ($this->isDownloadable($package->getDistType())) {
                     $packagePath = $this->download($package, $outputDir.'/files');
-                    $distUrl     = isset($config['homepage']) ? $config['homepage'] : $outputDir;
-                    $package->setDistUrl($distUrl.'/files/'.$packagePath);
+                    $distUrl     = isset($config['homepage']) ? $config['homepage'] : $outputDir.'/';
+                    $package->setDistUrl($distUrl.'files/'.$packagePath);
                 }
             }
         }
