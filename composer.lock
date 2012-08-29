@@ -1,5 +1,5 @@
 {
-    "hash": "3588d5382f8b2022057bd747bd403ae8",
+    "hash": "de631ea39e3b50831415ac39a65af822",
     "packages": [
         {
             "package": "composer/composer",
@@ -10,8 +10,8 @@
         {
             "package": "composer/composer",
             "version": "dev-master",
-            "source-reference": "890e60c6144c44f486e9f87c71b900360a6a1f42",
-            "commit-date": "1340963106"
+            "source-reference": "781e0d4f5527bc7e72246b1190badf6e1cb90881",
+            "commit-date": "1346247892"
         },
         {
             "package": "justinrainbow/json-schema",
@@ -23,52 +23,26 @@
         },
         {
             "package": "symfony/console",
-            "version": "dev-master",
-            "alias-pretty-version": "2.1.x-dev",
-            "alias-version": "2.1.9999999.9999999-dev"
-        },
-        {
-            "package": "symfony/console",
-            "version": "dev-master",
-            "source-reference": "808bf42b4b74c12e6c6a6a9750688035f1c49f9c",
-            "commit-date": "1340543161"
+            "version": "v2.1.0-RC2"
         },
         {
             "package": "symfony/finder",
-            "version": "dev-master",
-            "alias-pretty-version": "2.1.x-dev",
-            "alias-version": "2.1.9999999.9999999-dev"
-        },
-        {
-            "package": "symfony/finder",
-            "version": "dev-master",
-            "source-reference": "v2.1.0-BETA1",
-            "commit-date": "1340118982"
+            "version": "v2.1.0-RC2"
         },
         {
             "package": "symfony/process",
-            "version": "dev-master",
-            "alias-pretty-version": "2.1.x-dev",
-            "alias-version": "2.1.9999999.9999999-dev"
-        },
-        {
-            "package": "symfony/process",
-            "version": "dev-master",
-            "source-reference": "v2.1.0-BETA1",
-            "commit-date": "1337882028"
+            "version": "v2.1.0-RC2"
         },
         {
             "package": "twig/twig",
-            "version": "dev-master",
-            "source-reference": "73da773aaad0f97f2e967ec8241b8adf7b1e03d2",
-            "commit-date": "1340890758"
+            "version": "v1.9.2"
         }
     ],
     "packages-dev": null,
     "aliases": [
 
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "beta",
     "stability-flags": {
         "composer/composer": 20
     }

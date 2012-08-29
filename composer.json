@@ -27,5 +27,6 @@
     },
     "autoload": {
         "psr-0": { "Composer\\Satis": "src/" }
-    }
+    },
+    "minimum-stability": "beta"
 }
