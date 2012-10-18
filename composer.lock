@@ -7,12 +7,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer",
-                "reference": "fa89ef75e42392c40157eb6883795f123ff66435"
+                "reference": "cf0753e06283d10cfc56da3ed312c4f6fa10c3b7"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/composer/composer/zipball/fa89ef75e42392c40157eb6883795f123ff66435",
-                "reference": "fa89ef75e42392c40157eb6883795f123ff66435",
+                "url": "https://github.com/composer/composer/zipball/cf0753e06283d10cfc56da3ed312c4f6fa10c3b7",
+                "reference": "cf0753e06283d10cfc56da3ed312c4f6fa10c3b7",
                 "shasum": ""
             },
             "require": {
@@ -27,7 +27,7 @@
                 "ext-zip": "Enabling the zip extension allows you to unzip archives, and allows gzip compression of all internet traffic",
                 "ext-openssl": "Enabling the openssl extension allows you to access https URLs for repositories and packages"
             },
-            "time": "1350575126",
+            "time": "1350577120",
             "bin": [
                 "bin/composer"
             ],
@@ -218,23 +218,23 @@
         },
         {
             "name": "symfony/process",
-            "version": "v2.1.2",
+            "version": "v2.1.1",
             "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process",
-                "reference": "v2.1.2"
+                "reference": "v2.1.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/symfony/Process/zipball/v2.1.2",
-                "reference": "v2.1.2",
+                "url": "https://github.com/symfony/Process/zipball/v2.1.1",
+                "reference": "v2.1.1",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
-            "time": "2012-09-18 22:37:29",
+            "time": "2012-08-30 05:49:05",
             "type": "library",
             "extra": {
                 "branch-alias": {
