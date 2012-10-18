@@ -7,27 +7,27 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer",
-                "reference": "e188f69a0ff2c68c78ad352a17d971c557bfc0e2"
+                "reference": "fa89ef75e42392c40157eb6883795f123ff66435"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/composer/composer/zipball/e188f69a0ff2c68c78ad352a17d971c557bfc0e2",
-                "reference": "e188f69a0ff2c68c78ad352a17d971c557bfc0e2",
+                "url": "https://github.com/composer/composer/zipball/fa89ef75e42392c40157eb6883795f123ff66435",
+                "reference": "fa89ef75e42392c40157eb6883795f123ff66435",
                 "shasum": ""
             },
             "require": {
                 "justinrainbow/json-schema": "1.1.*",
                 "seld/jsonlint": "1.*",
                 "php": ">=5.3.2",
-                "symfony/console": "2.1.*",
                 "symfony/finder": "2.1.*",
-                "symfony/process": "2.1.*"
+                "symfony/console": "2.1.*@dev",
+                "symfony/process": "2.1.1"
             },
             "suggest": {
                 "ext-zip": "Enabling the zip extension allows you to unzip archives, and allows gzip compression of all internet traffic",
                 "ext-openssl": "Enabling the openssl extension allows you to access https URLs for repositories and packages"
             },
-            "time": "1349255924",
+            "time": "1350575126",
             "bin": [
                 "bin/composer"
             ],
@@ -265,22 +265,22 @@
         },
         {
             "name": "twig/twig",
-            "version": "v1.10.0",
+            "version": "v1.10.2",
             "source": {
                 "type": "git",
                 "url": "git://github.com/fabpot/Twig.git",
-                "reference": "v1.10.0"
+                "reference": "v1.10.2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/fabpot/Twig/zipball/v1.10.0",
-                "reference": "v1.10.0",
+                "url": "https://github.com/fabpot/Twig/zipball/v1.10.2",
+                "reference": "v1.10.2",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.2.4"
             },
-            "time": "2012-09-28 20:11:39",
+            "time": "2012-10-15 01:23:34",
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -313,9 +313,7 @@
             ]
         }
     ],
-    "packages-dev": [
-
-    ],
+    "packages-dev": null,
     "aliases": [
 
     ],
