@@ -10,7 +10,7 @@ Usage
 -----
 
 - Download Composer: `wget http://getcomposer.org/composer.phar`
-- Install satis: `php composer.phar create-project composer/satis`
+- Install satis: `php composer.phar create-project composer/satis --stability=dev`
 - Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
 Read the more detailed instructions in the 
