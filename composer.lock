@@ -7,12 +7,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer",
-                "reference": "224934831dbe1a8985556c3b161823d6afbffd95"
+                "reference": "e7f4768668ecec238f45ef881c4db8b5e77bbb74"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/composer/composer/archive/224934831dbe1a8985556c3b161823d6afbffd95.zip",
-                "reference": "224934831dbe1a8985556c3b161823d6afbffd95",
+                "url": "https://github.com/composer/composer/archive/e7f4768668ecec238f45ef881c4db8b5e77bbb74.zip",
+                "reference": "e7f4768668ecec238f45ef881c4db8b5e77bbb74",
                 "shasum": ""
             },
             "require": {
@@ -27,7 +27,7 @@
                 "ext-zip": "Enabling the zip extension allows you to unzip archives, and allows gzip compression of all internet traffic",
                 "ext-openssl": "Enabling the openssl extension allows you to access https URLs for repositories and packages"
             },
-            "time": "2012-12-05 18:20:52",
+            "time": "2012-12-08 16:47:44",
             "bin": [
                 "bin/composer"
             ],
@@ -43,7 +43,7 @@
                     "Composer": "src/"
                 }
             },
-            "notification-url": "http://packagist.org/downloads/",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -244,18 +244,18 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process",
-                "reference": "6ec0a1493b6bc36c196a86382839df470a703bf6"
+                "reference": "a38d32ff44572e478bbaf5b295de169c47167626"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/symfony/Process/archive/6ec0a1493b6bc36c196a86382839df470a703bf6.zip",
-                "reference": "6ec0a1493b6bc36c196a86382839df470a703bf6",
+                "url": "https://github.com/symfony/Process/archive/a38d32ff44572e478bbaf5b295de169c47167626.zip",
+                "reference": "a38d32ff44572e478bbaf5b295de169c47167626",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
-            "time": "2012-11-29 10:32:45",
+            "time": "2012-12-06 13:11:58",
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -268,7 +268,7 @@
                     "Symfony\\Component\\Process\\": ""
                 }
             },
-            "notification-url": "http://packagist.org/downloads/",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
