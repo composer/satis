@@ -78,9 +78,9 @@ EOT
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
 
-        if (!$outputDir = $input->getArgument('output-dir')) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
-        }
+        $outputDir = $input->getArgument('output-dir')
+            ?: (isset($config['output-dir']) ? $config['output-dir'] : null)
+            ?: getcwd();
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
