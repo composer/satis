@@ -45,6 +45,26 @@ class BuildCommand extends Command
 The <info>build</info> command reads the given json file
 (satis.json is used by default) and outputs a composer
 repository in the given output-dir.
+
+The json config file accepts the following keys:
+
+- "repositories": defines which repositories are searched
+  for packages.
+- "output-dir": where to output the repository files
+  if not provided as an argument when calling build.
+- "require-all": boolean, if true, all packages present
+  in the configured repositories will be present in the
+  dumped satis repository.
+- "require": if you do not want to dump all packages,
+  you can explicitly require them by name and version.
+- "config": all config options from composer, see
+  http://getcomposer.org/doc/04-schema.md#config
+- "output-html": boolean, controls whether the repository
+  has an html page as well or not.
+- "name": for html output, this defines the name of the
+  repository.
+- "homepage": for html output, this defines the home URL
+  of the repository (where you will host it).
 EOT
             )
         ;
@@ -75,12 +95,16 @@ EOT
             $requireAll = true;
         }
 
-        $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
-
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
         }
+
+        if (null === $outputDir) {
+            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
+        }
+
+        $composer = $this->getApplication()->getComposer(true, $config);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
