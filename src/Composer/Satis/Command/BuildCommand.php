@@ -134,7 +134,13 @@ EOT
 
         // run over all packages and store matching ones
         $output->writeln('<info>Scanning packages</info>');
-        foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
+
+        $repositories = $composer->getRepositoryManager()->getRepositories();
+        $io = $this->getApplication()->getIO();
+
+        foreach ($repositories as $idx => $repository) {
+            $io->setPrefix(sprintf('[% 2d/% 2d] ', $idx+1, count($repositories)));
+
             foreach ($repository->getPackages() as $package) {
                 // skip aliases
                 if ($package instanceof AliasPackage) {
