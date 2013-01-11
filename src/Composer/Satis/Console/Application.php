@@ -16,7 +16,7 @@ use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Composer\Satis\Command;
-use Composer\IO\ConsoleIO;
+use Composer\Satis\IO\ConsoleIO;
 use Composer\Factory;
 use Composer\Util\ErrorHandler;
 use Composer\Satis\Satis;
@@ -44,6 +44,14 @@ class Application extends BaseApplication
         $this->io = new ConsoleIO($input, $output, $this->getHelperSet());
 
         return parent::doRun($input, $output);
+    }
+
+    /**
+     * @return ConsoleIO
+     */
+    public function getIO()
+    {
+        return $this->io;
     }
 
     /**
