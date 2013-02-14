@@ -40,6 +40,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputOption('html-output-template', null, InputOption::VALUE_OPTIONAL, 'Path of the Twig template to use for rendering the HTML output'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -114,8 +115,9 @@ EOT
         $this->dumpJson($packages, $output, $filename);
 
         if ($htmlView) {
+            $template = $input->getOption('html-output-template');
             $rootPackage = $composer->getPackage();
-            $this->dumpWeb($packages, $output, $rootPackage, $outputDir);
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $template);
         }
     }
 
@@ -184,10 +186,17 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template)
     {
-        $templateDir = __DIR__.'/../../../../views';
-        $loader = new \Twig_Loader_Filesystem($templateDir);
+        if ($template) {
+            $template = file_get_contents($template);
+            $loader = new \Twig_Loader_String();
+        } else {
+            $template = 'index.html.twig';
+            $templateDir = __DIR__.'/../../../../views';
+            $loader = new \Twig_Loader_Filesystem($templateDir);
+        }
+
         $twig = new \Twig_Environment($loader);
 
         $mappedPackages = $this->getMappedPackageList($packages);
@@ -204,7 +213,7 @@ EOT
 
         $output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render('index.html.twig', array(
+        $content = $twig->render($template, array(
             'name'          => $name,
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
