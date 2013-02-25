@@ -192,7 +192,7 @@ EOT
 
         $output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
 
-        $format = !isset($config['archive']['format'])?'tar':$config['archive']['format'];
+        $format = !isset($config['archive']['format'])?'zip':$config['archive']['format'];
 
         $endpoint = !isset($config['archive']['prefix-url'])?$config['homepage']:$config['archive']['prefix-url'];
 
