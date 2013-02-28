@@ -202,6 +202,8 @@ EOT
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig);
 
+        $archiveManager->disableReplace();
+
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $name => $package) {
             $path    = $archiveManager->archive($package, $format, $directory);
