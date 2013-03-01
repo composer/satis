@@ -110,6 +110,16 @@ EOT
             $htmlView = !isset($config['output-html']) || $config['output-html'];
         }
 
+        if ($this->isDownloadEnabled($config)) {
+            foreach ($packages as $package) {
+                if ($this->isDownloadable($package->getDistType())) {
+                    $packagePath = $this->download($package, $outputDir.'/files');
+                    $distUrl     = isset($config['homepage']) ? $config['homepage'] : $outputDir.'/';
+                    $package->setDistUrl($distUrl.'files/'.$packagePath);
+                }
+            }
+        }
+
         $filename = $outputDir.'/packages.json';
         $this->dumpJson($packages, $output, $filename);
 
@@ -117,6 +127,24 @@ EOT
             $rootPackage = $composer->getPackage();
             $this->dumpWeb($packages, $output, $rootPackage, $outputDir);
         }
+    }
+
+    private function isDownloadEnabled($config)
+    {
+        return isset($config['download-files']) && true === $config['download-files'];
+    }
+
+    private function isDownloadable($distType)
+    {
+        return in_array($distType, array('zip', 'tar', 'phar', 'file'));
+    }
+
+    private function download(PackageInterface $package, $outputDir)
+    {
+        $dir = $outputDir.'/'.$package->getPrettyName();
+        $dm = $this->getApplication()->getComposer()->getDownloadManager();
+        $dm->getDownloader('file')->download($package, $dir);
+        return $package->getPrettyName().'/'.pathinfo($package->getDistUrl(), PATHINFO_BASENAME);
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
