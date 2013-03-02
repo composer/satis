@@ -202,10 +202,13 @@ EOT
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig);
 
-        $archiveManager->disableReplace();
+        $archiveManager->setOverwriteFiles(false);
 
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $name => $package) {
+
+            $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
+
             $path    = $archiveManager->archive($package, $format, $directory);
             $archive = basename($path);
             $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
