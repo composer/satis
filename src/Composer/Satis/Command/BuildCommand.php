@@ -207,6 +207,11 @@ EOT
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $name => $package) {
 
+            if (true === $config['archive']['skip-dev'] && true === $package->isDev()) {
+                $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
+                continue;
+            }
+
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
             $path    = $archiveManager->archive($package, $format, $directory);
