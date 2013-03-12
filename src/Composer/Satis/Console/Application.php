@@ -27,7 +27,7 @@ use Composer\Satis\Satis;
 class Application extends BaseApplication
 {
     protected $io;
-    protected $composer;
+    protected $composer = array();
 
     public function __construct()
     {
@@ -51,16 +51,21 @@ class Application extends BaseApplication
      */
     public function getComposer($required = true, $config = null)
     {
-        if (null === $this->composer) {
+        if (is_null($config)) {
+            $key = 'null';
+        } else {
+            $key = serialize($config);
+        }
+        if (!array_key_exists($key, $this->composer)) {
             try {
-                $this->composer = Factory::create($this->io, $config);
+                $this->composer[$key] = Factory::create($this->io, $config);
             } catch (\InvalidArgumentException $e) {
                 $this->io->write($e->getMessage());
                 exit(1);
             }
         }
 
-        return $this->composer;
+        return $this->composer[$key];
     }
 
     /**
