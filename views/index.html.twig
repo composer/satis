@@ -75,6 +75,21 @@
                                 {% endfor %}
                             </td>
                         </tr>
+                        <tr>
+                            <th>Used in</th>
+                            <td>
+                                {% for dep_name, dep in dependency %}
+<!--                                     {{ dep_name }} -->
+                                    {% if (dep_name == name) %}
+                                    <ul>
+                                        {% for dk, d in dep%}
+                                        <li>{{ dk }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                {% endfor %}
+                            </td>
+                        </tr>
                     </table>
                 {% endfor %}
             </div>
