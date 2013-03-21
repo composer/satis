@@ -12,6 +12,7 @@
 
 namespace Composer\Satis\Command;
 
+use Composer\Repository\InvalidRepositoryException;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -135,28 +136,32 @@ EOT
         // run over all packages and store matching ones
         $output->writeln('<info>Scanning packages</info>');
         foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
-            foreach ($repository->getPackages() as $package) {
-                // skip aliases
-                if ($package instanceof AliasPackage) {
-                    continue;
-                }
-
-                $name = $package->getName();
-                $version = $package->getVersion();
-
-                // skip non-matching packages
-                if (!$requireAll && (!isset($targets[$name]) || !$targets[$name]['constraint']->matches(new VersionConstraint('=', $version)))) {
-                    continue;
-                }
-
-                // add matching package if not yet selected
-                if (!isset($selected[$package->getUniqueName()])) {
-                    if ($verbose) {
-                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+            try {
+                foreach ($repository->getPackages() as $package) {
+                    // skip aliases
+                    if ($package instanceof AliasPackage) {
+                        continue;
                     }
-                    $targets[$name]['matched'] = true;
-                    $selected[$package->getUniqueName()] = $package;
+
+                    $name = $package->getName();
+                    $version = $package->getVersion();
+
+                    // skip non-matching packages
+                    if (!$requireAll && (!isset($targets[$name]) || !$targets[$name]['constraint']->matches(new VersionConstraint('=', $version)))) {
+                        continue;
+                    }
+
+                    // add matching package if not yet selected
+                    if (!isset($selected[$package->getUniqueName()])) {
+                        if ($verbose) {
+                            $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                        }
+                        $targets[$name]['matched'] = true;
+                        $selected[$package->getUniqueName()] = $package;
+                    }
                 }
+            } catch (InvalidRepositoryException $e) {
+                // no op
             }
         }
 
