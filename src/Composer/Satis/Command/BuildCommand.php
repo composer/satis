@@ -192,12 +192,11 @@ EOT
 
         $output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
 
-        $format = !isset($config['archive']['format'])?'zip':$config['archive']['format'];
-
-        $endpoint = !isset($config['archive']['prefix-url'])?$config['homepage']:$config['archive']['prefix-url'];
+        $format = isset($config['archive']['format']) ? $config['archive']['format'] : 'zip';
+        $endpoint = isset($config['archive']['prefix-url']) ? $config['archive']['prefix-url'] : $config['homepage'];
 
         $composerConfig = Factory::createConfig();
-        $factory        = new Factory;
+        $factory = new Factory;
 
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig);
@@ -214,7 +213,7 @@ EOT
 
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
-            $path    = $archiveManager->archive($package, $format, $directory);
+            $path = $archiveManager->archive($package, $format, $directory);
             $archive = basename($path);
             $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
             $package->setDistUrl($distUrl);
