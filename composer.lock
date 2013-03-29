@@ -6,28 +6,30 @@
             "version": "dev-master",
             "source": {
                 "type": "git",
-                "url": "https://github.com/composer/composer",
-                "reference": "e7f4768668ecec238f45ef881c4db8b5e77bbb74"
+                "url": "https://github.com/composer/composer.git",
+                "reference": "bf307de1d6f0c71e430c86c753964afa4e2ea540"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/composer/composer/archive/e7f4768668ecec238f45ef881c4db8b5e77bbb74.zip",
-                "reference": "e7f4768668ecec238f45ef881c4db8b5e77bbb74",
+                "url": "https://api.github.com/repos/composer/composer/zipball/bf307de1d6f0c71e430c86c753964afa4e2ea540",
+                "reference": "bf307de1d6f0c71e430c86c753964afa4e2ea540",
                 "shasum": ""
             },
             "require": {
                 "justinrainbow/json-schema": "1.1.*",
-                "seld/jsonlint": "1.*",
                 "php": ">=5.3.2",
+                "seld/jsonlint": "1.*",
                 "symfony/console": ">=2.1,<3.0",
                 "symfony/finder": ">=2.1,<3.0",
                 "symfony/process": ">=2.1,<3.0"
             },
-            "suggest": {
-                "ext-zip": "Enabling the zip extension allows you to unzip archives, and allows gzip compression of all internet traffic",
-                "ext-openssl": "Enabling the openssl extension allows you to access https URLs for repositories and packages"
+            "require-dev": {
+                "phpunit/phpunit": ">=3.7.10.0,<3.8"
             },
-            "time": "2012-12-08 16:47:44",
+            "suggest": {
+                "ext-openssl": "Enabling the openssl extension allows you to access https URLs for repositories and packages",
+                "ext-zip": "Enabling the zip extension allows you to unzip archives, and allows gzip compression of all internet traffic"
+            },
             "bin": [
                 "bin/composer"
             ],
@@ -37,7 +39,6 @@
                     "dev-master": "1.0-dev"
                 }
             },
-            "installation-source": "source",
             "autoload": {
                 "psr-0": {
                     "Composer": "src/"
@@ -63,10 +64,11 @@
             "description": "Dependency Manager",
             "homepage": "http://getcomposer.org/",
             "keywords": [
-                "package",
+                "autoload",
                 "dependency",
-                "autoload"
-            ]
+                "package"
+            ],
+            "time": "2013-03-28 19:42:25"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -78,50 +80,78 @@
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/justinrainbow/json-schema/zipball/v1.1.0",
+                "url": "https://github.com/justinrainbow/json-schema/archive/v1.1.0.zip",
                 "reference": "v1.1.0",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
-            "time": "2012-01-02 12:33:17",
             "type": "library",
-            "installation-source": "dist",
             "autoload": {
                 "psr-0": {
                     "JsonSchema": "src/"
                 }
-            }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "NewBSD"
+            ],
+            "authors": [
+                {
+                    "name": "Igor Wiedler",
+                    "email": "igor@wiedler.ch",
+                    "homepage": "http://wiedler.ch/igor/"
+                },
+                {
+                    "name": "Bruno Prieto Reis",
+                    "email": "bruno.p.reis@gmail.com"
+                },
+                {
+                    "name": "Justin Rainbow",
+                    "email": "justin.rainbow@gmail.com"
+                },
+                {
+                    "name": "Robert Schönthal",
+                    "email": "seroscho@googlemail.com",
+                    "homepage": "http://digitalkaoz.net"
+                }
+            ],
+            "description": "A library to validate a json schema.",
+            "homepage": "https://github.com/justinrainbow/json-schema",
+            "keywords": [
+                "json",
+                "schema"
+            ],
+            "time": "2012-01-03 00:33:17"
         },
         {
             "name": "seld/jsonlint",
-            "version": "1.0.1",
+            "version": "1.1.1",
             "source": {
                 "type": "git",
                 "url": "http://github.com/Seldaek/jsonlint",
-                "reference": "1.0.1"
+                "reference": "1.1.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/Seldaek/jsonlint/zipball/1.0.1",
-                "reference": "1.0.1",
+                "url": "https://api.github.com/repos/Seldaek/jsonlint/zipball/1.1.1",
+                "reference": "1.1.1",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.0"
             },
-            "time": "2012-08-13 07:00:11",
             "bin": [
                 "bin/jsonlint"
             ],
             "type": "library",
-            "installation-source": "dist",
             "autoload": {
                 "psr-0": {
                     "Seld\\JsonLint": "src/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -136,10 +166,11 @@
             "description": "JSON Linter",
             "keywords": [
                 "json",
-                "parser",
                 "linter",
+                "parser",
                 "validator"
-            ]
+            ],
+            "time": "2013-02-11 23:03:12"
         },
         {
             "name": "symfony/console",
@@ -147,32 +178,33 @@
             "target-dir": "Symfony/Component/Console",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/Console",
-                "reference": "236c4d50d364c21bafa46e35aaf4fd38eec63e66"
+                "url": "https://github.com/symfony/Console.git",
+                "reference": "adbc260c08000aaa75c5f0db8347a29c21d16692"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/symfony/Console/archive/236c4d50d364c21bafa46e35aaf4fd38eec63e66.zip",
-                "reference": "236c4d50d364c21bafa46e35aaf4fd38eec63e66",
+                "url": "https://api.github.com/repos/symfony/Console/zipball/adbc260c08000aaa75c5f0db8347a29c21d16692",
+                "reference": "adbc260c08000aaa75c5f0db8347a29c21d16692",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
-            "time": "2012-12-03 22:00:56",
+            "require-dev": {
+                "symfony/event-dispatcher": ">=2.1,<3.0"
+            },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
-            "installation-source": "source",
             "autoload": {
                 "psr-0": {
                     "Symfony\\Component\\Console\\": ""
                 }
             },
-            "notification-url": "http://packagist.org/downloads/",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -187,40 +219,39 @@
                 }
             ],
             "description": "Symfony Console Component",
-            "homepage": "http://symfony.com"
+            "homepage": "http://symfony.com",
+            "time": "2013-03-25 20:03:44"
         },
         {
             "name": "symfony/finder",
-            "version": "v2.1.4",
+            "version": "v2.2.0",
             "target-dir": "Symfony/Component/Finder",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/Finder",
-                "reference": "v2.1.4"
+                "url": "https://github.com/symfony/Finder.git",
+                "reference": "v2.2.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/symfony/Finder/archive/v2.1.4.zip",
-                "reference": "v2.1.4",
+                "url": "https://api.github.com/repos/symfony/Finder/zipball/v2.2.0",
+                "reference": "v2.2.0",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
-            "time": "2012-11-08 09:51:48",
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.1-dev"
+                    "dev-master": "2.2-dev"
                 }
             },
-            "installation-source": "dist",
             "autoload": {
                 "psr-0": {
-                    "Symfony\\Component\\Finder": ""
+                    "Symfony\\Component\\Finder\\": ""
                 }
             },
-            "notification-url": "http://packagist.org/downloads/",
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -235,7 +266,8 @@
                 }
             ],
             "description": "Symfony Finder Component",
-            "homepage": "http://symfony.com"
+            "homepage": "http://symfony.com",
+            "time": "2013-02-28 14:06:36"
         },
         {
             "name": "symfony/process",
@@ -243,26 +275,24 @@
             "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
-                "url": "https://github.com/symfony/Process",
-                "reference": "a38d32ff44572e478bbaf5b295de169c47167626"
+                "url": "https://github.com/symfony/Process.git",
+                "reference": "46b24c5905096914d467b769027e36433c7b5421"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/symfony/Process/archive/a38d32ff44572e478bbaf5b295de169c47167626.zip",
-                "reference": "a38d32ff44572e478bbaf5b295de169c47167626",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/46b24c5905096914d467b769027e36433c7b5421",
+                "reference": "46b24c5905096914d467b769027e36433c7b5421",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3.3"
             },
-            "time": "2012-12-06 13:11:58",
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
-            "installation-source": "source",
             "autoload": {
                 "psr-0": {
                     "Symfony\\Component\\Process\\": ""
@@ -283,38 +313,38 @@
                 }
             ],
             "description": "Symfony Process Component",
-            "homepage": "http://symfony.com"
+            "homepage": "http://symfony.com",
+            "time": "2013-03-23 08:06:49"
         },
         {
             "name": "twig/twig",
-            "version": "v1.11.1",
+            "version": "v1.12.2",
             "source": {
                 "type": "git",
                 "url": "git://github.com/fabpot/Twig.git",
-                "reference": "v1.11.1"
+                "reference": "v1.12.2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://github.com/fabpot/Twig/archive/v1.11.1.zip",
-                "reference": "v1.11.1",
+                "url": "https://api.github.com/repos/fabpot/Twig/zipball/v1.12.2",
+                "reference": "v1.12.2",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.2.4"
             },
-            "time": "2012-11-11 17:17:59",
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.11-dev"
+                    "dev-master": "1.12-dev"
                 }
             },
-            "installation-source": "dist",
             "autoload": {
                 "psr-0": {
                     "Twig_": "lib/"
                 }
             },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "BSD-3"
             ],
@@ -332,7 +362,8 @@
             "homepage": "http://twig.sensiolabs.org",
             "keywords": [
                 "templating"
-            ]
+            ],
+            "time": "2013-02-09 18:21:53"
         }
     ],
     "packages-dev": [
@@ -346,5 +377,11 @@
         "composer/composer": 20,
         "symfony/console": 20,
         "symfony/process": 20
-    }
+    },
+    "platform": {
+        "php": ">=5.3.2"
+    },
+    "platform-dev": [
+
+    ]
 }
