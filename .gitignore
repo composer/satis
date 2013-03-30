@@ -3,5 +3,5 @@
 /.buildpath
 /satis.phar
 /vendor
-/web
+/phpunit.xml
 composer.phar

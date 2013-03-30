@@ -25,6 +25,8 @@ use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Package\PackageInterface;
 use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
+use Composer\Factory;
+use Composer\Util\Filesystem;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -123,6 +125,10 @@ EOT
             $htmlView = !isset($config['output-html']) || $config['output-html'];
         }
 
+        if (isset($config['archive']['directory'])) {
+            $this->dumpDownloads($config, $packages, $output, $outputDir);
+        }
+
         $filename = $outputDir.'/packages.json';
         $this->dumpJson($packages, $output, $filename);
 
@@ -184,6 +190,50 @@ EOT
 
         asort($selected, SORT_STRING);
         return $selected;
+    }
+
+    /**
+     * @param array           $config   Directory where to create the downloads in, prefix-url, etc..
+     * @param array           $packages Reference to packages so we can rewrite the JSON.
+     * @param OutputInterface $output
+     * @param string          $outputDir
+     *
+     * @return void
+     */
+    private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir)
+    {
+        $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
+
+        $output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
+
+        $format = isset($config['archive']['format']) ? $config['archive']['format'] : 'zip';
+        $endpoint = isset($config['archive']['prefix-url']) ? $config['archive']['prefix-url'] : $config['homepage'];
+        $skipDev = isset($config['archive']['skip-dev']) ? (bool) $config['archive']['skip-dev'] : false;
+
+        $composerConfig = Factory::createConfig();
+        $factory = new Factory;
+
+        /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
+        $archiveManager = $factory->createArchiveManager($composerConfig);
+
+        $archiveManager->setOverwriteFiles(false);
+
+        /* @var \Composer\Package\CompletePackage $package */
+        foreach ($packages as $name => $package) {
+
+            if (true === $skipDev && true === $package->isDev()) {
+                $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
+                continue;
+            }
+
+            $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
+
+            $path = $archiveManager->archive($package, $format, $directory);
+            $archive = basename($path);
+            $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
+            $package->setDistUrl($distUrl);
+            $package->setDistSha1Checksum(sha1_file($path));
+        }
     }
 
     private function dumpJson(array $packages, OutputInterface $output, $filename)
