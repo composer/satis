@@ -194,6 +194,7 @@ EOT
 
         $format = isset($config['archive']['format']) ? $config['archive']['format'] : 'zip';
         $endpoint = isset($config['archive']['prefix-url']) ? $config['archive']['prefix-url'] : $config['homepage'];
+        $skipDev = isset($config['archive']['skip-dev']) ? (bool) $config['archive']['skip-dev'] : false;
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory;
@@ -206,7 +207,7 @@ EOT
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $name => $package) {
 
-            if (true === $config['archive']['skip-dev'] && true === $package->isDev()) {
+            if (true === $skipDev && true === $package->isDev()) {
                 $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
                 continue;
             }
