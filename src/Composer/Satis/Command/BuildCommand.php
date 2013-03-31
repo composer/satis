@@ -67,6 +67,8 @@ The json config file accepts the following keys:
   repository.
 - "homepage": for html output, this defines the home URL
   of the repository (where you will host it).
+- "twig-template": Location of twig template to use for
+  building the html output.
 EOT
             )
         ;
@@ -121,7 +123,8 @@ EOT
 
         if ($htmlView) {
             $rootPackage = $composer->getPackage();
-            $this->dumpWeb($packages, $output, $rootPackage, $outputDir);
+            $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $twigTemplate);
         }
     }
 
@@ -234,9 +237,9 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null)
     {
-        $templateDir = __DIR__.'/../../../../views';
+        $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
 
@@ -254,7 +257,7 @@ EOT
 
         $output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render('index.html.twig', array(
+        $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array(
             'name'          => $name,
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
