@@ -240,7 +240,7 @@ EOT
         $archiveManager->setOverwriteFiles(false);
 
         /* @var \Composer\Package\CompletePackage $package */
-        foreach ($packages as $name => $package) {
+        foreach ($packages as $name => &$package) {
 
             if (true === $skipDev && true === $package->isDev()) {
                 $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
@@ -252,8 +252,10 @@ EOT
             $path = $archiveManager->archive($package, $format, $directory);
             $archive = basename($path);
             $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
+            $package->setDistType($format);
             $package->setDistUrl($distUrl);
             $package->setDistSha1Checksum(sha1_file($path));
+            $package->setDistReference($package->getPrettyVersion());
         }
     }
 
