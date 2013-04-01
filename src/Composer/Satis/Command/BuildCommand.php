@@ -98,18 +98,6 @@ EOT
             $requireAll = true;
         }
 
-        // dependecy
-        $dependency = array();
-        $file = new JsonFile($input->getArgument('dependency-file'));
-        $configDependency = $file->read();
-        $composerDependency = $this->getApplication()->getComposer(true, $configDependency);
-        $packagesDependency = $this->selectPackages($composerDependency, $output, $verbose, $requireAll);
-        foreach ($packagesDependency as $package) {
-            $version = $package->getPrettyVersion();
-            foreach ($package->getRequires() as $link) {
-                $dependency[$link->getTarget()][$link->getSource()][] = $version;
-            }
-        }
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
         }
@@ -133,6 +121,32 @@ EOT
         $this->dumpJson($packages, $output, $filename);
 
         if ($htmlView) {
+
+            $packagesDependency = array();
+
+            if ($input->getArgument('dependency-file'))
+            {
+                // dependecy
+                $dependency = array();
+                $file = new JsonFile($input->getArgument('dependency-file'));
+                if (!$file->exists()) {
+                    $output->writeln('<error>Unable to write html view. File not found: '.$input->getArgument('dependency-file').'</error>');
+
+                    return 1;
+                }
+                $configDependency = $file->read();
+                $composerDependency = $this->getApplication()->getComposer(true, $configDependency);
+                $packagesDependency = $this->selectPackages($composerDependency, $output, $verbose, $requireAll);
+            }
+
+            $packagesDependency = array_merge($packages, $packagesDependency);
+            foreach ($packagesDependency as $package) {
+                $version = $package->getPrettyVersion();
+                foreach ($package->getRequires() as $link) {
+                    $dependency[$link->getTarget()][$link->getSource()][] = $version;
+                }
+            }
+
             $rootPackage = $composer->getPackage();
             $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $dependency);
         }
