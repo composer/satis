@@ -142,9 +142,16 @@ EOT
         $this->dumpJson($packages, $output, $filename);
 
         if ($htmlView) {
+            $dependencies = array();
+            foreach ($packages as $package) {
+                foreach ($package->getRequires() as $link) {
+                    $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
+                }
+            }
+
             $rootPackage = $composer->getPackage();
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
-            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $twigTemplate);
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $twigTemplate, $dependencies);
         }
     }
 
@@ -301,7 +308,7 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
     {
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -326,6 +333,7 @@ EOT
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
+            'dependencies'  => $dependencies,
         ));
 
         file_put_contents($directory.'/index.html', $content);

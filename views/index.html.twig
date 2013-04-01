@@ -78,6 +78,19 @@
                                 {% endfor %}
                             </td>
                         </tr>
+                        <tr>
+                            <th>Required by</th>
+                            <td>
+                                {% set package_dependencies = attribute(dependencies, name) %}
+                                {% if package_dependencies|length %}
+                                    <ul>
+                                        {% for dependency in package_dependencies %}
+                                            <li>{{ dependency }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </td>
+                        </tr>
                     </table>
                 {% endfor %}
             </div>
