@@ -240,7 +240,7 @@ EOT
         $archiveManager->setOverwriteFiles(false);
 
         /* @var \Composer\Package\CompletePackage $package */
-        foreach ($packages as $name => &$package) {
+        foreach ($packages as $name => $package) {
 
             if (true === $skipDev && true === $package->isDev()) {
                 $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
