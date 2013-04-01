@@ -17,12 +17,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Command\Command;
+use Composer\DependencyResolver\Pool;
+use Composer\DependencyResolver\DefaultPolicy;
 use Composer\Composer;
 use Composer\Config;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
+use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\PackageInterface;
+use Composer\Package\Link;
+use Composer\Repository\ComposerRepository;
 use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
 use Composer\Factory;
@@ -130,31 +135,62 @@ EOT
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
     {
-        $targets = array();
         $selected = array();
-
-        foreach ($composer->getPackage()->getRequires() as $link) {
-            $targets[$link->getTarget()] = array(
-                'matched' => false,
-                'link' => $link,
-                'constraint' => $link->getConstraint()
-            );
-        }
 
         // run over all packages and store matching ones
         $output->writeln('<info>Scanning packages</info>');
-        foreach ($composer->getRepositoryManager()->getRepositories() as $repository) {
-            foreach ($repository->getPackages() as $package) {
-                // skip aliases
-                if ($package instanceof AliasPackage) {
+
+        $repos = $composer->getRepositoryManager()->getRepositories();
+        $pool = new Pool('dev');
+        foreach ($repos as $repo) {
+            $pool->addRepository($repo);
+        }
+
+        if ($requireAll) {
+            $links = array();
+
+            foreach ($repos as $repo) {
+                // collect links for composer repos with providers
+                if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
+                    foreach ($repo->getProviderNames() as $name) {
+                        $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
+                    }
+                } else {
+                    // process other repos directly
+                    foreach ($repo->getPackages() as $package) {
+                        // skip aliases
+                        if ($package instanceof AliasPackage) {
+                            continue;
+                        }
+
+                        // add matching package if not yet selected
+                        if (!isset($selected[$package->getUniqueName()])) {
+                            if ($verbose) {
+                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                            }
+                            $selected[$package->getUniqueName()] = $package;
+                        }
+                    }
+                }
+            }
+        } else {
+            $links = $composer->getPackage()->getRequires();
+        }
+
+        // process links if any
+        foreach ($links as $link) {
+            $name = $link->getTarget();
+            $matches = $pool->whatProvides($name, $link->getConstraint());
+
+            foreach ($matches as $index => $package) {
+                // skip providers/replacers
+                if ($package->getName() !== $name) {
+                    unset($matches[$index]);
                     continue;
                 }
 
-                $name = $package->getName();
-                $version = $package->getVersion();
-
-                // skip non-matching packages
-                if (!$requireAll && (!isset($targets[$name]) || !$targets[$name]['constraint']->matches(new VersionConstraint('=', $version)))) {
+                // skip aliases
+                if ($package instanceof AliasPackage) {
                     continue;
                 }
 
@@ -163,20 +199,16 @@ EOT
                     if ($verbose) {
                         $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                     }
-                    $targets[$name]['matched'] = true;
                     $selected[$package->getUniqueName()] = $package;
                 }
             }
-        }
 
-        // check for unmatched requirements
-        foreach ($targets as $package => $target) {
-            if (!$target['matched']) {
-                $output->writeln('<error>The '.$target['link']->getTarget().' '.$target['link']->getPrettyConstraint().' requirement did not match any package</error>');
+            if (!$matches) {
+                $output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
             }
         }
 
-        asort($selected, SORT_STRING);
+        ksort($selected, SORT_STRING);
 
         return $selected;
     }
