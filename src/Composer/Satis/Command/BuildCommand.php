@@ -140,12 +140,10 @@ EOT
 
             $packagesDependency = array_merge($packages, $packagesDependency);
             foreach ($packagesDependency as $package) {
-                $version = $package->getPrettyVersion();
                 foreach ($package->getRequires() as $link) {
-                    $dependencies[$link->getTarget()][$link->getSource()][] = $version;
+                    $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
                 }
             }
-
             $rootPackage = $composer->getPackage();
             $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $dependencies);
         }
