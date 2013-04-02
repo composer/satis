@@ -51,7 +51,7 @@ class Application extends BaseApplication
      */
     public function getComposer($required = true, $config = null)
     {
-        if (is_null($config)) {
+        if (null === $config) {
             $key = 'null';
         } else {
             $key = serialize($config);

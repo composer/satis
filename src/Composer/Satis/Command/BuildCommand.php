@@ -41,7 +41,7 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
-                new InputArgument('dependency-file', InputArgument::OPTIONAL, 'Json fule to use for scanning dependency', null),
+                new InputArgument('dependency-file', InputArgument::OPTIONAL, 'Json file to use for scanning dependency', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
             ))
             ->setHelp(<<<EOT
@@ -149,8 +149,6 @@ EOT
             $rootPackage = $composer->getPackage();
             $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $dependency);
         }
-
-
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
@@ -286,7 +284,7 @@ EOT
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
-            "dependency"     => $dependency,
+            'dependency'     => $dependency,
         ));
 
         file_put_contents($directory.'/index.html', $content);
