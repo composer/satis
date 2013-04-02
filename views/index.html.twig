@@ -78,16 +78,12 @@
                         <tr>
                             <th>Used in</th>
                             <td>
-                                {% for dep_name, dep in dependency %}
-<!--                                     {{ dep_name }} -->
-                                    {% if (dep_name == name) %}
-                                    <ul>
-                                        {% for dk, d in dep%}
-                                        <li>{{ dk }}</li>
-                                        {% endfor %}
-                                    </ul>
-                                    {% endif %}
-                                {% endfor %}
+                                {% set package_dependencies = attribute(dependencies, name) %}
+                                <ul>
+                                    {% for dependency in package_dependencies %}
+                                        <li>{{ dependency }}</li>
+                                    {% endfor %}
+                                </ul>
                             </td>
                         </tr>
                     </table>

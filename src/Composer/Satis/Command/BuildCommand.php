@@ -122,7 +122,7 @@ EOT
 
         if ($htmlView) {
 
-            $dependency = array();
+            $dependencies = array();
             $packagesDependency = array();
 
             if ($input->getArgument('dependency-file'))
@@ -142,12 +142,12 @@ EOT
             foreach ($packagesDependency as $package) {
                 $version = $package->getPrettyVersion();
                 foreach ($package->getRequires() as $link) {
-                    $dependency[$link->getTarget()][$link->getSource()][] = $version;
+                    $dependencies[$link->getTarget()][$link->getSource()][] = $version;
                 }
             }
 
             $rootPackage = $composer->getPackage();
-            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $dependency);
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $dependencies);
         }
     }
 
@@ -259,7 +259,7 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, array $dependency = null)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, array $dependencies = null)
     {
         $templateDir = __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -284,7 +284,7 @@ EOT
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
-            'dependency'     => $dependency,
+            'dependencies'     => $dependencies,
         ));
 
         file_put_contents($directory.'/index.html', $content);
