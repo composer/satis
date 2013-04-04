@@ -99,6 +99,7 @@ EOT
 
         // fetch options
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
+        $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
             $requireAll = true;
@@ -113,7 +114,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -133,7 +134,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies)
     {
         $selected = array();
 
@@ -178,7 +179,7 @@ EOT
         }
 
         // process links if any
-        foreach ($links as $link) {
+        for (; $link = current($links); next($links)) {
             $name = $link->getTarget();
             $matches = $pool->whatProvides($name, $link->getConstraint());
 
@@ -200,6 +201,17 @@ EOT
                         $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                     }
                     $selected[$package->getUniqueName()] = $package;
+
+                    // append dependencies
+                    if (!$requireAll && $requireDependencies) {
+                        foreach ($package->getRequires() as $dependencyLink) {
+                            // avoid php, ext-* and lib-*
+                            $target = $dependencyLink->getTarget();
+                            if (strpos($target, '/')) {
+                                $links[] = $dependencyLink;
+                            }
+                        }
+                    }
                 }
             }
 
