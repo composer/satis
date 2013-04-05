@@ -125,8 +125,7 @@ EOT
             $dependencies = array();
             $packagesDependency = array();
 
-            if ($input->getArgument('dependency-file'))
-            {
+            if ($input->getArgument('dependency-file')) {
                 $file = new JsonFile($input->getArgument('dependency-file'));
                 if (!$file->exists()) {
                     $output->writeln('<error>Unable to write html view. File not found: '.$input->getArgument('dependency-file').'</error>');
