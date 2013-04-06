@@ -7,12 +7,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "bf307de1d6f0c71e430c86c753964afa4e2ea540"
+                "reference": "d38eb244fa68cad6788eb5d25907b93bc81fe002"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/bf307de1d6f0c71e430c86c753964afa4e2ea540",
-                "reference": "bf307de1d6f0c71e430c86c753964afa4e2ea540",
+                "url": "https://api.github.com/repos/composer/composer/zipball/d38eb244fa68cad6788eb5d25907b93bc81fe002",
+                "reference": "d38eb244fa68cad6788eb5d25907b93bc81fe002",
                 "shasum": ""
             },
             "require": {
@@ -68,7 +68,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2013-03-28 19:42:25"
+            "time": "2013-04-06 20:26:10"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -194,17 +194,17 @@
         },
         {
             "name": "symfony/finder",
-            "version": "v2.2.0",
+            "version": "v2.2.1",
             "target-dir": "Symfony/Component/Finder",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Finder.git",
-                "reference": "v2.2.0"
+                "reference": "v2.2.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Finder/zipball/v2.2.0",
-                "reference": "v2.2.0",
+                "url": "https://api.github.com/repos/symfony/Finder/zipball/v2.2.1",
+                "reference": "v2.2.1",
                 "shasum": ""
             },
             "require": {
@@ -237,7 +237,7 @@
             ],
             "description": "Symfony Finder Component",
             "homepage": "http://symfony.com",
-            "time": "2013-02-28 14:06:36"
+            "time": "2013-04-01 07:51:50"
         },
         {
             "name": "symfony/process",
