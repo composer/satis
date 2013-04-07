@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Command\Command;
+use Composer\Command\Command;
 use Composer\DependencyResolver\Pool;
 use Composer\DependencyResolver\DefaultPolicy;
 use Composer\Composer;
@@ -33,6 +33,7 @@ use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
 use Composer\Factory;
 use Composer\Util\Filesystem;
+use Composer\Util\RemoteFilesystem;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -91,18 +92,21 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $verbose = $input->getOption('verbose');
-        $rfs = null;
-        if (preg_match('{^https?://}i', $input->getArgument('file')) && $fileContents = file_get_contents($input->getArgument('file'))) {
-            $io = new BufferIo($fileContents);
-            $rfs = new RemoteFilesystem($io);
-        }
-        $file = new JsonFile($input->getArgument('file'), $rfs);
-        if ($rfs === null && !$file->exists()) {
-            $output->writeln('<error>File not found: '.$input->getArgument('file').'</error>');
+        $configFile = $input->getArgument('file');
 
-            return 1;
+        if (preg_match('{^https?://}i', $configFile)) {
+            $rfs = new RemoteFilesystem($this->getIO());
+            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
+            $config = JsonFile::parseJson($contents, $configFile);
+        } else {
+            $file = new JsonFile($configFile);
+            if (!$file->exists()) {
+                $output->writeln('<error>File not found: '.$configFile.'</error>');
+
+                return 1;
+            }
+            $config = $file->read();
         }
-        $config = $file->read();
 
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
