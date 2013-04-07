@@ -91,8 +91,13 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $verbose = $input->getOption('verbose');
-        $file = new JsonFile($input->getArgument('file'));
-        if (!$file->exists()) {
+        $rfs = null;
+        if (preg_match('{^https?://}i', $input->getArgument('file')) && $fileContents = file_get_contents($input->getArgument('file'))) {
+            $io = new BufferIo($fileContents);
+            $rfs = new RemoteFilesystem($io);
+        }
+        $file = new JsonFile($input->getArgument('file'), $rfs);
+        if ($rfs === null && !$file->exists()) {
             $output->writeln('<error>File not found: '.$input->getArgument('file').'</error>');
 
             return 1;
