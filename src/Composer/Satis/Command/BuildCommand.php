@@ -16,7 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Command\Command;
+use Composer\Command\Command;
 use Composer\DependencyResolver\Pool;
 use Composer\DependencyResolver\DefaultPolicy;
 use Composer\Composer;
@@ -28,10 +28,12 @@ use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\PackageInterface;
 use Composer\Package\Link;
 use Composer\Repository\ComposerRepository;
+use Composer\Repository\PlatformRepository;
 use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
 use Composer\Factory;
 use Composer\Util\Filesystem;
+use Composer\Util\RemoteFilesystem;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -64,6 +66,10 @@ The json config file accepts the following keys:
   dumped satis repository.
 - "require": if you do not want to dump all packages,
   you can explicitly require them by name and version.
+- "require-dependencies": if you mark a few packages as
+  required to mirror packagist for example, setting this
+  to true will make satis automatically require all of your
+  requirements' dependencies.
 - "config": all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
 - "output-html": boolean, controls whether the repository
@@ -86,13 +92,21 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $verbose = $input->getOption('verbose');
-        $file = new JsonFile($input->getArgument('file'));
-        if (!$file->exists()) {
-            $output->writeln('<error>File not found: '.$input->getArgument('file').'</error>');
+        $configFile = $input->getArgument('file');
 
-            return 1;
+        if (preg_match('{^https?://}i', $configFile)) {
+            $rfs = new RemoteFilesystem($this->getIO());
+            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
+            $config = JsonFile::parseJson($contents, $configFile);
+        } else {
+            $file = new JsonFile($configFile);
+            if (!$file->exists()) {
+                $output->writeln('<error>File not found: '.$configFile.'</error>');
+
+                return 1;
+            }
+            $config = $file->read();
         }
-        $config = $file->read();
 
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
@@ -175,11 +189,17 @@ EOT
                 }
             }
         } else {
-            $links = $composer->getPackage()->getRequires();
+            $links = array_values($composer->getPackage()->getRequires());
         }
 
+
         // process links if any
-        for (; $link = current($links); next($links)) {
+        $depsLinks = array();
+
+        $i = 0;
+        while (isset($links[$i])) {
+            $link = $links[$i];
+            $i++;
             $name = $link->getTarget();
             $matches = $pool->whatProvides($name, $link->getConstraint());
 
@@ -202,13 +222,17 @@ EOT
                     }
                     $selected[$package->getUniqueName()] = $package;
 
-                    // append dependencies
                     if (!$requireAll && $requireDependencies) {
+                        // append non-platform dependencies
                         foreach ($package->getRequires() as $dependencyLink) {
-                            // avoid php, ext-* and lib-*
                             $target = $dependencyLink->getTarget();
-                            if (strpos($target, '/')) {
-                                $links[] = $dependencyLink;
+                            if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
+                                $linkId = $target.' '.$dependencyLink->getConstraint();
+                                // prevent loading multiple times the same link
+                                if (!isset($depsLinks[$linkId])) {
+                                    $links[] = $dependencyLink;
+                                    $depsLinks[$linkId] = true;
+                                }
                             }
                         }
                     }
