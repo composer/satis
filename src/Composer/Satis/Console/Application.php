@@ -69,5 +69,8 @@ class Application extends BaseApplication
     protected function registerCommands()
     {
         $this->add(new Command\BuildCommand());
+        $this->add(new Command\MirrorCommand());
+        $this->add(new Command\UpdateReposCommand());
+        $this->add(new Command\AddRepoCommand());
     }
 }
