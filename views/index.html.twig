@@ -29,6 +29,9 @@
     ]
 }</code></pre>
 
+                Filter by package name:
+                <input type="text" id="search" autocomplete="off" autofocus />
+
                 {% for name, package in packages %}
                     <h3>{{ package.highest.name }}</h3>
                     {% if package.highest.description %}
@@ -84,5 +87,25 @@
         </div>
     </div>
 
+    <script>
+    {% include 'jquery-2.0.0.js' %}
+    $(function(){
+        var packages = $('h3').each(function(){
+            var desc = $(this).next('p'),
+                info = desc.length ? desc.next('table') : $(this).next('table');
+            $(this).data('desc', desc);
+            $(this).data('info', info);
+        });
+        $('input#search').keyup(function(){
+            var needle = $(this).val().toLowerCase(), show;
+            packages.each(function(){
+                show = $(this).text().toLowerCase().indexOf(needle) != -1;
+                $(this).toggle(show);
+                $(this).data('desc').toggle(show);
+                $(this).data('info').toggle(show);
+            });
+        }).focus();
+    });
+    </script>
 </body>
 </html>
