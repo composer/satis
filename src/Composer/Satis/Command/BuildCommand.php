@@ -204,15 +204,9 @@ EOT
             $matches = $pool->whatProvides($name, $link->getConstraint());
 
             foreach ($matches as $index => $package) {
-                // skip providers/replacers
-                if ($package->getName() !== $name) {
-                    unset($matches[$index]);
-                    continue;
-                }
-
                 // skip aliases
                 if ($package instanceof AliasPackage) {
-                    continue;
+                    $package = $package->getAliasOf();
                 }
 
                 // add matching package if not yet selected
