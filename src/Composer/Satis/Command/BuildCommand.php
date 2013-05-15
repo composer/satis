@@ -68,6 +68,9 @@ The json config file accepts the following keys:
   dumped satis repository.
 - "require": if you do not want to dump all packages,
   you can explicitly require them by name and version.
+- "minimum-stability": sets default stability for packages
+  (default: dev), see
+  http://getcomposer.org/doc/04-schema.md#minimum-stability
 - "require-dependencies": if you mark a few packages as
   required to mirror packagist for example, setting this
   to true will make satis automatically require all of your
@@ -121,6 +124,8 @@ EOT
             $requireAll = true;
         }
 
+        $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
         }
@@ -130,7 +135,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $minimumStability);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -158,7 +163,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $minimumStability)
     {
         $selected = array();
 
@@ -166,7 +171,7 @@ EOT
         $output->writeln('<info>Scanning packages</info>');
 
         $repos = $composer->getRepositoryManager()->getRepositories();
-        $pool = new Pool('dev');
+        $pool = new Pool($minimumStability);
         foreach ($repos as $repo) {
             $pool->addRepository($repo);
         }
