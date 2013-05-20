@@ -284,13 +284,23 @@ EOT
 
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
-            $path = $archiveManager->archive($package, $format, $directory);
-            $archive = basename($path);
-            $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
-            $package->setDistType($format);
-            $package->setDistUrl($distUrl);
-            $package->setDistSha1Checksum(sha1_file($path));
-            $package->setDistReference($package->getPrettyVersion());
+            try{
+                $path = $archiveManager->archive($package, $format, $directory);
+                $archive = basename($path);
+                $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
+                $package->setDistType($format);
+                $package->setDistUrl($distUrl);
+                $package->setDistSha1Checksum(sha1_file($path));
+                $package->setDistReference($package->getPrettyVersion());
+            }
+            catch(\BadMethodCallException $e)
+            {
+                $output->writeln(sprintf("<info>Cannot dump '%s'</info>", $name));
+            }
+            catch(\RuntimeException $e)
+            {
+                $output->writeln(sprintf("<info>Cannot dump '%s'</info>", $name));
+            }
         }
     }
 
