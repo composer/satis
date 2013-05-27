@@ -33,7 +33,7 @@
                 <input type="text" id="search" autocomplete="off" autofocus />
 
                 {% for name, package in packages %}
-                    <h3>{{ package.highest.name }}</h3>
+                    <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
                     {% if package.highest.description %}
                         <p>{{ package.highest.description }}</p>
                     {% endif %}
@@ -85,7 +85,7 @@
                                 {% if package_dependencies|length %}
                                     <ul>
                                         {% for dependency in package_dependencies %}
-                                            <li>{{ dependency }}</li>
+                                            <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
                                         {% endfor %}
                                     </ul>
                                 {% endif %}
