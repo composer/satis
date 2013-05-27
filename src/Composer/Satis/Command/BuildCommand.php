@@ -48,6 +48,7 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
+                new InputArgument('dependency-file', InputArgument::OPTIONAL, 'Json file to use for scanning dependency', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
             ))
             ->setHelp(<<<EOT
@@ -142,9 +143,31 @@ EOT
         $this->dumpJson($packages, $output, $filename);
 
         if ($htmlView) {
+
+            $dependencies = array();
+            $packagesDependency = array();
+
+            if ($input->getArgument('dependency-file')) {
+                $file = new JsonFile($input->getArgument('dependency-file'));
+                if (!$file->exists()) {
+                    $output->writeln('<error>Unable to write html view. File not found: '.$input->getArgument('dependency-file').'</error>');
+
+                    return 1;
+                }
+                $configDependency = $file->read();
+                $composerDependency = $this->getApplication()->getComposer(true, $configDependency);
+                $packagesDependency = $this->selectPackages($composerDependency, $output, $verbose, $requireAll, $requireDependencies);
+            }
+
+            $packagesDependency = array_merge($packages, $packagesDependency);
+            foreach ($packagesDependency as $package) {
+                foreach ($package->getRequires() as $link) {
+                    $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
+                }
+            }
             $rootPackage = $composer->getPackage();
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
-            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $twigTemplate);
+            $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $twigTemplate, $dependencies);
         }
     }
 
@@ -239,7 +262,6 @@ EOT
         }
 
         ksort($selected, SORT_STRING);
-
         return $selected;
     }
 
@@ -301,7 +323,7 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null)
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = null)
     {
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -326,6 +348,7 @@ EOT
             'url'           => $rootPackage->getHomepage(),
             'description'   => $rootPackage->getDescription(),
             'packages'      => $mappedPackages,
+            'dependencies'     => $dependencies,
         ));
 
         file_put_contents($directory.'/index.html', $content);

@@ -78,6 +78,17 @@
                                 {% endfor %}
                             </td>
                         </tr>
+                        <tr>
+                            <th>Used in</th>
+                            <td>
+                                {% set package_dependencies = attribute(dependencies, name) %}
+                                <ul>
+                                    {% for dependency in package_dependencies %}
+                                        <li>{{ dependency }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                        </tr>
                     </table>
                 {% endfor %}
             </div>
