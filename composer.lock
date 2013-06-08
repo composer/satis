@@ -1,4 +1,8 @@
 {
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
+    ],
     "hash": "ae354e337a20874438d6a91ac1267fd9",
     "packages": [
         {
@@ -7,19 +11,19 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "d38eb244fa68cad6788eb5d25907b93bc81fe002"
+                "reference": "4fe074efdc56049d6a7de973dc3f0f6f2f20c4b4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/d38eb244fa68cad6788eb5d25907b93bc81fe002",
-                "reference": "d38eb244fa68cad6788eb5d25907b93bc81fe002",
+                "url": "https://api.github.com/repos/composer/composer/zipball/4fe074efdc56049d6a7de973dc3f0f6f2f20c4b4",
+                "reference": "4fe074efdc56049d6a7de973dc3f0f6f2f20c4b4",
                 "shasum": ""
             },
             "require": {
                 "justinrainbow/json-schema": "1.1.*",
                 "php": ">=5.3.2",
                 "seld/jsonlint": "1.*",
-                "symfony/console": ">=2.1,<3.0",
+                "symfony/console": ">=2.3,<3.0",
                 "symfony/finder": ">=2.1,<3.0",
                 "symfony/process": ">=2.1,<3.0"
             },
@@ -68,7 +72,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2013-04-06 20:26:10"
+            "time": "2013-06-08 14:13:43"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -149,12 +153,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Console.git",
-                "reference": "adbc260c08000aaa75c5f0db8347a29c21d16692"
+                "reference": "28b4eced63a11275583345feb3c8269967819eca"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Console/zipball/adbc260c08000aaa75c5f0db8347a29c21d16692",
-                "reference": "adbc260c08000aaa75c5f0db8347a29c21d16692",
+                "url": "https://api.github.com/repos/symfony/Console/zipball/28b4eced63a11275583345feb3c8269967819eca",
+                "reference": "28b4eced63a11275583345feb3c8269967819eca",
                 "shasum": ""
             },
             "require": {
@@ -163,10 +167,13 @@
             "require-dev": {
                 "symfony/event-dispatcher": ">=2.1,<3.0"
             },
+            "suggest": {
+                "symfony/event-dispatcher": ""
+            },
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.3-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -190,21 +197,21 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "http://symfony.com",
-            "time": "2013-03-25 20:03:44"
+            "time": "2013-06-04 15:09:18"
         },
         {
             "name": "symfony/finder",
-            "version": "v2.2.1",
+            "version": "v2.3.0",
             "target-dir": "Symfony/Component/Finder",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Finder.git",
-                "reference": "v2.2.1"
+                "reference": "v2.3.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Finder/zipball/v2.2.1",
-                "reference": "v2.2.1",
+                "url": "https://api.github.com/repos/symfony/Finder/zipball/v2.3.0",
+                "reference": "v2.3.0",
                 "shasum": ""
             },
             "require": {
@@ -213,7 +220,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.2-dev"
+                    "dev-master": "2.3-dev"
                 }
             },
             "autoload": {
@@ -237,7 +244,7 @@
             ],
             "description": "Symfony Finder Component",
             "homepage": "http://symfony.com",
-            "time": "2013-04-01 07:51:50"
+            "time": "2013-06-02 12:05:51"
         },
         {
             "name": "symfony/process",
@@ -246,12 +253,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process.git",
-                "reference": "46b24c5905096914d467b769027e36433c7b5421"
+                "reference": "75c810176f8e069714cef8696d7ecc3aa86e8168"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Process/zipball/46b24c5905096914d467b769027e36433c7b5421",
-                "reference": "46b24c5905096914d467b769027e36433c7b5421",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/75c810176f8e069714cef8696d7ecc3aa86e8168",
+                "reference": "75c810176f8e069714cef8696d7ecc3aa86e8168",
                 "shasum": ""
             },
             "require": {
@@ -260,7 +267,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.3-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -284,20 +291,20 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
-            "time": "2013-03-23 08:06:49"
+            "time": "2013-05-16 07:54:39"
         },
         {
             "name": "twig/twig",
-            "version": "v1.12.2",
+            "version": "v1.13.1",
             "source": {
                 "type": "git",
-                "url": "git://github.com/fabpot/Twig.git",
-                "reference": "v1.12.2"
+                "url": "https://github.com/fabpot/Twig.git",
+                "reference": "v1.13.1"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/fabpot/Twig/zipball/v1.12.2",
-                "reference": "v1.12.2",
+                "url": "https://api.github.com/repos/fabpot/Twig/zipball/v1.13.1",
+                "reference": "v1.13.1",
                 "shasum": ""
             },
             "require": {
@@ -306,7 +313,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "1.12-dev"
+                    "dev-master": "1.13-dev"
                 }
             },
             "autoload": {
@@ -333,7 +340,7 @@
             "keywords": [
                 "templating"
             ],
-            "time": "2013-02-09 18:21:53"
+            "time": "2013-06-06 06:06:01"
         }
     ],
     "packages-dev": [
