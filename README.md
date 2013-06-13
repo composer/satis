@@ -19,7 +19,7 @@ Read the more detailed instructions in the
 Updating
 --------
 
-Updating is as simple as running `git pull && php composer.phar update` in the satis directory.
+Updating is as simple as running `git pull && php composer.phar install` in the satis directory.
 
 Contributing
 ------------
