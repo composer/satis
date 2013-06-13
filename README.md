@@ -9,12 +9,17 @@ to their version constraints) packages to a Composer Repository file.
 Usage
 -----
 
-- Download Composer: `wget http://getcomposer.org/composer.phar`
-- Install satis: `php composer.phar create-project composer/satis --stability=dev`
+- Download [Composer](https://getcomposer.org/download/): `curl -sS https://getcomposer.org/installer | php`
+- Install satis: `php composer.phar create-project composer/satis --stability=dev --keep-vcs`
 - Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
 Read the more detailed instructions in the 
 [documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
+
+Updating
+--------
+
+Updating is as simple as running `git pull && php composer.phar update` in the satis directory.
 
 Contributing
 ------------
