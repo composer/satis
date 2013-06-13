@@ -10,11 +10,17 @@ Usage
 -----
 
 - Download Composer: `wget http://getcomposer.org/composer.phar`
-- Install satis: `php composer.phar create-project composer/satis --stability=dev`
+- Install satis: `php composer.phar create-project composer/satis --stability=dev`.
+  Make sure you answer "no" to the question "Do you want to remove the existing VCS (.git, .svn..) history?"
+  if you want to be able to update.
 - Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
 Read the more detailed instructions in the 
 [documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
+
+Updating
+--------
+Updating is as simple as running `git pull && php composer.phar update` in the satis directory.
 
 Contributing
 ------------
