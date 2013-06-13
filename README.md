@@ -9,7 +9,7 @@ to their version constraints) packages to a Composer Repository file.
 Usage
 -----
 
-- Download Composer: `wget  --no-check-certificate https://getcomposer.org/composer.phar`
+- Download Composer: `wget http://getcomposer.org/composer.phar`
 - Install satis: `php composer.phar create-project composer/satis --stability=dev`
 - Build a repository: `php bin/satis build <composer.json> <build-dir>`
 
