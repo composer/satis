@@ -49,6 +49,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputOption('repository', null, InputOption::VALUE_OPTIONAL, 'Only update the given repository', null)
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -127,8 +128,25 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
         }
 
-        $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies);
+
+        if ($input->getOption('repository') !== null) {
+            $singleRepository = $input->getOption('repository');
+
+            $otherPackages = unserialize(file_get_contents($outputDir.'/packages.cache'));
+            unset($config['repositories']);
+            $config['repositories'] = array(
+                array('type' => 'vcs', 'url' => $singleRepository),
+            );
+
+            $composer = $this->getApplication()->getComposer(true, $config);
+            $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies);
+
+            $packages = array_merge($otherPackages, $packages);
+            ksort($packages, SORT_STRING);
+        } else {
+            $composer = $this->getApplication()->getComposer(true, $config);
+            $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies);
+        }
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -137,6 +155,8 @@ EOT
         if (isset($config['archive']['directory'])) {
             $this->dumpDownloads($config, $packages, $output, $outputDir);
         }
+
+        file_put_contents($outputDir.'/packages.cache', serialize($packages));
 
         $filename = $outputDir.'/packages.json';
         $this->dumpJson($packages, $output, $filename);
