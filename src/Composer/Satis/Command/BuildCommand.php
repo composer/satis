@@ -292,7 +292,7 @@ EOT
             $package->setDistType($format);
             $package->setDistUrl($distUrl);
             $package->setDistSha1Checksum(hash_file('sha1', $path));
-            $package->setDistReference($package->getPrettyVersion());
+            $package->setDistReference($package->getSourceReference());
         }
     }
 
