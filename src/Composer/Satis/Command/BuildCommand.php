@@ -16,7 +16,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Helper\HelperSet;
 use Composer\Command\Command;
 use Composer\DependencyResolver\Pool;
 use Composer\DependencyResolver\DefaultPolicy;
@@ -273,7 +272,7 @@ EOT
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory;
-        $io = new ConsoleIO($input, $output, new HelperSet(array()));
+        $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
         $downloadManager = $factory->createDownloadManager($io, $composerConfig);
