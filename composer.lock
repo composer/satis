@@ -3,7 +3,7 @@
         "This file locks the dependencies of your project to a known state",
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file"
     ],
-    "hash": "422ad07b1373d97245f72925b356f06e",
+    "hash": "1c48421f5a25a9673ef2f3f428bd0ee0",
     "packages": [
         {
             "name": "composer/composer",
@@ -11,12 +11,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "a080ae3a51a16e1cbfe0c881797dba869cef95af"
+                "reference": "da7ace02ebd07d24d9a114a40bdd25bb3f8e0422"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/a080ae3a51a16e1cbfe0c881797dba869cef95af",
-                "reference": "a080ae3a51a16e1cbfe0c881797dba869cef95af",
+                "url": "https://api.github.com/repos/composer/composer/zipball/da7ace02ebd07d24d9a114a40bdd25bb3f8e0422",
+                "reference": "da7ace02ebd07d24d9a114a40bdd25bb3f8e0422",
                 "shasum": ""
             },
             "require": {
@@ -25,7 +25,7 @@
                 "seld/jsonlint": "1.*",
                 "symfony/console": "~2.3",
                 "symfony/finder": "~2.2",
-                "symfony/process": "~2.1"
+                "symfony/process": "~2.1@dev"
             },
             "require-dev": {
                 "phpunit/phpunit": "~3.7.10"
@@ -72,7 +72,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2013-08-31 13:42:26"
+            "time": "2013-09-19 09:23:19"
         },
         {
             "name": "justinrainbow/json-schema",
@@ -153,12 +153,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Console.git",
-                "reference": "8f04af088451aa787e8c2433aa8174f2a0e10b4b"
+                "reference": "f6635551e5bdcb37f6b0ce5d04e1998dfe03030e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Console/zipball/8f04af088451aa787e8c2433aa8174f2a0e10b4b",
-                "reference": "8f04af088451aa787e8c2433aa8174f2a0e10b4b",
+                "url": "https://api.github.com/repos/symfony/Console/zipball/f6635551e5bdcb37f6b0ce5d04e1998dfe03030e",
+                "reference": "f6635551e5bdcb37f6b0ce5d04e1998dfe03030e",
                 "shasum": ""
             },
             "require": {
@@ -197,7 +197,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "http://symfony.com",
-            "time": "2013-08-23 15:27:50"
+            "time": "2013-09-18 07:05:46"
         },
         {
             "name": "symfony/finder",
@@ -248,17 +248,17 @@
         },
         {
             "name": "symfony/process",
-            "version": "v2.3.4",
+            "version": "dev-master",
             "target-dir": "Symfony/Component/Process",
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process.git",
-                "reference": "1e91553e1cedd0b8fb1da6ea4f89b02e21713d5b"
+                "reference": "3d8287117bb7c638a0164cf4ac471256a30e0620"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Process/zipball/1e91553e1cedd0b8fb1da6ea4f89b02e21713d5b",
-                "reference": "1e91553e1cedd0b8fb1da6ea4f89b02e21713d5b",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/3d8287117bb7c638a0164cf4ac471256a30e0620",
+                "reference": "3d8287117bb7c638a0164cf4ac471256a30e0620",
                 "shasum": ""
             },
             "require": {
@@ -267,7 +267,7 @@
             "type": "library",
             "extra": {
                 "branch-alias": {
-                    "dev-master": "2.3-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -291,7 +291,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
-            "time": "2013-08-22 06:42:25"
+            "time": "2013-09-18 07:05:46"
         },
         {
             "name": "twig/twig",
@@ -352,7 +352,8 @@
     "minimum-stability": "beta",
     "stability-flags": {
         "composer/composer": 20,
-        "symfony/console": 20
+        "symfony/console": 20,
+        "symfony/process": 20
     },
     "platform": {
         "php": ">=5.3.2"

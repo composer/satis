@@ -22,7 +22,8 @@
         "php": ">=5.3.2",
         "composer/composer": "1.0.*@dev",
         "twig/twig": "~1.7",
-        "symfony/console": "~2.1@dev"
+        "symfony/console": "~2.1@dev",
+        "symfony/process": "@dev"
     },
     "autoload": {
         "psr-0": { "Composer\\Satis": "src/" }
