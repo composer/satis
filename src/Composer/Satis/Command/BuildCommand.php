@@ -34,6 +34,7 @@ use Composer\Satis\Satis;
 use Composer\Factory;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
+use Composer\IO\ConsoleIO;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -135,7 +136,7 @@ EOT
         }
 
         if (isset($config['archive']['directory'])) {
-            $this->dumpDownloads($config, $packages, $output, $outputDir);
+            $this->dumpDownloads($config, $packages, $input, $output, $outputDir);
         }
 
         $filename = $outputDir.'/packages.json';
@@ -253,12 +254,13 @@ EOT
     /**
      * @param array           $config   Directory where to create the downloads in, prefix-url, etc..
      * @param array           $packages Reference to packages so we can rewrite the JSON.
+     * @param InputInterface  $input
      * @param OutputInterface $output
      * @param string          $outputDir
      *
      * @return void
      */
-    private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir)
+    private function dumpDownloads(array $config, array &$packages, InputInterface  $input, OutputInterface $output, $outputDir)
     {
         $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
 
@@ -270,9 +272,13 @@ EOT
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory;
+        $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
+
+        /* @var \Composer\Downloader\DownloadManager $downloadManager */
+        $downloadManager = $factory->createDownloadManager($io, $composerConfig);
 
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
-        $archiveManager = $factory->createArchiveManager($composerConfig);
+        $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
 
         $archiveManager->setOverwriteFiles(false);
 
