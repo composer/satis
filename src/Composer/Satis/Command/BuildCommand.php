@@ -300,7 +300,8 @@ EOT
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
             $path = $archiveManager->archive($package, $format, $directory);
-            $archive = basename($path);
+            $archive = substr($path, strlen(realpath($directory)) + 1);
+            $archive = str_replace('\\', '/', $archive);
             $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
             $package->setDistType($format);
             $package->setDistUrl($distUrl);
