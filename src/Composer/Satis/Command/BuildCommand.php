@@ -261,7 +261,7 @@ EOT
     private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir)
     {
         if (isset($config['archive']['absolute-directory'])) {
-            $directory = sprintf('%s', $config['archive']['absolute-directory']);
+            $directory = $config['archive']['absolute-directory'];
         } else {
             $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
         }
