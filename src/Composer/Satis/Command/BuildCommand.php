@@ -260,7 +260,11 @@ EOT
      */
     private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir)
     {
-        $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
+        if (isset($config['archive']['absolute-directory'])) {
+            $directory = sprintf('%s', $config['archive']['absolute-directory']);
+        } else {
+            $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
+        }
 
         $output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
 
