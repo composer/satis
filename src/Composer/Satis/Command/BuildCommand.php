@@ -49,6 +49,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -135,7 +136,8 @@ EOT
         }
 
         if (isset($config['archive']['directory'])) {
-            $this->dumpDownloads($config, $packages, $output, $outputDir);
+            $skipErrors = (bool)$input->getOption('skip-errors');
+            $this->dumpDownloads($config, $packages, $output, $outputDir, $skipErrors);
         }
 
         $filename = $outputDir.'/packages.json';
@@ -255,10 +257,11 @@ EOT
      * @param array           $packages Reference to packages so we can rewrite the JSON.
      * @param OutputInterface $output
      * @param string          $outputDir
+     * @param bool            $skipErrors   If true, any exception while dumping a package will be ignored.
      *
      * @return void
      */
-    private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir)
+    private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir, $skipErrors)
     {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
@@ -303,13 +306,20 @@ EOT
 
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
-            $path = $archiveManager->archive($package, $format, $directory);
-            $archive = basename($path);
-            $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
-            $package->setDistType($format);
-            $package->setDistUrl($distUrl);
-            $package->setDistSha1Checksum(hash_file('sha1', $path));
-            $package->setDistReference($package->getSourceReference());
+            try {
+                $path = $archiveManager->archive($package, $format, $directory);
+                $archive = basename($path);
+                $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
+                $package->setDistType($format);
+                $package->setDistUrl($distUrl);
+                $package->setDistSha1Checksum(hash_file('sha1', $path));
+                $package->setDistReference($package->getSourceReference());
+            } catch(\Exception $exception) {
+                if(!$skipErrors) {
+                    throw $exception;
+                }
+                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+            }
         }
     }
 
