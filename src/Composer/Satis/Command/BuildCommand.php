@@ -43,15 +43,15 @@ class BuildCommand extends Command
     protected function configure()
     {
         $this
-          ->setName('build')
-          ->setDescription('Builds a composer repository out of a json file')
-          ->setDefinition(array(
-              new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
-              new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
-              new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
-              new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
-          ))
-          ->setHelp(<<<EOT
+        ->setName('build')
+        ->setDescription('Builds a composer repository out of a json file')
+        ->setDefinition(array(
+            new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
+            new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
+            new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+            new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
+        ))
+        ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
 (satis.json is used by default) and outputs a composer
 repository in the given output-dir.
@@ -82,7 +82,7 @@ The json config file accepts the following keys:
 - "twig-template": Location of twig template to use for
   building the html output.
 EOT
-          )
+        )
         ;
     }
 
@@ -258,6 +258,7 @@ EOT
      * @param OutputInterface $output
      * @param string          $outputDir
      * @param bool            $skipErrors
+     *
      * @return void
      */
     private function dumpDownloads(array $config, array &$packages, OutputInterface $output, $outputDir, $skipErrors)
