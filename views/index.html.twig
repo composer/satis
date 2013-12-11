@@ -17,7 +17,7 @@
                 <p>{{ description }}</p>
             {% endif %}
             <div id="lastupdate">
-                Last updated: <time title="{{ "now"|date(constant('\DateTime::RSS')) }}">{{ "now"|date(constant('\DateTime::RSS')) }}</time>
+                Last updated: <time datetime="{{ "now"|date(constant('\DateTime::ISO8601')) }}">{{ "now"|date(constant('\DateTime::RSS')) }}</time>
             </div>
         </div>
         <div id="bd">
