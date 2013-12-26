@@ -16,6 +16,9 @@
             {% if description %}
                 <p>{{ description }}</p>
             {% endif %}
+            <div id="lastupdate">
+                Last updated: <time datetime="{{ "now"|date(constant('\DateTime::ISO8601')) }}">{{ "now"|date(constant('\DateTime::RSS')) }}</time>
+            </div>
         </div>
         <div id="bd">
             <div class="yui-g">
@@ -102,6 +105,7 @@
 
     <script>
     {% include 'jquery-2.0.0.js' %}
+    {% include 'moment-2.4.0.js' %}
     $(function(){
         var packages = $('h3').each(function(){
             var desc = $(this).next('p'),
@@ -118,6 +122,12 @@
                 $(this).data('info').toggle(show);
             });
         }).focus();
+        var $lastUpdate = $('#lastupdate time');
+        function updateDate() {
+            $lastUpdate.text(moment('{{ "now"|date(constant('\DateTime::ISO8601')) }}').fromNow());
+        }
+        setInterval(updateDate, 5000);
+        updateDate();
     });
     </script>
 </body>
