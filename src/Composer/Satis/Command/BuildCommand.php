@@ -193,6 +193,10 @@ EOT
                             continue;
                         }
 
+                        if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                            continue;
+                        }
+
                         // add matching package if not yet selected
                         if (!isset($selected[$package->getUniqueName()])) {
                             if ($verbose) {
