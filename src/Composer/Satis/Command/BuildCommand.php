@@ -141,8 +141,7 @@ EOT
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
 
-        $filename = $outputDir.'/packages.json';
-        $this->dumpJson($packages, $output, $filename);
+        $this->dumpJson($config, $packages, $output, $outputDir);
 
         if ($htmlView) {
             $dependencies = array();
@@ -329,15 +328,39 @@ EOT
         }
     }
 
-    private function dumpJson(array $packages, OutputInterface $output, $filename)
+    private function dumpJson($config, array $packages, OutputInterface $output, $outputDir)
     {
         $repo = array('packages' => array());
+        $repo['providers-url'] = $config['homepage'] . '/packages/%package%.json';
+
+        $providerFiles = array();
+
         $dumper = new ArrayDumper;
         foreach ($packages as $package) {
-            $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
+            $fileName = $package->getPrettyName();
+
+            $providerFiles[$fileName][$package->getPrettyVersion()] = $dumper->dump($package);
+            $providerFiles[$fileName][$package->getPrettyVersion()]['uid'] = md5($package->getPrettyName() . $package->getPrettyVersion());
         }
+
+        $providers = array();
+        foreach ($providerFiles as $packageName => $contents)
+        {
+            $json = new JsonFile($outputDir . '/packages/' . $packageName . '.json');
+            $d = array('packages' => array($packageName => $contents));
+            $json->write($d);
+
+            $providers[$packageName] = array('sha256' => hash('sha256', file_get_contents($json->getPath())));
+        }
+
+        $providerJSON = new JsonFile($outputDir . '/provider.json');
+        $providerJSON->write(array('providers' => $providers));
+
+        $repo['provider-includes'] = array();
+        $repo['provider-includes']['provider.json'] = array('sha256' => hash('sha256', file_get_contents($providerJSON->getPath())));
+
         $output->writeln('<info>Writing packages.json</info>');
-        $repoJson = new JsonFile($filename);
+        $repoJson = new JsonFile($outputDir . '/packages.json');
         $repoJson->write($repo);
     }
 
