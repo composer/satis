@@ -23,6 +23,7 @@ use Composer\Composer;
 use Composer\Config;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
+use Composer\Package\BasePackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\PackageInterface;
