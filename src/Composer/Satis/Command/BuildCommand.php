@@ -292,6 +292,7 @@ EOT
         $composerConfig = Factory::createConfig();
         $factory = new Factory;
         $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
+        $io->loadConfiguration($composerConfig);
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
         $downloadManager = $factory->createDownloadManager($io, $composerConfig);
