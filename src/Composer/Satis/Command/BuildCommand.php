@@ -99,6 +99,7 @@ EOT
     {
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
+        $skipErrors = (bool)$input->getOption('skip-errors');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($this->getIO());
@@ -136,14 +137,13 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $minimumStability);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $minimumStability, $skipErrors);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
         }
 
         if (isset($config['archive']['directory'])) {
-            $skipErrors = (bool)$input->getOption('skip-errors');
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
 
@@ -164,7 +164,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $minimumStability)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $minimumStability, $skipErrors)
     {
         $selected = array();
 
@@ -174,7 +174,14 @@ EOT
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($minimumStability);
         foreach ($repos as $repo) {
-            $pool->addRepository($repo);
+            try {
+                $pool->addRepository($repo);
+            } catch(\Exception $exception) {
+                if(!$skipErrors) {
+                    throw $exception;
+                }
+                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+            }
         }
 
         if ($requireAll) {
