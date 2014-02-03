@@ -76,6 +76,8 @@ The json config file accepts the following keys:
   required to mirror packagist for example, setting this
   to true will make satis automatically require all of your
   requirements' dependencies.
+- "require-dev-dependencies": works like require-dependencies
+  but requires dev requirements rather than regular ones.
 - "config": all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
 - "output-html": boolean, controls whether the repository
@@ -120,6 +122,8 @@ EOT
         // fetch options
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
         $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
+        $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
             $requireAll = true;
@@ -136,7 +140,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $minimumStability);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -164,7 +168,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $minimumStability)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability)
     {
         $selected = array();
 
@@ -236,9 +240,16 @@ EOT
                     }
                     $selected[$package->getUniqueName()] = $package;
 
-                    if (!$requireAll && $requireDependencies) {
+                    if (!$requireAll) {
+                        $required = array();
+                        if ($requireDependencies) {
+                            $required = $package->getRequires();
+                        }
+                        if ($requireDevDependencies) {
+                            $required = array_merge($required, $package->getDevRequires());
+                        }
                         // append non-platform dependencies
-                        foreach ($package->getRequires() as $dependencyLink) {
+                        foreach ($required as $dependencyLink) {
                             $target = $dependencyLink->getTarget();
                             if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
                                 $linkId = $target.' '.$dependencyLink->getConstraint();
