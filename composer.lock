@@ -11,12 +11,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "76833335152d17632e1afe277a9edbbb232d3a1f"
+                "reference": "7566315c7af0213c6c8c0958150114263307b08d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/76833335152d17632e1afe277a9edbbb232d3a1f",
-                "reference": "76833335152d17632e1afe277a9edbbb232d3a1f",
+                "url": "https://api.github.com/repos/composer/composer/zipball/7566315c7af0213c6c8c0958150114263307b08d",
+                "reference": "7566315c7af0213c6c8c0958150114263307b08d",
                 "shasum": ""
             },
             "require": {
@@ -25,7 +25,7 @@
                 "seld/jsonlint": "1.*",
                 "symfony/console": "~2.3",
                 "symfony/finder": "~2.2",
-                "symfony/process": "~2.1@dev"
+                "symfony/process": "~2.1"
             },
             "require-dev": {
                 "phpunit/phpunit": "~3.7.10"
@@ -72,20 +72,20 @@
                 "dependency",
                 "package"
             ],
-            "time": "2014-01-05 10:21:57"
+            "time": "2014-02-03 22:02:33"
         },
         {
             "name": "justinrainbow/json-schema",
             "version": "1.1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/justinrainbow/json-schema.git",
-                "reference": "05ff6d8d79fe3ad190b0663d80d3f9deee79416c"
+                "url": "git://github.com/justinrainbow/json-schema.git",
+                "reference": "v1.1.0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/justinrainbow/json-schema/zipball/05ff6d8d79fe3ad190b0663d80d3f9deee79416c",
-                "reference": "05ff6d8d79fe3ad190b0663d80d3f9deee79416c",
+                "url": "https://github.com/justinrainbow/json-schema/zipball/v1.1.0",
+                "reference": "v1.1.0",
                 "shasum": ""
             },
             "require": {
@@ -97,37 +97,7 @@
                     "JsonSchema": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "NewBSD"
-            ],
-            "authors": [
-                {
-                    "name": "Igor Wiedler",
-                    "email": "igor@wiedler.ch",
-                    "homepage": "http://wiedler.ch/igor/"
-                },
-                {
-                    "name": "Bruno Prieto Reis",
-                    "email": "bruno.p.reis@gmail.com"
-                },
-                {
-                    "name": "Justin Rainbow",
-                    "email": "justin.rainbow@gmail.com"
-                },
-                {
-                    "name": "Robert Schönthal",
-                    "email": "seroscho@googlemail.com",
-                    "homepage": "http://digitalkaoz.net"
-                }
-            ],
-            "description": "A library to validate a json schema.",
-            "homepage": "https://github.com/justinrainbow/json-schema",
-            "keywords": [
-                "json",
-                "schema"
-            ],
-            "time": "2012-01-03 00:33:17"
+            "time": "2012-01-02 12:33:17"
         },
         {
             "name": "seld/jsonlint",
@@ -183,12 +153,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Console.git",
-                "reference": "90cd91baaf803314b5fcbeb4079138b71cf1ef78"
+                "reference": "ce1d9d51cbb9f7c5d8b7b43ab93673cda4f2e5bd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Console/zipball/90cd91baaf803314b5fcbeb4079138b71cf1ef78",
-                "reference": "90cd91baaf803314b5fcbeb4079138b71cf1ef78",
+                "url": "https://api.github.com/repos/symfony/Console/zipball/ce1d9d51cbb9f7c5d8b7b43ab93673cda4f2e5bd",
+                "reference": "ce1d9d51cbb9f7c5d8b7b43ab93673cda4f2e5bd",
                 "shasum": ""
             },
             "require": {
@@ -227,7 +197,7 @@
             ],
             "description": "Symfony Console Component",
             "homepage": "http://symfony.com",
-            "time": "2014-01-02 14:42:17"
+            "time": "2014-02-03 17:15:42"
         },
         {
             "name": "symfony/finder",
@@ -283,12 +253,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/Process.git",
-                "reference": "a7fdd976ddea87a0354674eebf45251b4a8ce905"
+                "reference": "8a11fc068dc1d6967ba2a2415ea529cb4822bea0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/Process/zipball/a7fdd976ddea87a0354674eebf45251b4a8ce905",
-                "reference": "a7fdd976ddea87a0354674eebf45251b4a8ce905",
+                "url": "https://api.github.com/repos/symfony/Process/zipball/8a11fc068dc1d6967ba2a2415ea529cb4822bea0",
+                "reference": "8a11fc068dc1d6967ba2a2415ea529cb4822bea0",
                 "shasum": ""
             },
             "require": {
@@ -321,7 +291,7 @@
             ],
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
-            "time": "2013-12-29 14:45:01"
+            "time": "2014-02-03 17:15:42"
         },
         {
             "name": "twig/twig",
