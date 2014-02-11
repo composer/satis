@@ -200,10 +200,6 @@ EOT
                 } else {
                     // process other repos directly
                     foreach ($repo->getPackages() as $package) {
-                        // skip aliases
-                        if ($package instanceof AliasPackage) {
-                            continue;
-                        }
 
                         if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
                             continue;
