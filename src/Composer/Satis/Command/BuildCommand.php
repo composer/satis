@@ -50,6 +50,7 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
+                new InputArgument('filter-package', InputArgument::OPTIONAL, 'Run the build just for the given package', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ))
@@ -101,6 +102,7 @@ EOT
     {
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
+        $filterPackage = $input->getArgument('filter-package');
         $skipErrors = (bool)$input->getOption('skip-errors');
 
         if (preg_match('{^https?://}i', $configFile)) {
@@ -141,7 +143,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $filterPackage);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -168,7 +170,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packageFilter = null)
     {
         $selected = array();
 
@@ -198,23 +200,40 @@ EOT
                         $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
                     }
                 } else {
-                    // process other repos directly
-                    foreach ($repo->getPackages() as $package) {
-                        // skip aliases
-                        if ($package instanceof AliasPackage) {
-                            continue;
+                    if(!empty($packageFilter)) {
+                        if ($verbose) {
+                            $output->writeln('Trying to find packages '.$packageFilter.' in repo');
                         }
 
-                        if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
-                            continue;
-                        }
-
-                        // add matching package if not yet selected
-                        if (!isset($selected[$package->getUniqueName()])) {
+                        $packages = $repo->findPackages($packageFilter);
+                        foreach($packages as $package) {
                             if ($verbose) {
                                 $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                             }
+
                             $selected[$package->getUniqueName()] = $package;
+                        }
+                    }
+                    else {
+                        // process other repos directly
+                        foreach ($repo->getPackages() as $package) {
+                            // skip aliases
+                            if ($package instanceof AliasPackage) {
+                                continue;
+                            }
+
+                            if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                                continue;
+                            }
+
+                            // add matching package if not yet selected
+                            if (!isset($selected[$package->getName()])) {
+                                if ($verbose) {
+                                    $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                                }
+
+                                $selected[$package->getUniqueName()] = $package;
+                            }
                         }
                     }
                 }
