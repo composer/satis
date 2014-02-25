@@ -207,6 +207,15 @@ EOT
 
                         $packages = $repo->findPackages($packageFilter);
                         foreach($packages as $package) {
+                            // skip aliases
+                            if ($package instanceof AliasPackage) {
+                                continue;
+                            }
+
+                            if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                                continue;
+                            }
+
                             if ($verbose) {
                                 $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                             }
