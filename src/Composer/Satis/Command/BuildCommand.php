@@ -50,7 +50,7 @@ class BuildCommand extends Command
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
-                new InputArgument('filter-package', InputArgument::OPTIONAL, 'Run the build just for the given package', null),
+                new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ))
@@ -102,7 +102,7 @@ EOT
     {
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
-        $filterPackage = $input->getArgument('filter-package');
+        $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
 
         if (preg_match('{^https?://}i', $configFile)) {
@@ -143,7 +143,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $filterPackage);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -170,7 +170,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packageFilter = null)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
 
@@ -200,12 +200,13 @@ EOT
                         $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
                     }
                 } else {
-                    if(!empty($packageFilter)) {
-                        if ($verbose) {
-                            $output->writeln('Trying to find packages '.$packageFilter.' in repo');
+                    if(count($packagesFilter) > 0) {
+                        // collect all the packages based on the given $packagesFilter
+                        $packages = array();
+                        foreach($packagesFilter as $filter) {
+                            $packages += $repo->findPackages($filter);
                         }
 
-                        $packages = $repo->findPackages($packageFilter);
                         foreach($packages as $package) {
                             // skip aliases
                             if ($package instanceof AliasPackage) {
@@ -217,7 +218,7 @@ EOT
                             }
 
                             if ($verbose) {
-                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().') based on the given filter options');
                             }
 
                             $selected[$package->getUniqueName()] = $package;
