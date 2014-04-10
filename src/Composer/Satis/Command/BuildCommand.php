@@ -342,13 +342,13 @@ EOT
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
             try {
+                $package->setDistReference($package->getSourceReference());
                 $path = $archiveManager->archive($package, $format, $directory);
                 $archive = basename($path);
                 $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
                 $package->setDistType($format);
                 $package->setDistUrl($distUrl);
                 $package->setDistSha1Checksum(hash_file('sha1', $path));
-                $package->setDistReference($package->getSourceReference());
             } catch(\Exception $exception) {
                 if(!$skipErrors) {
                     throw $exception;
