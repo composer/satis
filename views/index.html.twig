@@ -122,6 +122,14 @@
                 $(this).data('info').toggle(show);
             });
         }).focus();
+        $('input#search').change(function(){
+            window.location.hash = $(this).val().toLowerCase();
+        });
+        $(window).on("hashchange", function() {
+            $('input#search').val(window.location.hash.toLowerCase());
+            $('input#search').trigger("keyup");
+        });
+        $(window).trigger("hashchange");
         var $lastUpdate = $('#lastupdate time');
         function updateDate() {
             $lastUpdate.text(moment('{{ "now"|date(constant('\DateTime::ISO8601')) }}').fromNow());
