@@ -12,6 +12,7 @@
 
 namespace Composer\Satis\Command;
 
+use Composer\Package\Loader\ArrayLoader;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -154,9 +155,16 @@ EOT
         }
 
         $filename = $outputDir.'/packages.json';
-        $this->dumpJson($packages, $output, $filename);
+        $update   = !empty($packagesFilter);
+        $this->dumpJson($packages, $output, $filename, $update);
 
         if ($htmlView) {
+
+            // if updating, we need to ge the full picture before trying to generate the web-view.
+            if ($update) {
+                $packages = $this->loadJson($filename);
+            }
+
             $dependencies = array();
             foreach ($packages as $package) {
                 foreach ($package->getRequires() as $link) {
@@ -190,9 +198,9 @@ EOT
             }
         }
 
-        if ($requireAll) {
-            $links = array();
+        $links = array();
 
+        if ($requireAll) {
             foreach ($repos as $repo) {
                 // collect links for composer repos with providers
                 if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
@@ -249,9 +257,17 @@ EOT
                 }
             }
         } else {
-            $links = array_values($composer->getPackage()->getRequires());
-        }
+            $links = $composer->getPackage()->getRequires();
 
+            // only pick up packages in our filter, if a filter has been set.
+            if (count($packagesFilter) > 0) {
+                $links = array_filter($links, function(Link $link) use ($packagesFilter) {
+                    return in_array($link->getTarget(), $packagesFilter);
+                });
+            }
+
+            $links = array_values($links);
+        }
 
         // process links if any
         $depsLinks = array();
@@ -387,16 +403,47 @@ EOT
         }
     }
 
-    private function dumpJson(array $packages, OutputInterface $output, $filename)
+    private function dumpJson(array $packages, OutputInterface $output, $filename, $update = false)
     {
-        $repo = array('packages' => array());
-        $dumper = new ArrayDumper;
+        $repoJson = new JsonFile($filename);
+
+        // decide if we should do an update or override.
+        $repo = $update && $repoJson->exists()
+            ? $repoJson->read()
+            : array('packages' => array());
+
+        $dumper   = new ArrayDumper;
         foreach ($packages as $package) {
             $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
         $output->writeln('<info>Writing packages.json</info>');
-        $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
+    }
+
+    private function loadJson($filename)
+    {
+        $packages     = array();
+        $repoJson     = new JsonFile($filename);
+
+        if ($repoJson->exists()) {
+            $loader       = new ArrayLoader();
+            $jsonPackages = $repoJson->read();
+            $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
+                ? $jsonPackages['packages']
+                : array();
+
+            foreach ($jsonPackages as $jsonPackage) {
+                if (is_array($jsonPackage)) {
+                    foreach ($jsonPackage as $jsonVersion) {
+                        if (is_array($jsonVersion)) {
+                            $packages[] = $loader->load($jsonVersion);
+                        }
+                    }
+                }
+            }
+        }
+
+        return $packages;
     }
 
     private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
