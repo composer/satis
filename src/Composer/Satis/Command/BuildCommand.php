@@ -322,6 +322,9 @@ EOT
 
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $name => $package) {
+            if ('metapackage' === $package->getType()) {
+                continue;
+            }
 
             if (true === $skipDev && true === $package->isDev()) {
                 $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
