@@ -122,6 +122,23 @@
                 $(this).data('info').toggle(show);
             });
         }).focus();
+        $('input#search').change(function(){
+            window.location.hash = "!/" + $(this).val().toLowerCase();
+        });
+        $(window).on("hashchange", function() {
+            var $input = $('input#search');
+            if (window.location.hash.indexOf("#!/") == 0) {
+                $input.val(window.location.hash.replace(/#!\//,"").toLowerCase());
+                $input.trigger("keyup");
+            } else {
+                var $anchor = $("h3[id='"+window.location.hash.replace(/^#/,"")+"']");
+                if ($anchor.length != $anchor.filter(":visible").length) {
+                    $input.val("").trigger("keyup");
+                    $anchor.get(0).scrollIntoView();
+                }
+            }
+        });
+        $(window).trigger("hashchange");
         var $lastUpdate = $('#lastupdate time');
         function updateDate() {
             $lastUpdate.text(moment('{{ "now"|date(constant('\DateTime::ISO8601')) }}').fromNow());
