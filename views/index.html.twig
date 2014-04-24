@@ -113,14 +113,19 @@
             $(this).data('desc', desc);
             $(this).data('info', info);
         });
+        var timer;
         $('input#search').keyup(function(){
+            clearTimeout(timer);
+            var ms = 350; // milliseconds
             var needle = $(this).val().toLowerCase(), show;
-            packages.each(function(){
-                show = $(this).text().toLowerCase().indexOf(needle) != -1;
-                $(this).toggle(show);
-                $(this).data('desc').toggle(show);
-                $(this).data('info').toggle(show);
-            });
+            timer = setTimeout(function() {
+                packages.each(function(){
+                    show = $(this).text().toLowerCase().indexOf(needle) != -1;
+                    $(this).toggle(show);
+                    $(this).data('desc').toggle(show);
+                    $(this).data('info').toggle(show);
+                });
+            }, ms);
         }).focus();
         $('input#search').change(function(){
             window.location.hash = "!/" + $(this).val().toLowerCase();
