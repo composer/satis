@@ -155,16 +155,16 @@ EOT
         }
 
         $filename = $outputDir.'/packages.json';
-        $update   = !empty($packagesFilter);
-        $this->dumpJson($packages, $output, $filename, $update);
+        if(!empty($packagesFilter)) {
+            // in case of an active package filter we need to load the dumped packages.json and merge the
+            // updated packages in
+            $oldPackages = $this->loadDumpedPackages($filename, $packagesFilter);
+            $packages += $oldPackages;
+            ksort($packages);
+        }
+        $this->dumpJson($packages, $output, $filename);
 
         if ($htmlView) {
-
-            // if updating, we need to ge the full picture before trying to generate the web-view.
-            if ($update) {
-                $packages = $this->loadJson($filename);
-            }
-
             $dependencies = array();
             foreach ($packages as $package) {
                 foreach ($package->getRequires() as $link) {
@@ -420,7 +420,7 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function loadJson($filename)
+    private function loadDumpedPackages($filename, array $packagesFilter = array())
     {
         $packages     = array();
         $repoJson     = new JsonFile($filename);
@@ -436,7 +436,11 @@ EOT
                 if (is_array($jsonPackage)) {
                     foreach ($jsonPackage as $jsonVersion) {
                         if (is_array($jsonVersion)) {
-                            $packages[] = $loader->load($jsonVersion);
+                            if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                continue;
+                            }
+                            $package = $loader->load($jsonVersion);
+                            $packages[$package->getUniqueName()] = $package;
                         }
                     }
                 }
