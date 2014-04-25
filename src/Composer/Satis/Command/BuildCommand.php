@@ -151,8 +151,16 @@ EOT
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
 
+        $filenamePrefix = $outputDir.'/include/all';
+        $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filenamePrefix);
+        $packageFileHash = hash_file('sha1', $packageFile);
+
+        $includes = array(
+            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
+        );
+        
         $filename = $outputDir.'/packages.json';
-        $this->dumpJson($packages, $output, $filename);
+        $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
             $dependencies = array();
@@ -358,13 +366,29 @@ EOT
         }
     }
 
-    private function dumpJson(array $packages, OutputInterface $output, $filename)
+    
+    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
         $repo = array('packages' => array());
         $dumper = new ArrayDumper;
         foreach ($packages as $package) {
             $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
+        $repoJson = new JsonFile($filename);
+        $repoJson->write($repo);
+        $hash = hash_file('sha1', $filename);
+        $filenameWithHash = $filename.'$'.$hash.'.json';
+        rename($filename, $filenameWithHash);
+        $output->writeln("<info>wrote packages json $filenameWithHash</info>");
+        return $filenameWithHash;
+    }
+    
+    private function dumpPackagesJson($includes, OutputInterface $output, $filename){
+        $repo = array(
+            'packages'          => array(),
+            'includes'          => $includes,
+        );
+        
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
