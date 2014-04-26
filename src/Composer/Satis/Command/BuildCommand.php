@@ -154,6 +154,7 @@ EOT
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
 
+        $filenamePrefix = $outputDir.'/include/all';
         $filename = $outputDir.'/packages.json';
         if(!empty($packagesFilter)) {
             // in case of an active package filter we need to load the dumped packages.json and merge the
@@ -162,7 +163,15 @@ EOT
             $packages += $oldPackages;
             ksort($packages);
         }
-        $this->dumpJson($packages, $output, $filename);
+
+        $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filenamePrefix);
+        $packageFileHash = hash_file('sha1', $packageFile);
+
+        $includes = array(
+            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
+        );
+        
+        $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
             $dependencies = array();
@@ -198,10 +207,10 @@ EOT
             }
         }
 
-        $links = array();
-
         if ($requireAll) {
+            $links = array();
             $filterForPackages = count($packagesFilter) > 0;
+
             foreach ($repos as $repo) {
                 // collect links for composer repos with providers
                 if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
@@ -231,28 +240,19 @@ EOT
                         }
 
                         // add matching package if not yet selected
-                        if (!isset($selected[$package->getName()])) {
+                        if (!isset($selected[$package->getUniqueName()])) {
                             if ($verbose) {
                                 $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                             }
-
                             $selected[$package->getUniqueName()] = $package;
                         }
                     }
                 }
             }
         } else {
-            $links = $composer->getPackage()->getRequires();
-
-            // only pick up packages in our filter, if a filter has been set.
-            if (count($packagesFilter) > 0) {
-                $links = array_filter($links, function(Link $link) use ($packagesFilter) {
-                    return in_array($link->getTarget(), $packagesFilter);
-                });
-            }
-
-            $links = array_values($links);
+            $links = array_values($composer->getPackage()->getRequires());
         }
+
 
         // process links if any
         $depsLinks = array();
@@ -388,51 +388,32 @@ EOT
         }
     }
 
-    private function dumpJson(array $packages, OutputInterface $output, $filename, $update = false)
+    
+    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
-        $repoJson = new JsonFile($filename);
-
-        // decide if we should do an update or override.
-        $repo = $update && $repoJson->exists()
-            ? $repoJson->read()
-            : array('packages' => array());
-
-        $dumper   = new ArrayDumper;
+        $repo = array('packages' => array());
+        $dumper = new ArrayDumper;
         foreach ($packages as $package) {
             $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
-        $output->writeln('<info>Writing packages.json</info>');
+        $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
+        $hash = hash_file('sha1', $filename);
+        $filenameWithHash = $filename.'$'.$hash.'.json';
+        rename($filename, $filenameWithHash);
+        $output->writeln("<info>wrote packages json $filenameWithHash</info>");
+        return $filenameWithHash;
     }
-
-    private function loadDumpedPackages($filename, array $packagesFilter = array())
-    {
-        $packages     = array();
-        $repoJson     = new JsonFile($filename);
-
-        if ($repoJson->exists()) {
-            $loader       = new ArrayLoader();
-            $jsonPackages = $repoJson->read();
-            $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
-                ? $jsonPackages['packages']
-                : array();
-
-            foreach ($jsonPackages as $jsonPackage) {
-                if (is_array($jsonPackage)) {
-                    foreach ($jsonPackage as $jsonVersion) {
-                        if (is_array($jsonVersion)) {
-                            if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
-                                continue;
-                            }
-                            $package = $loader->load($jsonVersion);
-                            $packages[$package->getUniqueName()] = $package;
-                        }
-                    }
-                }
-            }
-        }
-
-        return $packages;
+    
+    private function dumpPackagesJson($includes, OutputInterface $output, $filename){
+        $repo = array(
+            'packages'          => array(),
+            'includes'          => $includes,
+        );
+        
+        $output->writeln('<info>Writing packages.json</info>');
+        $repoJson = new JsonFile($filename);
+        $repoJson->write($repo);
     }
 
     private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
@@ -464,6 +445,45 @@ EOT
         ));
 
         file_put_contents($directory.'/index.html', $content);
+    }
+
+    private function loadDumpedPackages($filename, array $packagesFilter = array())
+    {
+        $packages = array();
+        $repoJson = new JsonFile($filename);
+        $dirName  = dirname($filename);
+
+        if ($repoJson->exists()) {
+            $loader       = new ArrayLoader();
+            $jsonIncludes = $repoJson->read();
+            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
+                ? $jsonIncludes['includes']
+                : array();
+
+            foreach ($jsonIncludes as $includeFile => $includeConfig) {
+                $includeJson = new JsonFile($dirName . '/' . $includeFile);
+                $jsonPackages = $includeJson->read();
+                $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
+                    ? $jsonPackages['packages']
+                    : array();
+
+                foreach ($jsonPackages as $jsonPackage) {
+                    if (is_array($jsonPackage)) {
+                        foreach ($jsonPackage as $jsonVersion) {
+                            if (is_array($jsonVersion)) {
+                                if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                    continue;
+                                }
+                                $package = $loader->load($jsonVersion);
+                                $packages[$package->getUniqueName()] = $package;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return $packages;
     }
 
     private function getMappedPackageList(array $packages)
