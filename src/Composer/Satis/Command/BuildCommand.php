@@ -201,6 +201,7 @@ EOT
         $links = array();
 
         if ($requireAll) {
+            $filterForPackages = count($packagesFilter) > 0;
             foreach ($repos as $repo) {
                 // collect links for composer repos with providers
                 if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
@@ -208,7 +209,7 @@ EOT
                         $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
                     }
                 } else {
-                    if(count($packagesFilter) > 0) {
+                    if($filterForPackages) {
                         // collect all the packages based on the given $packagesFilter
                         $packages = array();
                         foreach($packagesFilter as $filter) {
