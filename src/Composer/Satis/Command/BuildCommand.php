@@ -209,50 +209,34 @@ EOT
                         $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
                     }
                 } else {
+                    $packages = array();
                     if($filterForPackages) {
-                        // collect all the packages based on the given $packagesFilter
-                        $packages = array();
-                        foreach($packagesFilter as $filter) {
+                        // apply package filter if defined
+                        foreach ($packagesFilter as $filter) {
                             $packages += $repo->findPackages($filter);
                         }
+                    } else {
+                        // process other repos directly
+                        $packages = $repo->getPackages();
+                    }
 
-                        foreach($packages as $package) {
-                            // skip aliases
-                            if ($package instanceof AliasPackage) {
-                                continue;
-                            }
+                    foreach ($packages as $package) {
+                        // skip aliases
+                        if ($package instanceof AliasPackage) {
+                            continue;
+                        }
 
-                            if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
-                                continue;
-                            }
+                        if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                            continue;
+                        }
 
+                        // add matching package if not yet selected
+                        if (!isset($selected[$package->getName()])) {
                             if ($verbose) {
-                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().') based on the given filter options');
+                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                             }
 
                             $selected[$package->getUniqueName()] = $package;
-                        }
-                    }
-                    else {
-                        // process other repos directly
-                        foreach ($repo->getPackages() as $package) {
-                            // skip aliases
-                            if ($package instanceof AliasPackage) {
-                                continue;
-                            }
-
-                            if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
-                                continue;
-                            }
-
-                            // add matching package if not yet selected
-                            if (!isset($selected[$package->getName()])) {
-                                if ($verbose) {
-                                    $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
-                                }
-
-                                $selected[$package->getUniqueName()] = $package;
-                            }
                         }
                     }
                 }
