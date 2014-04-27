@@ -36,6 +36,7 @@
                 <input type="text" id="search" autocomplete="off" autofocus />
 
                 {% for name, package in packages %}
+                    <div>
                     <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
                     {% if package.highest.description %}
                         <p>{{ package.highest.description }}</p>
@@ -95,6 +96,7 @@
                             </td>
                         </tr>
                     </table>
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -107,12 +109,7 @@
     {% include 'jquery-2.0.0.js' %}
     {% include 'moment-2.4.0.js' %}
     $(function(){
-        var packages = $('h3').each(function(){
-            var desc = $(this).next('p'),
-                info = desc.length ? desc.next('table') : $(this).next('table');
-            $(this).data('desc', desc);
-            $(this).data('info', info);
-        });
+        var packages = $('h3');
         var timer;
         $('input#search').keyup(function(){
             clearTimeout(timer);
@@ -121,9 +118,7 @@
             timer = setTimeout(function() {
                 packages.each(function(){
                     show = $(this).text().toLowerCase().indexOf(needle) != -1;
-                    $(this).toggle(show);
-                    $(this).data('desc').toggle(show);
-                    $(this).data('info').toggle(show);
+                    $(this).parent().toggle(show);
                 });
             }, ms);
         }).focus();
