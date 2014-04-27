@@ -36,65 +36,67 @@
                 <input type="text" id="search" autocomplete="off" autofocus />
 
                 {% for name, package in packages %}
-                    <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
-                    {% if package.highest.description %}
-                        <p>{{ package.highest.description }}</p>
-                    {% endif %}
-                    <table>
-                        {% if package.highest.homepage %}
-                            <tr>
-                                <th>Homepage</th>
-                                <td><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></td>
-                            </tr>
+                    <div>
+                        <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
+                        {% if package.highest.description %}
+                            <p>{{ package.highest.description }}</p>
                         {% endif %}
-                        {% if package.highest.license %}
+                        <table>
+                            {% if package.highest.homepage %}
+                                <tr>
+                                    <th>Homepage</th>
+                                    <td><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></td>
+                                </tr>
+                            {% endif %}
+                            {% if package.highest.license %}
+                                <tr>
+                                    <th>License</th>
+                                    <td>{{ package.highest.license|join(', ') }}</td>
+                                </tr>
+                            {% endif %}
+                            {% if package.highest.authors %}
+                                <tr>
+                                    <th>Authors</th>
+                                    <td>
+                                        {% for author in package.highest.authors %}
+                                            {%- if author.homepage -%}
+                                                <a href="{{ author.homepage }}">{{ author.name }}</a>
+                                            {%- else -%}
+                                                {{ author.name }}
+                                            {%- endif -%}
+                                            {%- if not loop.last -%}, {% endif -%}
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                            {% endif %}
                             <tr>
-                                <th>License</th>
-                                <td>{{ package.highest.license|join(', ') }}</td>
-                            </tr>
-                        {% endif %}
-                        {% if package.highest.authors %}
-                            <tr>
-                                <th>Authors</th>
+                                <th>Releases</th>
                                 <td>
-                                    {% for author in package.highest.authors %}
-                                        {%- if author.homepage -%}
-                                            <a href="{{ author.homepage }}">{{ author.name }}</a>
+                                    {% for version in package.versions %}
+                                        {%- if version.distType -%}
+                                            <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
                                         {%- else -%}
-                                            {{ author.name }}
+                                            <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
                                         {%- endif -%}
                                         {%- if not loop.last -%}, {% endif -%}
                                     {% endfor %}
                                 </td>
                             </tr>
-                        {% endif %}
-                        <tr>
-                            <th>Releases</th>
-                            <td>
-                                {% for version in package.versions %}
-                                    {%- if version.distType -%}
-                                        <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
-                                    {%- else -%}
-                                        <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
-                                    {%- endif -%}
-                                    {%- if not loop.last -%}, {% endif -%}
-                                {% endfor %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th>Required by</th>
-                            <td>
-                                {% set package_dependencies = attribute(dependencies, name) %}
-                                {% if package_dependencies|length %}
-                                    <ul>
-                                        {% for dependency in package_dependencies %}
-                                            <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
-                                        {% endfor %}
-                                    </ul>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
+                            <tr>
+                                <th>Required by</th>
+                                <td>
+                                    {% set package_dependencies = attribute(dependencies, name) %}
+                                    {% if package_dependencies|length %}
+                                        <ul>
+                                            {% for dependency in package_dependencies %}
+                                                <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
+                                            {% endfor %}
+                                        </ul>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 {% endfor %}
             </div>
         </div>
@@ -107,12 +109,7 @@
     {% include 'jquery-2.0.0.js' %}
     {% include 'moment-2.4.0.js' %}
     $(function(){
-        var packages = $('h3').each(function(){
-            var desc = $(this).next('p'),
-                info = desc.length ? desc.next('table') : $(this).next('table');
-            $(this).data('desc', desc);
-            $(this).data('info', info);
-        });
+        var packages = $('h3');
         var timer;
         $('input#search').keyup(function(){
             clearTimeout(timer);
@@ -121,9 +118,7 @@
             timer = setTimeout(function() {
                 packages.each(function(){
                     show = $(this).text().toLowerCase().indexOf(needle) != -1;
-                    $(this).toggle(show);
-                    $(this).data('desc').toggle(show);
-                    $(this).data('info').toggle(show);
+                    $(this).parent().toggle(show);
                 });
             }, ms);
         }).focus();
