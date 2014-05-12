@@ -251,6 +251,15 @@ EOT
             }
         } else {
             $links = array_values($composer->getPackage()->getRequires());
+
+            // only pick up packages in our filter, if a filter has been set.
+            if (count($packagesFilter) > 0) {
+                 $links = array_filter($links, function(Link $link) use ($packagesFilter) {
+                     return in_array($link->getTarget(), $packagesFilter);
+                });
+            }
+
+            $links = array_values($links);
         }
 
 
