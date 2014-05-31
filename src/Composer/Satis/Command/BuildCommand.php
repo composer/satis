@@ -384,27 +384,27 @@ EOT
             $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
             try {
-				if ('pear-library' === $package->getType()) {
-					// PEAR packages are archives already
-					$filesystem = new Filesystem();
-					$packageName = $archiveManager->getPackageFilename($package);
-					$path =
-						realpath($directory) . '/' . $packageName . '.' .
-						pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
-					if (!file_exists($path)) {
-						$downloadDir = sys_get_temp_dir() . '/composer_archiver/' . $packageName;
-						$filesystem->ensureDirectoryExists($downloadDir);
-						$downloadManager->download($package, $downloadDir, false);
-						$filesystem->ensureDirectoryExists($directory);
-						copy($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
-						$filesystem->removeDirectory($downloadDir);
-					}
-					// Set archive format to `file` to tell composer to download it as is
-					$archiveFormat = 'file';
-				} else {
-					$path = $archiveManager->archive($package, $format, $directory);
-					$archiveFormat = $format;
-				}
+                if ('pear-library' === $package->getType()) {
+                    // PEAR packages are archives already
+                    $filesystem = new Filesystem();
+                    $packageName = $archiveManager->getPackageFilename($package);
+                    $path =
+                        realpath($directory) . '/' . $packageName . '.' .
+                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
+                    if (!file_exists($path)) {
+                        $downloadDir = sys_get_temp_dir() . '/composer_archiver/' . $packageName;
+                        $filesystem->ensureDirectoryExists($downloadDir);
+                        $downloadManager->download($package, $downloadDir, false);
+                        $filesystem->ensureDirectoryExists($directory);
+                        copy($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
+                        $filesystem->removeDirectory($downloadDir);
+                    }
+                    // Set archive format to `file` to tell composer to download it as is
+                    $archiveFormat = 'file';
+                } else {
+                    $path = $archiveManager->archive($package, $format, $directory);
+                    $archiveFormat = $format;
+                }
                 $archive = basename($path);
                 $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
                 $package->setDistType($archiveFormat);
