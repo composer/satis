@@ -396,7 +396,7 @@ EOT
                         $filesystem->ensureDirectoryExists($downloadDir);
                         $downloadManager->download($package, $downloadDir, false);
                         $filesystem->ensureDirectoryExists($directory);
-                        copy($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
+                        $filesystem->rename($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
                         $filesystem->removeDirectory($downloadDir);
                     }
                     // Set archive format to `file` to tell composer to download it as is
