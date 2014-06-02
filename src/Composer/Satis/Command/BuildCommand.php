@@ -12,6 +12,7 @@
 
 namespace Composer\Satis\Command;
 
+use Composer\Config\JsonConfigSource;
 use Composer\Package\Loader\ArrayLoader;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -106,8 +107,12 @@ EOT
         $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
 
+        // load auth.json authentication information and pass it to the io interface
+        $io = $this->getIO();
+        $io->loadConfiguration($this->getConfiguration());
+
         if (preg_match('{^https?://}i', $configFile)) {
-            $rfs = new RemoteFilesystem($this->getIO());
+            $rfs = new RemoteFilesystem($io);
             $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
             $config = JsonFile::parseJson($contents, $configFile);
         } else {
@@ -562,5 +567,48 @@ EOT
         });
 
         return $packages;
+    }
+
+    /**
+     * @return Config
+     */
+    private function getConfiguration()
+    {
+        $config = new Config();
+
+        // add dir to the config
+        $config->merge(array('config' => array('home' => $this->getComposerHome())));
+
+        // load global auth file
+        $file = new JsonFile($config->get('home').'/auth.json');
+        if ($file->exists()) {
+            $config->merge(array('config' => $file->read()));
+        }
+        $config->setAuthConfigSource(new JsonConfigSource($file, true));
+        return $config;
+    }
+
+    /**
+     * @return string
+     * @throws \RuntimeException
+     */
+    private function getComposerHome()
+    {
+        $home = getenv('COMPOSER_HOME');
+        if (!$home) {
+            if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
+                if (!getenv('APPDATA')) {
+                    throw new \RuntimeException('The APPDATA or COMPOSER_HOME environment variable must be set for composer to run correctly');
+                }
+                $home = strtr(getenv('APPDATA'), '\\', '/') . '/Composer';
+            } else {
+                if (!getenv('HOME')) {
+                    throw new \RuntimeException('The HOME or COMPOSER_HOME environment variable must be set for composer to run correctly');
+                }
+                $home = rtrim(getenv('HOME'), '/') . '/.composer';
+            }
+        }
+
+        return $home;
     }
 }
