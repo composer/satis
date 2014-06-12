@@ -17,10 +17,16 @@
             "homepage": "http://www.naderman.de"
         }
     ],
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "git@github.com:andrerom/composer.git"
+        }
+    ],
     "bin": ["bin/satis"],
     "require": {
         "php": ">=5.3.2",
-        "composer/composer": "1.0.*@dev",
+        "composer/composer": "dev-archive_fn_split",
         "twig/twig": "~1.7",
         "symfony/console": "~2.1"
     },
