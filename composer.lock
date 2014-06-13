@@ -4,20 +4,20 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "2366f26d4014bb12ef7a9ac58c28a624",
+    "hash": "f48b22f3055540a5e2931d5767bfa5dc",
     "packages": [
         {
             "name": "composer/composer",
-            "version": "dev-master",
+            "version": "dev-archive_fn_split",
             "source": {
                 "type": "git",
-                "url": "https://github.com/composer/composer.git",
-                "reference": "fc57c97f9f6f1a309dd51a9312218d052b8940c7"
+                "url": "https://github.com/andrerom/composer.git",
+                "reference": "92eb7c86e7d3608bec86ae77ba71564ae7ddb98e"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/fc57c97f9f6f1a309dd51a9312218d052b8940c7",
-                "reference": "fc57c97f9f6f1a309dd51a9312218d052b8940c7",
+                "url": "https://api.github.com/repos/andrerom/composer/zipball/92eb7c86e7d3608bec86ae77ba71564ae7ddb98e",
+                "reference": "92eb7c86e7d3608bec86ae77ba71564ae7ddb98e",
                 "shasum": ""
             },
             "require": {
@@ -49,22 +49,24 @@
                     "Composer": "src/"
                 }
             },
-            "notification-url": "https://packagist.org/downloads/",
+            "autoload-dev": {
+                "psr-0": {
+                    "Composer\\Test": "tests/"
+                }
+            },
             "license": [
                 "MIT"
             ],
             "authors": [
                 {
-                    "name": "Jordi Boggiano",
-                    "email": "j.boggiano@seld.be",
-                    "homepage": "http://seld.be",
-                    "role": "Developer"
-                },
-                {
                     "name": "Nils Adermann",
                     "email": "naderman@naderman.de",
-                    "homepage": "http://www.naderman.de",
-                    "role": "Developer"
+                    "homepage": "http://www.naderman.de"
+                },
+                {
+                    "name": "Jordi Boggiano",
+                    "email": "j.boggiano@seld.be",
+                    "homepage": "http://seld.be"
                 }
             ],
             "description": "Composer helps you declare, manage and install dependencies of PHP projects, ensuring you have the right stack everywhere.",
@@ -74,7 +76,12 @@
                 "dependency",
                 "package"
             ],
-            "time": "2014-06-05 14:10:53"
+            "support": {
+                "irc": "irc://irc.freenode.org/composer",
+                "issues": "https://github.com/composer/composer/issues",
+                "source": "https://github.com/andrerom/composer/tree/archive_fn_split"
+            },
+            "time": "2014-06-12 20:45:33"
         },
         {
             "name": "justinrainbow/json-schema",
