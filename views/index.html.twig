@@ -69,6 +69,18 @@
                                     </td>
                                 </tr>
                             {% endif %}
+                            {% if package.highest.support %}
+                            <tr>
+                                <th>Support</th>
+                                <td>
+                                    <ul>
+                                    {% for support_type, support_url in package.highest.support %}
+                                        <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
+                                    {% endfor %}
+                                    </ul>
+                                </tr>
+                            </td>
+                            {% endif %}
                             <tr>
                                 <th>Releases</th>
                                 <td>
