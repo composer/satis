@@ -86,9 +86,9 @@
                                 <td>
                                     {% for version in package.versions %}
                                         {%- if version.distType -%}
-                                            <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
+                                            <a href="{{ version.distUrl|git_url }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
                                         {%- else -%}
-                                            <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
+                                            <a href="{{ version.sourceUrl|git_url }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
                                         {%- endif -%}
                                         {%- if not loop.last -%}, {% endif -%}
                                     {% endfor %}

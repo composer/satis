@@ -453,6 +453,13 @@ EOT
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
+        
+        //add a twig filter to turn urls like git@bitbucket.org:Comapny/repo.git into http://bitbucket.org/Comapny/repo.git
+        $filter = new \Twig_SimpleFilter('git_url', function ($url) {
+            return preg_replace('|git@([^:]+):|si', 'http://$1/', $url);
+        });
+        $twig->addFilter($filter);
+
 
         $mappedPackages = $this->getMappedPackageList($packages);
 
