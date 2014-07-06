@@ -54,6 +54,8 @@ class BuildCommand extends Command
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
+                new InputOption('name-match', null, InputOption::VALUE_NONE, 'Name of returned packages must match the given name'),
+                new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -105,6 +107,8 @@ EOT
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
+        $nameMatch = (bool)$input->getOption('name-match');
+        $latestOnly = (bool)$input->getOption('latest-only');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($this->getIO());
@@ -144,7 +148,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $nameMatch, $latestOnly);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -187,7 +191,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $nameMatch, $latestOnly)
     {
         $selected = array();
 
@@ -271,7 +275,7 @@ EOT
             $link = $links[$i];
             $i++;
             $name = $link->getTarget();
-            $matches = $pool->whatProvides($name, $link->getConstraint());
+            $matches = $pool->whatProvides($name, $link->getConstraint(), $nameMatch);
 
             foreach ($matches as $index => $package) {
                 // skip aliases
@@ -317,7 +321,47 @@ EOT
 
         ksort($selected, SORT_STRING);
 
+        if($latestOnly)
+            $selected = $this->latestOnly($selected);
+
         return $selected;
+    }
+
+    /**
+     * Remove unnecessary packages if latest-only option has been set
+     * @param   array     $selected                 Array of selected packages we have to filter from
+     * @return  array     $latest_only_packages     Array of latest-only packages
+     */
+    private function latestOnly($selected) {
+        $package_versions = array();
+        $version_package = array();
+        foreach($selected as $package) {
+            $version = $package->getPrettyVersion() != 'dev-master' ? str_replace('v', '', $package->getPrettyVersion()) : $package->getPrettyVersion();
+            $package_versions[$package->getPrettyName()][] = $version;
+            $version_package[$package->getPrettyName()][$version] = $package;
+        }
+
+        $latest_only_packages = array();
+        foreach($package_versions as $package => $versions) {
+            $found = false;
+            sort($versions, SORT_NATURAL);
+            $reversed = array_reverse($versions);
+            foreach($reversed as $version) {
+                if(preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
+                    $latest_only_packages[$version_package[$package][$version]->getUniqueName()] = $version_package[$package][$version];
+                    $found = true;
+                    break;
+                }
+            }
+
+            // If we didn't find a versioned package we will use the latest available
+            if($found === false) {
+                $latest = array_pop($version_package[$package]);
+                $latest_only_packages[$latest->getUniqueName()] = $latest;
+            }
+        }
+
+        return $latest_only_packages;
     }
 
     /**
