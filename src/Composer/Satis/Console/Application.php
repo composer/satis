@@ -41,6 +41,12 @@ class Application extends BaseApplication
     public function doRun(InputInterface $input, OutputInterface $output)
     {
         $this->registerCommands();
+        
+        $styles = Factory::createAdditionalStyles();
+        foreach ($styles as $name => $style) {
+            $output->getFormatter()->setStyle($name, $style);
+        }
+
         $this->io = new ConsoleIO($input, $output, $this->getHelperSet());
 
         return parent::doRun($input, $output);
