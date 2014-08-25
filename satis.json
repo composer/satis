@@ -1,0 +1,40 @@
+{
+    "name": "Backend",
+    "homepage": "http://localhost/satis2/web/",
+    "repositories": [
+        { "type": "vcs", "url": "https://github.com/socialpoint/sp-platform-basev2.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/backend-core.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendAnalyticsBundle.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendLock.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendSharding.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendKeyValueStore.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendGeoLocator.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendRuleSystemBundle.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/BackendTestingTools.git" },
+        { "type": "vcs", "url": "https://github.com/socialpoint/analytics-events.git" },
+
+        { "type": "vcs", "url": "https://github.com/nrk/predis.git" },
+        { "type": "vcs", "url": "https://github.com/Seldaek/monolog.git" },
+        { "type": "vcs", "url": "https://github.com/padraic/mockery.git" },
+        { "type": "vcs", "url": "https://github.com/phpspec/phpspec.git" },
+        { "type": "vcs", "url": "https://github.com/fabpot/Twig.git" },
+        { "type": "vcs", "url": "https://github.com/doctrine/annotations.git" },
+        { "type": "vcs", "url": "https://github.com/doctrine/cache.git" },
+        { "type": "vcs", "url": "https://github.com/doctrine/doctrine2.git" },
+        { "type": "vcs", "url": "https://github.com/doctrine/dbal.git" },
+        { "type": "vcs", "url": "https://github.com/Ocramius/ProxyManager.git" },
+        { "type": "vcs", "url": "https://github.com/sebastianbergmann/php-code-coverage.git" },
+        { "type": "vcs", "url": "https://github.com/redtrine/redtrine.git" },
+        { "type": "vcs", "url": "https://github.com/thobbs/phpcassa.git" },
+        { "type": "vcs", "url": "https://github.com/sebastianbergmann/phpunit.git" },
+        { "type": "vcs", "url": "https://github.com/facebook/facebook-php-sdk.git" },
+        { "type": "vcs", "url": "https://github.com/snc/SncRedisBundle.git" },
+        { "type": "vcs", "url": "https://github.com/doctrine/DoctrineBundle.git" },
+        { "type": "vcs", "url": "https://github.com/symfony/symfony.git" }
+    ],
+    "require": {
+        "socialpoint/sp-platform-base": "*"
+    },
+    "require-dependencies": true,
+    "require-dev-dependencies": true
+}
