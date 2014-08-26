@@ -2,6 +2,7 @@
     "name": "Backend",
     "homepage": "http://localhost/satis2/web/",
     "repositories": [
+        { "type": "composer", "url": "https://packagist.org" },
         { "type": "vcs", "url": "git@github.com:socialpoint/sp-platform-basev2.git" },
         { "type": "vcs", "url": "git@github.com:socialpoint/backend-core.git" },
         { "type": "vcs", "url": "git@github.com:socialpoint/SocialDragonsConfig.git" },
