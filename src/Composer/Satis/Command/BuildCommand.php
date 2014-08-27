@@ -41,6 +41,7 @@ use Composer\Factory;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
 use Composer\IO\ConsoleIO;
+use Symfony\Component\Stopwatch\Stopwatch;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -51,6 +52,11 @@ class BuildCommand extends Command
      * @var LoggerInterface
      */
     private $logger;
+
+    /**
+     * @var Stopwatch
+     */
+    private $stopwatch;
 
     protected function configure()
     {
@@ -116,6 +122,8 @@ EOT
         $logsFile = dirname($outputDir) . '/logs/satis.log';
 
         $this->logger->pushHandler(new StreamHandler($logsFile, Logger::DEBUG));
+
+        $this->stopwatch = new Stopwatch();
     }
 
     /**
@@ -124,6 +132,8 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        $this->stopwatch->start('main');
+
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
@@ -208,6 +218,15 @@ EOT
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
             $this->dumpWeb($packages, $output, $rootPackage, $outputDir, $twigTemplate, $dependencies);
         }
+
+        $event = $this->stopwatch->stop('main');
+
+        $context = array(
+            'duration' => $event->getDuration(),
+            'packages' => $packagesFilter,
+        );
+
+        $this->logger->info('Build finished', $context);
     }
 
     private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
