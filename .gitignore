@@ -5,5 +5,7 @@
 /vendor
 /phpunit.xml
 composer.phar
-web
+web/include
+web/packages.json
+web/index.html
 logs/*
