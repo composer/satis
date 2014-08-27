@@ -170,7 +170,7 @@ EOT
         $includes = array(
             'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
         );
-        
+
         $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
@@ -195,17 +195,8 @@ EOT
         $output->writeln('<info>Scanning packages</info>');
 
         $repos = $composer->getRepositoryManager()->getRepositories();
-        $pool = new Pool($minimumStability);
-        foreach ($repos as $repo) {
-            try {
-                $pool->addRepository($repo);
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
-                    throw $exception;
-                }
-                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
-            }
-        }
+
+        $pool = $this->createPool($repos, $minimumStability, $skipErrors, $output);
 
         if ($requireAll) {
             $links = array();
@@ -420,7 +411,6 @@ EOT
         }
     }
 
-    
     private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
         $repo = array('packages' => array());
@@ -436,13 +426,14 @@ EOT
         $output->writeln("<info>wrote packages json $filenameWithHash</info>");
         return $filenameWithHash;
     }
-    
+
+
     private function dumpPackagesJson($includes, OutputInterface $output, $filename){
         $repo = array(
             'packages'          => array(),
             'includes'          => $includes,
         );
-        
+
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
@@ -562,5 +553,32 @@ EOT
         });
 
         return $packages;
+    }
+
+    /**
+     * @param RepositoryInterface[] $repos
+     * @param string                $minimumStability
+     * @param bool                  $skipErrors
+     * @param OutputInterface       $output
+     *
+     * @return Pool
+     * @throws \Exception
+     */
+    private function createPool(array $repos, $minimumStability, $skipErrors, OutputInterface $output)
+    {
+        $pool = new Pool($minimumStability);
+
+        foreach ($repos as $repo) {
+            try {
+                $pool->addRepository($repo);
+            } catch(\Exception $exception) {
+                if(!$skipErrors) {
+                    throw $exception;
+                }
+                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+            }
+        }
+
+        return $pool;
     }
 }
