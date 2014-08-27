@@ -13,6 +13,7 @@
 namespace Composer\Satis\Command;
 
 use Composer\Package\Loader\ArrayLoader;
+use Composer\Repository\ArrayRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -196,7 +197,7 @@ EOT
 
         $repos = $composer->getRepositoryManager()->getRepositories();
 
-        $pool = $this->createPool($repos, $minimumStability, $skipErrors, $output);
+        $pool = $this->createPool($repos, $minimumStability, $skipErrors, $output, $packagesFilter);
 
         if ($requireAll) {
             $links = array();
@@ -245,17 +246,17 @@ EOT
 
             // only pick up packages in our filter, if a filter has been set.
             if (count($packagesFilter) > 0) {
-                 $links = array_filter($links, function(Link $link) use ($packagesFilter) {
-                     return in_array($link->getTarget(), $packagesFilter);
+                $links = array_filter($links, function(Link $link) use ($packagesFilter) {
+                    return in_array($link->getTarget(), $packagesFilter);
                 });
             }
 
             $links = array_values($links);
         }
 
+        $depsLinks = array();
 
         // process links if any
-        $depsLinks = array();
 
         $i = 0;
         while (isset($links[$i])) {
@@ -560,17 +561,58 @@ EOT
      * @param string                $minimumStability
      * @param bool                  $skipErrors
      * @param OutputInterface       $output
+     * @param string                $packagesFilter
      *
      * @return Pool
      * @throws \Exception
      */
-    private function createPool(array $repos, $minimumStability, $skipErrors, OutputInterface $output)
+    private function createPool(array $repos, $minimumStability, $skipErrors, OutputInterface $output, array $packagesFilter)
     {
+        if (!empty($packagesFilter)) {
+            return $this->createPoolFromCache($repos, $packagesFilter, $minimumStability, $skipErrors, $output);
+        }
+
         $pool = new Pool($minimumStability);
 
         foreach ($repos as $repo) {
             try {
                 $pool->addRepository($repo);
+            } catch(\Exception $exception) {
+                if(!$skipErrors) {
+                    throw $exception;
+                }
+                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+            }
+        }
+
+        return $pool;
+    }
+
+    /**
+     * @param  string $minimumStability
+     * @return Pool
+     */
+    private function createPoolFromCache(array $repos, array $packagesFilter, $minimumStability, $skipErrors, OutputInterface $output)
+    {
+        $filename = '/private/var/www/satis2/web/packages.json';
+
+        $packages = $this->loadDumpedPackages($filename);
+
+        $repo = new ArrayRepository($packages);
+
+        $pool = new Pool($minimumStability);
+        $pool->addRepository($repo);
+
+        foreach ($repos as $repo) {
+            try {
+                if ($repo instanceof ComposerRepository) {
+                    continue;
+                }
+
+                $repoConfig = $repo->getRepoConfig();
+                if (false !== strpos($repoConfig['url'], $packagesFilter[0])) {
+                    $pool->addRepository($repo);
+                }
             } catch(\Exception $exception) {
                 if(!$skipErrors) {
                     throw $exception;
