@@ -17,6 +17,18 @@ class Webhook
     const SOCIAL_POINT_SECRET   = '12345678';
 
     /**
+     * @var Application
+     */
+    private $application;
+
+    /**
+     * @param Application $application
+     */
+    public function __construct(Application $application)
+    {
+        $this->application = $application;
+    }
+    /**
      * @param Request $request
      * @return bool
      */
@@ -46,8 +58,7 @@ class Webhook
         ));
         $output = new NullOutput();
 
-        $application = new Application();
-        $application->run($input, $output);
+        $this->application->run($input, $output);
     }
 
     private function getPackagesFilter(Request $request)
