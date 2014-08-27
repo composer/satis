@@ -14,6 +14,9 @@ namespace Composer\Satis\Command;
 
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Repository\ArrayRepository;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -44,6 +47,11 @@ use Composer\IO\ConsoleIO;
  */
 class BuildCommand extends Command
 {
+    /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
     protected function configure()
     {
         $this
@@ -94,6 +102,20 @@ The json config file accepts the following keys:
 EOT
             )
         ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
+        $this->logger = new Logger('logger');
+
+        $outputDir = $input->getArgument('output-dir');
+
+        $logsFile = dirname($outputDir) . '/logs/satis.log';
+
+        $this->logger->pushHandler(new StreamHandler($logsFile, Logger::DEBUG));
     }
 
     /**
