@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "0c2c5d529921c44617285403cef63786",
+    "hash": "4384dd1d1e7d28c7fb7c69cabd935906",
     "packages": [
         {
             "name": "composer/composer",
@@ -451,6 +451,53 @@
             "description": "Symfony Process Component",
             "homepage": "http://symfony.com",
             "time": "2014-05-23 09:02:52"
+        },
+        {
+            "name": "symfony/stopwatch",
+            "version": "v2.5.3",
+            "target-dir": "Symfony/Component/Stopwatch",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/symfony/Stopwatch.git",
+                "reference": "086c8c98c3016f59f5e6e7b15b751c2384b311e5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/symfony/Stopwatch/zipball/086c8c98c3016f59f5e6e7b15b751c2384b311e5",
+                "reference": "086c8c98c3016f59f5e6e7b15b751c2384b311e5",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.3.3"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "2.5-dev"
+                }
+            },
+            "autoload": {
+                "psr-0": {
+                    "Symfony\\Component\\Stopwatch\\": ""
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Symfony Community",
+                    "homepage": "http://symfony.com/contributors"
+                },
+                {
+                    "name": "Fabien Potencier",
+                    "email": "fabien@symfony.com"
+                }
+            ],
+            "description": "Symfony Stopwatch Component",
+            "homepage": "http://symfony.com",
+            "time": "2014-08-06 06:44:37"
         },
         {
             "name": "twig/twig",

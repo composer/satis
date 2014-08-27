@@ -23,6 +23,7 @@
         "composer/composer": "1.0.*@dev",
         "twig/twig": "~1.7",
         "symfony/console": "~2.1",
+        "symfony/stopwatch": "~2.5",
         "monolog/monolog": "~1.10"
     },
     "autoload": {
