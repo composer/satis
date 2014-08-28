@@ -103,6 +103,7 @@ EOT
         $packagesFilter = $input->getArgument('packages');
         $outputDir      = $input->getArgument('output-dir');
         $skipErrors     = (bool)$input->getOption('skip-errors');
+        $htmlView       = !$input->getOption('no-html-output');
 
         $config = $this->loadConfig($configFile);
         if ($config === null) {
@@ -136,7 +137,7 @@ EOT
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
-        if ($htmlView = !$input->getOption('no-html-output')) {
+        if ($htmlView) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
         }
 
