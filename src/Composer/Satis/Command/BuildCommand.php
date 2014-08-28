@@ -167,7 +167,7 @@ EOT
         $includes = array(
             'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
         );
-        
+
         $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
@@ -417,7 +417,7 @@ EOT
         }
     }
 
-    
+
     private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
         $repo = array('packages' => array());
@@ -433,13 +433,13 @@ EOT
         $output->writeln("<info>wrote packages json $filenameWithHash</info>");
         return $filenameWithHash;
     }
-    
+
     private function dumpPackagesJson($includes, OutputInterface $output, $filename){
         $repo = array(
             'packages'          => array(),
             'includes'          => $includes,
         );
-        
+
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
