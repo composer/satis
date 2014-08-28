@@ -103,18 +103,11 @@ EOT
         $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
 
-        if (preg_match('{^https?://}i', $configFile)) {
-            $rfs = new RemoteFilesystem($this->getIO());
-            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
-            $config = JsonFile::parseJson($contents, $configFile);
-        } else {
-            $file = new JsonFile($configFile);
-            if (!$file->exists()) {
-                $output->writeln('<error>File not found: '.$configFile.'</error>');
+        $config = $this->loadConfig($configFile);
+        if ($config === null) {
+            $output->writeln('<error>File not found: '.$configFile.'</error>');
 
-                return 1;
-            }
-            $config = $file->read();
+            return 1;
         }
 
         // disable packagist by default
@@ -417,7 +410,6 @@ EOT
         }
     }
 
-
     private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
         $repo = array('packages' => array());
@@ -433,6 +425,7 @@ EOT
         $output->writeln("<info>wrote packages json $filenameWithHash</info>");
         return $filenameWithHash;
     }
+
 
     private function dumpPackagesJson($includes, OutputInterface $output, $filename){
         $repo = array(
@@ -559,5 +552,26 @@ EOT
         });
 
         return $packages;
+    }
+
+    /**
+     * @param string $configFile
+     * @return array
+     */
+    private function loadConfig($configFile)
+    {
+        if (preg_match('{^https?://}i', $configFile)) {
+            $rfs = new RemoteFilesystem($this->getIO());
+            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
+            $config = JsonFile::parseJson($contents, $configFile);
+        } else {
+            $file = new JsonFile($configFile);
+            if (!$file->exists()) {
+                return null;
+            }
+            $config = $file->read();
+        }
+
+        return $config;
     }
 }
