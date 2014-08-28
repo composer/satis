@@ -111,6 +111,14 @@ EOT
             return 1;
         }
 
+        if (!$outputDir) {
+            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+        }
+
+        if (null === $outputDir) {
+            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
+        }
+
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
 
@@ -125,14 +133,6 @@ EOT
         }
 
         $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
-
-        if (!$outputDir) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
-        }
-
-        if (null === $outputDir) {
-            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
-        }
 
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
