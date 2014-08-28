@@ -478,9 +478,9 @@ EOT
         if ($repoJson->exists()) {
             $dirName      = dirname($filename);
             $loader       = new ArrayLoader();
-            $jsonIncludes = $repoJson->read();
-            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
-                ? $jsonIncludes['includes']
+            $jsonContent = $repoJson->read();
+            $jsonIncludes = isset($jsonContent['includes']) && is_array($jsonContent['includes'])
+                ? $jsonContent['includes']
                 : array();
 
             foreach ($jsonIncludes as $includeFile => $includeConfig) {
