@@ -112,11 +112,11 @@ EOT
         }
 
         if (!$outputDir) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
-        }
+            if (!isset($config['output-dir']) || $config['output-dir'] === null) {
+                throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
+            }
 
-        if (null === $outputDir) {
-            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
+            $outputDir = $config['output-dir'];
         }
 
         // disable packagist by default
