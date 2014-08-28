@@ -474,9 +474,9 @@ EOT
     {
         $packages = array();
         $repoJson = new JsonFile($filename);
-        $dirName  = dirname($filename);
 
         if ($repoJson->exists()) {
+            $dirName      = dirname($filename);
             $loader       = new ArrayLoader();
             $jsonIncludes = $repoJson->read();
             $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
