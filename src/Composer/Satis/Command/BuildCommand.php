@@ -101,6 +101,7 @@ EOT
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
+        $outputDir      = $input->getArgument('output-dir');
         $skipErrors = (bool)$input->getOption('skip-errors');
 
         $config = $this->loadConfig($configFile);
@@ -125,7 +126,7 @@ EOT
 
         $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
 
-        if (!$outputDir = $input->getArgument('output-dir')) {
+        if (!$outputDir) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
         }
 
