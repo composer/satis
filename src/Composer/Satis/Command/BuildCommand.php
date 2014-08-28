@@ -120,6 +120,10 @@ EOT
             $outputDir = $config['output-dir'];
         }
 
+        if ($htmlView) {
+            $htmlView = !isset($config['output-html']) || $config['output-html'];
+        }
+
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
 
@@ -136,10 +140,6 @@ EOT
 
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
-
-        if ($htmlView) {
-            $htmlView = !isset($config['output-html']) || $config['output-html'];
-        }
 
         if (isset($config['archive']['directory'])) {
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
