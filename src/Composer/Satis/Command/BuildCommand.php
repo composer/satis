@@ -182,17 +182,8 @@ EOT
         $output->writeln('<info>Scanning packages</info>');
 
         $repos = $composer->getRepositoryManager()->getRepositories();
-        $pool = new Pool($minimumStability);
-        foreach ($repos as $repo) {
-            try {
-                $pool->addRepository($repo);
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
-                    throw $exception;
-                }
-                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
-            }
-        }
+
+        $pool = $this->createPool($repos, $minimumStability, $skipErrors, $output);
 
         if ($requireAll) {
             $links = array();
@@ -423,7 +414,6 @@ EOT
         return $filenameWithHash;
     }
 
-
     private function dumpPackagesJson($packageFileHash, OutputInterface $output, $filename){
         $includes = array(
             'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
@@ -438,6 +428,7 @@ EOT
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
     }
+
 
     private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
     {
@@ -576,5 +567,30 @@ EOT
         }
 
         return $config;
+    }
+
+    /**
+     * @param array           $repos
+     * @param string          $minimumStability
+     * @param bool            $skipErrors
+     * @param OutputInterface $output
+     * @return Pool
+     * @throws \Exception
+     */
+    private function createPool(array $repos, $minimumStability, $skipErrors, OutputInterface $output)
+    {
+        $pool = new Pool($minimumStability);
+        foreach ($repos as $repo) {
+            try {
+                $pool->addRepository($repo);
+            } catch(\Exception $exception) {
+                if(!$skipErrors) {
+                    throw $exception;
+                }
+                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+            }
+        }
+
+        return $pool;
     }
 }
