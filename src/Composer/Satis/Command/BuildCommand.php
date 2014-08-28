@@ -98,11 +98,11 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $verbose = $input->getOption('verbose');
-        $configFile = $input->getArgument('file');
+        $verbose        = $input->getOption('verbose');
+        $configFile     = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
         $outputDir      = $input->getArgument('output-dir');
-        $skipErrors = (bool)$input->getOption('skip-errors');
+        $skipErrors     = (bool)$input->getOption('skip-errors');
 
         $config = $this->loadConfig($configFile);
         if ($config === null) {
@@ -123,8 +123,8 @@ EOT
         unset(Config::$defaultRepositories['packagist']);
 
         // fetch options
-        $requireAll = isset($config['require-all']) && true === $config['require-all'];
-        $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
+        $requireAll             = isset($config['require-all']) && true === $config['require-all'];
+        $requireDependencies    = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
         $minimumStability       = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
 
