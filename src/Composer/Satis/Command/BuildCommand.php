@@ -486,19 +486,20 @@ EOT
                 foreach ($jsonIncludes as $includeFile => $includeConfig) {
                     $includeJson = new JsonFile($dirName . '/' . $includeFile);
                     $jsonPackages = $includeJson->read();
-                    $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
-                        ? $jsonPackages['packages']
-                        : array();
 
-                    foreach ($jsonPackages as $jsonPackage) {
-                        if (is_array($jsonPackage)) {
-                            foreach ($jsonPackage as $jsonVersion) {
-                                if (is_array($jsonVersion)) {
-                                    if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
-                                        continue;
+                    if (isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])) {
+                        $jsonPackages = $jsonPackages['packages'];
+
+                        foreach ($jsonPackages as $jsonPackage) {
+                            if (is_array($jsonPackage)) {
+                                foreach ($jsonPackage as $jsonVersion) {
+                                    if (is_array($jsonVersion)) {
+                                        if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                            continue;
+                                        }
+                                        $package = $loader->load($jsonVersion);
+                                        $packages[$package->getUniqueName()] = $package;
                                     }
-                                    $package = $loader->load($jsonVersion);
-                                    $packages[$package->getUniqueName()] = $package;
                                 }
                             }
                         }
