@@ -158,11 +158,7 @@ EOT
         $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filenamePrefix);
         $packageFileHash = hash_file('sha1', $packageFile);
 
-        $includes = array(
-            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
-        );
-
-        $this->dumpPackagesJson($includes, $output, $filename);
+        $this->dumpPackagesJson($packageFileHash, $output, $filename);
 
         if ($htmlView) {
             $dependencies = array();
@@ -428,7 +424,11 @@ EOT
     }
 
 
-    private function dumpPackagesJson($includes, OutputInterface $output, $filename){
+    private function dumpPackagesJson($packageFileHash, OutputInterface $output, $filename){
+        $includes = array(
+            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
+        );
+
         $repo = array(
             'packages'          => array(),
             'includes'          => $includes,
