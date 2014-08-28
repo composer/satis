@@ -126,13 +126,12 @@ EOT
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
         $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $minimumStability       = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
 
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
             $requireAll = true;
         }
-
-        $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
 
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
