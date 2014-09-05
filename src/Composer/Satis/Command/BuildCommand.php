@@ -19,20 +19,17 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
 use Composer\Command\Command;
 use Composer\DependencyResolver\Pool;
-use Composer\DependencyResolver\DefaultPolicy;
 use Composer\Composer;
 use Composer\Config;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
-use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\PackageInterface;
 use Composer\Package\Link;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Json\JsonFile;
-use Composer\Satis\Satis;
 use Composer\Factory;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
@@ -101,54 +98,48 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $verbose = $input->getOption('verbose');
-        $configFile = $input->getArgument('file');
+        $verbose        = $input->getOption('verbose');
+        $configFile     = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
-        $skipErrors = (bool)$input->getOption('skip-errors');
+        $outputDir      = $input->getArgument('output-dir');
+        $skipErrors     = (bool)$input->getOption('skip-errors');
+        $htmlView       = !$input->getOption('no-html-output');
 
-        if (preg_match('{^https?://}i', $configFile)) {
-            $rfs = new RemoteFilesystem($this->getIO());
-            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
-            $config = JsonFile::parseJson($contents, $configFile);
-        } else {
-            $file = new JsonFile($configFile);
-            if (!$file->exists()) {
-                $output->writeln('<error>File not found: '.$configFile.'</error>');
+        $config = $this->loadConfig($configFile);
+        if ($config === null) {
+            $output->writeln('<error>File not found: '.$configFile.'</error>');
 
-                return 1;
+            return 1;
+        }
+
+        if (!$outputDir) {
+            if (!isset($config['output-dir']) || $config['output-dir'] === null) {
+                throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
             }
-            $config = $file->read();
+
+            $outputDir = $config['output-dir'];
+        }
+
+        if ($htmlView) {
+            $htmlView = !isset($config['output-html']) || $config['output-html'];
         }
 
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
 
         // fetch options
-        $requireAll = isset($config['require-all']) && true === $config['require-all'];
-        $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
+        $requireAll             = isset($config['require-all']) && true === $config['require-all'];
+        $requireDependencies    = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $minimumStability       = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
 
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
             $requireAll = true;
         }
 
-        $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
-
-        if (!$outputDir = $input->getArgument('output-dir')) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
-        }
-
-        if (null === $outputDir) {
-            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
-        }
-
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
-
-        if ($htmlView = !$input->getOption('no-html-output')) {
-            $htmlView = !isset($config['output-html']) || $config['output-html'];
-        }
 
         if (isset($config['archive']['directory'])) {
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
@@ -167,11 +158,7 @@ EOT
         $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filenamePrefix);
         $packageFileHash = hash_file('sha1', $packageFile);
 
-        $includes = array(
-            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
-        );
-        
-        $this->dumpPackagesJson($includes, $output, $filename);
+        $this->dumpPackagesJson($packageFileHash, $output, $filename);
 
         if ($htmlView) {
             $dependencies = array();
@@ -195,17 +182,8 @@ EOT
         $output->writeln('<info>Scanning packages</info>');
 
         $repos = $composer->getRepositoryManager()->getRepositories();
-        $pool = new Pool($minimumStability);
-        foreach ($repos as $repo) {
-            try {
-                $pool->addRepository($repo);
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
-                    throw $exception;
-                }
-                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
-            }
-        }
+
+        $pool = $this->createPool($repos, $minimumStability, $skipErrors, $output);
 
         if ($requireAll) {
             $links = array();
@@ -420,7 +398,6 @@ EOT
         }
     }
 
-    
     private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
         $repo = array('packages' => array());
@@ -436,17 +413,22 @@ EOT
         $output->writeln("<info>wrote packages json $filenameWithHash</info>");
         return $filenameWithHash;
     }
-    
-    private function dumpPackagesJson($includes, OutputInterface $output, $filename){
+
+    private function dumpPackagesJson($packageFileHash, OutputInterface $output, $filename){
+        $includes = array(
+            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
+        );
+
         $repo = array(
             'packages'          => array(),
             'includes'          => $includes,
         );
-        
+
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
     }
+
 
     private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
     {
@@ -483,31 +465,33 @@ EOT
     {
         $packages = array();
         $repoJson = new JsonFile($filename);
-        $dirName  = dirname($filename);
 
         if ($repoJson->exists()) {
+            $dirName      = dirname($filename);
             $loader       = new ArrayLoader();
-            $jsonIncludes = $repoJson->read();
-            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
-                ? $jsonIncludes['includes']
-                : array();
+            $jsonContent = $repoJson->read();
 
-            foreach ($jsonIncludes as $includeFile => $includeConfig) {
-                $includeJson = new JsonFile($dirName . '/' . $includeFile);
-                $jsonPackages = $includeJson->read();
-                $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
-                    ? $jsonPackages['packages']
-                    : array();
+            if (isset($jsonContent['includes']) && is_array($jsonContent['includes'])) {
+                $jsonIncludes = $jsonContent['includes'];
 
-                foreach ($jsonPackages as $jsonPackage) {
-                    if (is_array($jsonPackage)) {
-                        foreach ($jsonPackage as $jsonVersion) {
-                            if (is_array($jsonVersion)) {
-                                if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
-                                    continue;
+                foreach ($jsonIncludes as $includeFile => $includeConfig) {
+                    $includeJson = new JsonFile($dirName . '/' . $includeFile);
+                    $jsonPackages = $includeJson->read();
+
+                    if (isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])) {
+                        $jsonPackages = $jsonPackages['packages'];
+
+                        foreach ($jsonPackages as $jsonPackage) {
+                            if (is_array($jsonPackage)) {
+                                foreach ($jsonPackage as $jsonVersion) {
+                                    if (is_array($jsonVersion)) {
+                                        if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                            continue;
+                                        }
+                                        $package = $loader->load($jsonVersion);
+                                        $packages[$package->getUniqueName()] = $package;
+                                    }
                                 }
-                                $package = $loader->load($jsonVersion);
-                                $packages[$package->getUniqueName()] = $package;
                             }
                         }
                     }
@@ -562,5 +546,51 @@ EOT
         });
 
         return $packages;
+    }
+
+    /**
+     * @param string $configFile
+     * @return array
+     */
+    private function loadConfig($configFile)
+    {
+        if (preg_match('{^https?://}i', $configFile)) {
+            $rfs = new RemoteFilesystem($this->getIO());
+            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
+            $config = JsonFile::parseJson($contents, $configFile);
+        } else {
+            $file = new JsonFile($configFile);
+            if (!$file->exists()) {
+                return null;
+            }
+            $config = $file->read();
+        }
+
+        return $config;
+    }
+
+    /**
+     * @param array           $repos
+     * @param string          $minimumStability
+     * @param bool            $skipErrors
+     * @param OutputInterface $output
+     * @return Pool
+     * @throws \Exception
+     */
+    private function createPool(array $repos, $minimumStability, $skipErrors, OutputInterface $output)
+    {
+        $pool = new Pool($minimumStability);
+        foreach ($repos as $repo) {
+            try {
+                $pool->addRepository($repo);
+            } catch(\Exception $exception) {
+                if(!$skipErrors) {
+                    throw $exception;
+                }
+                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+            }
+        }
+
+        return $pool;
     }
 }
