@@ -271,7 +271,7 @@ EOT
             $link = $links[$i];
             $i++;
             $name = $link->getTarget();
-            $matches = $pool->whatProvides($name, $link->getConstraint());
+            $matches = $pool->whatProvides($name, $link->getConstraint(), true);
 
             foreach ($matches as $index => $package) {
                 // skip aliases
