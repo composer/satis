@@ -5,5 +5,3 @@
 /vendor
 /phpunit.xml
 composer.phar
-/.idea
-atlassian-ide-plugin.xml
