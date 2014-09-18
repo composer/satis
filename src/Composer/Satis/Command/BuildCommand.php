@@ -41,23 +41,9 @@ use Composer\IO\ConsoleIO;
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class BuildCommand extends Command
-{
-    protected function configure()
-    {
-        $this
-            ->setName('build')
-            ->setDescription('Builds a composer repository out of a json file')
-            ->setDefinition(array(
-                new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
-                new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
-                new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
-                new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
-                new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
-                new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'),
-		new InputOption('only-last', null, InputOption::VALUE_OPTIONAL, 'Dump only last x versions from a package'),
-            ))
-            ->setHelp(<<<EOT
+class BuildCommand extends Command {
+    protected function configure() {
+        $this->setName('build')->setDescription('Builds a composer repository out of a json file')->setDefinition(array(new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'), new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null), new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null), new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'), new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'), new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'), new InputOption('only-last', null, InputOption::VALUE_OPTIONAL, 'Dump only last x versions from a package'),))->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
 (satis.json is used by default) and outputs a composer
 repository in the given output-dir.
@@ -93,22 +79,20 @@ The json config file accepts the following keys:
 - "twig-template": Location of twig template to use for
   building the html output.
 EOT
-            )
-        ;
+            );
     }
 
     /**
-     * @param InputInterface  $input  The input instance
+     * @param InputInterface $input The input instance
      * @param OutputInterface $output The output instance
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
-    {
+    protected function execute(InputInterface $input, OutputInterface $output) {
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
         $latestOnly = (bool)$input->getOption('latest-only');
-	$onlyLast = (int)$input->getOption('only-last');
+        $onlyLast = (int)$input->getOption('only-last');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($this->getIO());
@@ -117,7 +101,7 @@ EOT
         } else {
             $file = new JsonFile($configFile);
             if (!$file->exists()) {
-                $output->writeln('<error>File not found: '.$configFile.'</error>');
+                $output->writeln('<error>File not found: ' . $configFile . '</error>');
 
                 return 1;
             }
@@ -137,14 +121,14 @@ EOT
             $requireAll = true;
         }
 
-        $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+        $minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
 
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
         }
 
         if (null === $outputDir) {
-            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
+            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
@@ -158,9 +142,9 @@ EOT
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
 
-        $filenamePrefix = $outputDir.'/include/all';
-        $filename = $outputDir.'/packages.json';
-        if(!empty($packagesFilter)) {
+        $filenamePrefix = $outputDir . '/include/all';
+        $filename = $outputDir . '/packages.json';
+        if (!empty($packagesFilter)) {
             // in case of an active package filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $this->loadDumpedPackages($filename, $packagesFilter);
@@ -171,10 +155,8 @@ EOT
         $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filenamePrefix);
         $packageFileHash = hash_file('sha1', $packageFile);
 
-        $includes = array(
-            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
-        );
-        
+        $includes = array('include/all$' . $packageFileHash . '.json' => array('sha1' => $packageFileHash),);
+
         $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
@@ -191,9 +173,8 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $latestOnly, $onlyLast)
-    {
-		$selected = array();
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $latestOnly, $onlyLast) {
+        $selected = array();
 
         // run over all packages and store matching ones
         $output->writeln('<info>Scanning packages</info>');
@@ -203,8 +184,8 @@ EOT
         foreach ($repos as $repo) {
             try {
                 $pool->addRepository($repo);
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
+            } catch (\Exception $exception) {
+                if (!$skipErrors) {
                     throw $exception;
                 }
                 $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
@@ -223,7 +204,7 @@ EOT
                     }
                 } else {
                     $packages = array();
-                    if($filterForPackages) {
+                    if ($filterForPackages) {
                         // apply package filter if defined
                         foreach ($packagesFilter as $filter) {
                             $packages += $repo->findPackages($filter);
@@ -246,7 +227,7 @@ EOT
                         // add matching package if not yet selected
                         if (!isset($selected[$package->getUniqueName()])) {
                             if ($verbose) {
-                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                                $output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                             }
                             $selected[$package->getUniqueName()] = $package;
                         }
@@ -258,8 +239,8 @@ EOT
 
             // only pick up packages in our filter, if a filter has been set.
             if (count($packagesFilter) > 0) {
-                 $links = array_filter($links, function(Link $link) use ($packagesFilter) {
-                     return in_array($link->getTarget(), $packagesFilter);
+                $links = array_filter($links, function (Link $link) use ($packagesFilter) {
+                    return in_array($link->getTarget(), $packagesFilter);
                 });
             }
 
@@ -286,7 +267,7 @@ EOT
                 // add matching package if not yet selected
                 if (!isset($selected[$package->getUniqueName()])) {
                     if ($verbose) {
-                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                        $output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                     }
                     $selected[$package->getUniqueName()] = $package;
 
@@ -302,7 +283,7 @@ EOT
                         foreach ($required as $dependencyLink) {
                             $target = $dependencyLink->getTarget();
                             if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
-                                $linkId = $target.' '.$dependencyLink->getConstraint();
+                                $linkId = $target . ' ' . $dependencyLink->getConstraint();
                                 // prevent loading multiple times the same link
                                 if (!isset($depsLinks[$linkId])) {
                                     $links[] = $dependencyLink;
@@ -315,112 +296,115 @@ EOT
             }
 
             if (!$matches) {
-                $output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
+                $output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
             }
         }
 
         ksort($selected, SORT_STRING);
 
-        if($latestOnly)
+        if ($latestOnly) {
             $selected = $this->latestOnly($selected);
+        }
 
-		if($onlyLast > 0)
-			$selected = $this->onlyLast($selected, $onlyLast);
+        if ($onlyLast > 0) {
+            $selected = $this->onlyLast($selected, $onlyLast);
+        }
 
         return $selected;
     }
 
     /**
      * Remove unnecessary packages if latest-only option has been set
-     * @param   array     $selected                 Array of selected packages we have to filter from
-     * @return  array     $latest_only_packages     Array of latest-only packages
+     *
+     * @param   array $selected  Array of selected packages we have to filter from
+     * @return  array
      */
     private function latestOnly($selected) {
-        $package_versions = array();
-        $version_package = array();
-        foreach($selected as $package) {
+        $packageVersions = array();
+        $versionPackage = array();
+        foreach ($selected as $package) {
             $version = $package->getPrettyVersion() != 'dev-master' ? str_replace('v', '', $package->getPrettyVersion()) : $package->getPrettyVersion();
-            $package_versions[$package->getPrettyName()][] = $version;
-            $version_package[$package->getPrettyName()][$version] = $package;
+            $packageVersions[$package->getPrettyName()][] = $version;
+            $versionPackage[$package->getPrettyName()][$version] = $package;
         }
 
-        $latest_only_packages = array();
-        foreach($package_versions as $package => $versions) {
+        $latestOnlyPackages = array();
+        foreach ($packageVersions as $package => $versions) {
             $found = false;
             sort($versions, SORT_NATURAL);
             $reversed = array_reverse($versions);
-            foreach($reversed as $version) {
-                if(preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
-                    $latest_only_packages[$version_package[$package][$version]->getUniqueName()] = $version_package[$package][$version];
+            foreach ($reversed as $version) {
+                if (preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
+                    $latestOnlyPackages[$versionPackage[$package][$version]->getUniqueName()] = $versionPackage[$package][$version];
                     $found = true;
                     break;
                 }
             }
 
             // If we didn't find a versioned package we will use the latest available
-            if($found === false) {
-                $latest = array_pop($version_package[$package]);
-                $latest_only_packages[$latest->getUniqueName()] = $latest;
+            if ($found === false) {
+                $latest = array_pop($versionPackage[$package]);
+                $latestOnlyPackages[$latest->getUniqueName()] = $latest;
             }
         }
 
-        return $latest_only_packages;
+        return $latestOnlyPackages;
     }
 
-	/**
-	 * Remove unnecessary packages if only-last option has been set
-	 * @param   array     $selected                 Array of selected packages we have to filter from
-	 * @param   int       $lastX                    Number of latest packages
-	 * @return  array     $latest_only_packages     Array of latest-only packages
-	 */
-	private function onlyLast($selected, $lastX) {
-		$package_versions = array();
-		$version_package = array();
-		foreach($selected as $package) {
-			$version = $package->getPrettyVersion() != 'dev-master' ? str_replace('v', '', $package->getPrettyVersion()) : $package->getPrettyVersion();
-			$package_versions[$package->getPrettyName()][] = $version;
-			$version_package[$package->getPrettyName()][$version] = $package;
-		}
+    /**
+     * Remove unnecessary packages if only-last option has been set
+     *
+     * @param   array $selected Array of selected packages we have to filter from
+     * @param   int $lastX Number of latest packages
+     * @return  array
+     */
+    private function onlyLast($selected, $lastX) {
+        $packageVersions = array();
+        $versionPackage = array();
+        foreach ($selected as $package) {
+            $version = $package->getPrettyVersion() != 'dev-master' ? str_replace('v', '', $package->getPrettyVersion()) : $package->getPrettyVersion();
+            $packageVersions[$package->getPrettyName()][] = $version;
+            $versionPackage[$package->getPrettyName()][$version] = $package;
+        }
 
-		$lastXPackages = array();
-		foreach($package_versions as $package => $versions) {
-			$found = false;
-			sort($versions, SORT_NATURAL);
-			$reversed = array_reverse($versions);
-			$count = 0;
-			foreach($reversed as $version) {
-				if(preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
-					$count++;
-					$lastXPackages[$version_package[$package][$version]->getUniqueName()] = $version_package[$package][$version];
-					$found = true;
+        $lastXPackages = array();
+        foreach ($packageVersions as $package => $versions) {
+            $found = false;
+            sort($versions, SORT_NATURAL);
+            $reversed = array_reverse($versions);
+            $count = 0;
+            foreach ($reversed as $version) {
+                if (preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
+                    $count++;
+                    $lastXPackages[$versionPackage[$package][$version]->getUniqueName()] = $versionPackage[$package][$version];
+                    $found = true;
 
-					if($count == $lastX)
-						break;
-				}
-			}
+                    if ($count == $lastX) {
+                        break;
+                    }
+                }
+            }
 
-			// If we didn't find a versioned package we will use the latest available
-			if($found === false) {
-				$latest = array_pop($version_package[$package]);
-				$lastXPackages[$latest->getUniqueName()] = $latest;
-			}
-		}
+            // If we didn't find a versioned package we will use the latest available
+            if ($found === false) {
+                $latest = array_pop($versionPackage[$package]);
+                $lastXPackages[$latest->getUniqueName()] = $latest;
+            }
+        }
 
-		return $lastXPackages;
-	}
+        return $lastXPackages;
+    }
 
     /**
-     * @param array           $config   Directory where to create the downloads in, prefix-url, etc..
-     * @param array           $packages Reference to packages so we can rewrite the JSON.
-     * @param InputInterface  $input
+     * @param array $config Directory where to create the downloads in, prefix-url, etc..
+     * @param array $packages Reference to packages so we can rewrite the JSON.
+     * @param InputInterface $input
      * @param OutputInterface $output
-     * @param string          $outputDir
-     * @param bool            $skipErrors   If true, any exception while dumping a package will be ignored.
-     *
+     * @param string $outputDir
+     * @param bool $skipErrors If true, any exception while dumping a package will be ignored.
      * @return void
      */
-    private function dumpDownloads(array $config, array &$packages, InputInterface  $input, OutputInterface $output, $outputDir, $skipErrors)
-    {
+    private function dumpDownloads(array $config, array &$packages, InputInterface $input, OutputInterface $output, $outputDir, $skipErrors) {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
         } else {
@@ -431,9 +415,9 @@ EOT
 
         $format = isset($config['archive']['format']) ? $config['archive']['format'] : 'zip';
         $endpoint = isset($config['archive']['prefix-url']) ? $config['archive']['prefix-url'] : $config['homepage'];
-        $skipDev = isset($config['archive']['skip-dev']) ? (bool) $config['archive']['skip-dev'] : false;
-        $whitelist = isset($config['archive']['whitelist']) ? (array) $config['archive']['whitelist'] : array();
-        $blacklist = isset($config['archive']['blacklist']) ? (array) $config['archive']['blacklist'] : array();
+        $skipDev = isset($config['archive']['skip-dev']) ? (bool)$config['archive']['skip-dev'] : false;
+        $whitelist = isset($config['archive']['whitelist']) ? (array)$config['archive']['whitelist'] : array();
+        $blacklist = isset($config['archive']['blacklist']) ? (array)$config['archive']['blacklist'] : array();
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory;
@@ -477,9 +461,7 @@ EOT
                     // PEAR packages are archives already
                     $filesystem = new Filesystem();
                     $packageName = $archiveManager->getPackageFilename($package);
-                    $path =
-                        realpath($directory) . '/' . $packageName . '.' .
-                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
+                    $path = realpath($directory) . '/' . $packageName . '.' . pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
                     if (!file_exists($path)) {
                         $downloadDir = sys_get_temp_dir() . '/composer_archiver/' . $packageName;
                         $filesystem->ensureDirectoryExists($downloadDir);
@@ -500,8 +482,8 @@ EOT
                 $package->setDistUrl($distUrl);
                 $package->setDistSha1Checksum(hash_file('sha1', $path));
                 $package->setDistReference($package->getSourceReference());
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
+            } catch (\Exception $exception) {
+                if (!$skipErrors) {
                     throw $exception;
                 }
                 $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
@@ -509,9 +491,8 @@ EOT
         }
     }
 
-    
-    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
-    {
+
+    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename) {
         $repo = array('packages' => array());
         $dumper = new ArrayDumper;
         foreach ($packages as $package) {
@@ -520,26 +501,23 @@ EOT
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
         $hash = hash_file('sha1', $filename);
-        $filenameWithHash = $filename.'$'.$hash.'.json';
+        $filenameWithHash = $filename . '$' . $hash . '.json';
         rename($filename, $filenameWithHash);
         $output->writeln("<info>wrote packages json $filenameWithHash</info>");
+
         return $filenameWithHash;
     }
-    
-    private function dumpPackagesJson($includes, OutputInterface $output, $filename){
-        $repo = array(
-            'packages'          => array(),
-            'includes'          => $includes,
-        );
-        
+
+    private function dumpPackagesJson($includes, OutputInterface $output, $filename) {
+        $repo = array('packages' => array(), 'includes' => $includes,);
+
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
-    {
-        $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
+    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array()) {
+        $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__ . '/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
 
@@ -557,42 +535,31 @@ EOT
 
         $output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array(
-            'name'          => $name,
-            'url'           => $rootPackage->getHomepage(),
-            'description'   => $rootPackage->getDescription(),
-            'packages'      => $mappedPackages,
-            'dependencies'  => $dependencies,
-        ));
+        $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array('name' => $name, 'url' => $rootPackage->getHomepage(), 'description' => $rootPackage->getDescription(), 'packages' => $mappedPackages, 'dependencies' => $dependencies,));
 
-        file_put_contents($directory.'/index.html', $content);
+        file_put_contents($directory . '/index.html', $content);
     }
 
-    private function loadDumpedPackages($filename, array $packagesFilter = array())
-    {
+    private function loadDumpedPackages($filename, array $packagesFilter = array()) {
         $packages = array();
         $repoJson = new JsonFile($filename);
-        $dirName  = dirname($filename);
+        $dirName = dirname($filename);
 
         if ($repoJson->exists()) {
-            $loader       = new ArrayLoader();
+            $loader = new ArrayLoader();
             $jsonIncludes = $repoJson->read();
-            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
-                ? $jsonIncludes['includes']
-                : array();
+            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes']) ? $jsonIncludes['includes'] : array();
 
             foreach ($jsonIncludes as $includeFile => $includeConfig) {
                 $includeJson = new JsonFile($dirName . '/' . $includeFile);
                 $jsonPackages = $includeJson->read();
-                $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
-                    ? $jsonPackages['packages']
-                    : array();
+                $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages']) ? $jsonPackages['packages'] : array();
 
                 foreach ($jsonPackages as $jsonPackage) {
                     if (is_array($jsonPackage)) {
                         foreach ($jsonPackage as $jsonVersion) {
                             if (is_array($jsonVersion)) {
-                                if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                if (isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
                                     continue;
                                 }
                                 $package = $loader->load($jsonVersion);
@@ -607,23 +574,18 @@ EOT
         return $packages;
     }
 
-    private function getMappedPackageList(array $packages)
-    {
+    private function getMappedPackageList(array $packages) {
         $groupedPackages = $this->groupPackagesByName($packages);
 
         $mappedPackages = array();
         foreach ($groupedPackages as $name => $packages) {
-            $mappedPackages[$name] = array(
-                'highest' => $this->getHighestVersion($packages),
-                'versions' => $this->getDescSortedVersions($packages),
-            );
+            $mappedPackages[$name] = array('highest' => $this->getHighestVersion($packages), 'versions' => $this->getDescSortedVersions($packages),);
         }
 
         return $mappedPackages;
     }
 
-    private function groupPackagesByName(array $packages)
-    {
+    private function groupPackagesByName(array $packages) {
         $groupedPackages = array();
         foreach ($packages as $package) {
             $groupedPackages[$package->getName()][] = $package;
@@ -632,8 +594,7 @@ EOT
         return $groupedPackages;
     }
 
-    private function getHighestVersion(array $packages)
-    {
+    private function getHighestVersion(array $packages) {
         $highestVersion = null;
         foreach ($packages as $package) {
             if (null === $highestVersion || version_compare($package->getVersion(), $highestVersion->getVersion(), '>=')) {
@@ -644,8 +605,7 @@ EOT
         return $highestVersion;
     }
 
-    private function getDescSortedVersions(array $packages)
-    {
+    private function getDescSortedVersions(array $packages) {
         usort($packages, function ($a, $b) {
             return version_compare($b->getVersion(), $a->getVersion());
         });
