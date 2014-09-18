@@ -54,9 +54,8 @@ class BuildCommand extends Command
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
-                new InputOption('name-match', null, InputOption::VALUE_NONE, 'Name of returned packages must match the given name'),
                 new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'),
-				new InputOption('only-last', null, InputOption::VALUE_OPTIONAL, 'Dump only last x versions from a package'),
+		new InputOption('only-last', null, InputOption::VALUE_OPTIONAL, 'Dump only last x versions from a package'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -108,9 +107,8 @@ EOT
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
-        $nameMatch = (bool)$input->getOption('name-match');
         $latestOnly = (bool)$input->getOption('latest-only');
-		$onlyLast = (int)$input->getOption('only-last');
+	$onlyLast = (int)$input->getOption('only-last');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($this->getIO());
@@ -150,7 +148,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $nameMatch, $latestOnly, $onlyLast);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $latestOnly, $onlyLast);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -193,7 +191,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $nameMatch, $latestOnly, $onlyLast)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $latestOnly, $onlyLast)
     {
 		$selected = array();
 
@@ -277,7 +275,7 @@ EOT
             $link = $links[$i];
             $i++;
             $name = $link->getTarget();
-            $matches = $pool->whatProvides($name, $link->getConstraint(), $nameMatch);
+            $matches = $pool->whatProvides($name, $link->getConstraint(), true);
 
             foreach ($matches as $index => $package) {
                 // skip aliases
