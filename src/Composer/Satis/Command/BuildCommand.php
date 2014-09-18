@@ -91,7 +91,6 @@ EOT
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
         $skipErrors = (bool)$input->getOption('skip-errors');
-        $latestOnly = (bool)$input->getOption('latest-only');
         $onlyLast = (int)$input->getOption('only-last');
 
         if (preg_match('{^https?://}i', $configFile)) {
@@ -132,7 +131,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $latestOnly, $onlyLast);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $onlyLast);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -173,7 +172,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $latestOnly, $onlyLast) {
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $onlyLast) {
         $selected = array();
 
         // run over all packages and store matching ones
@@ -302,53 +301,11 @@ EOT
 
         ksort($selected, SORT_STRING);
 
-        if ($latestOnly) {
-            $selected = $this->latestOnly($selected);
-        }
-
         if ($onlyLast > 0) {
             $selected = $this->onlyLast($selected, $onlyLast);
         }
 
         return $selected;
-    }
-
-    /**
-     * Remove unnecessary packages if latest-only option has been set
-     *
-     * @param   array $selected  Array of selected packages we have to filter from
-     * @return  array
-     */
-    private function latestOnly($selected) {
-        $packageVersions = array();
-        $versionPackage = array();
-        foreach ($selected as $package) {
-            $version = $package->getPrettyVersion() != 'dev-master' ? str_replace('v', '', $package->getPrettyVersion()) : $package->getPrettyVersion();
-            $packageVersions[$package->getPrettyName()][] = $version;
-            $versionPackage[$package->getPrettyName()][$version] = $package;
-        }
-
-        $latestOnlyPackages = array();
-        foreach ($packageVersions as $package => $versions) {
-            $found = false;
-            sort($versions, SORT_NATURAL);
-            $reversed = array_reverse($versions);
-            foreach ($reversed as $version) {
-                if (preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
-                    $latestOnlyPackages[$versionPackage[$package][$version]->getUniqueName()] = $versionPackage[$package][$version];
-                    $found = true;
-                    break;
-                }
-            }
-
-            // If we didn't find a versioned package we will use the latest available
-            if ($found === false) {
-                $latest = array_pop($versionPackage[$package]);
-                $latestOnlyPackages[$latest->getUniqueName()] = $latest;
-            }
-        }
-
-        return $latestOnlyPackages;
     }
 
     /**
