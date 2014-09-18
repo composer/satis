@@ -56,6 +56,7 @@ class BuildCommand extends Command
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('name-match', null, InputOption::VALUE_NONE, 'Name of returned packages must match the given name'),
                 new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'),
+				new InputOption('only-last', null, InputOption::VALUE_OPTIONAL, 'Dump only last x versions from a package'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -109,6 +110,7 @@ EOT
         $skipErrors = (bool)$input->getOption('skip-errors');
         $nameMatch = (bool)$input->getOption('name-match');
         $latestOnly = (bool)$input->getOption('latest-only');
+		$onlyLast = (int)$input->getOption('only-last');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($this->getIO());
@@ -148,7 +150,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $nameMatch, $latestOnly);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter, $nameMatch, $latestOnly, $onlyLast);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -191,9 +193,9 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $nameMatch, $latestOnly)
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $nameMatch, $latestOnly, $onlyLast)
     {
-        $selected = array();
+		$selected = array();
 
         // run over all packages and store matching ones
         $output->writeln('<info>Scanning packages</info>');
@@ -324,6 +326,9 @@ EOT
         if($latestOnly)
             $selected = $this->latestOnly($selected);
 
+		if($onlyLast > 0)
+			$selected = $this->onlyLast($selected, $onlyLast);
+
         return $selected;
     }
 
@@ -363,6 +368,48 @@ EOT
 
         return $latest_only_packages;
     }
+
+	/**
+	 * Remove unnecessary packages if only-last option has been set
+	 * @param   array     $selected                 Array of selected packages we have to filter from
+	 * @param   int       $lastX                    Number of latest packages
+	 * @return  array     $latest_only_packages     Array of latest-only packages
+	 */
+	private function onlyLast($selected, $lastX) {
+		$package_versions = array();
+		$version_package = array();
+		foreach($selected as $package) {
+			$version = $package->getPrettyVersion() != 'dev-master' ? str_replace('v', '', $package->getPrettyVersion()) : $package->getPrettyVersion();
+			$package_versions[$package->getPrettyName()][] = $version;
+			$version_package[$package->getPrettyName()][$version] = $package;
+		}
+
+		$lastXPackages = array();
+		foreach($package_versions as $package => $versions) {
+			$found = false;
+			sort($versions, SORT_NATURAL);
+			$reversed = array_reverse($versions);
+			$count = 0;
+			foreach($reversed as $version) {
+				if(preg_match('/^(\d+\\.)?(\d+\\.)?(\\*|\d+)$/', $version)) {
+					$count++;
+					$lastXPackages[$version_package[$package][$version]->getUniqueName()] = $version_package[$package][$version];
+					$found = true;
+
+					if($count == $lastX)
+						break;
+				}
+			}
+
+			// If we didn't find a versioned package we will use the latest available
+			if($found === false) {
+				$latest = array_pop($version_package[$package]);
+				$lastXPackages[$latest->getUniqueName()] = $latest;
+			}
+		}
+
+		return $lastXPackages;
+	}
 
     /**
      * @param array           $config   Directory where to create the downloads in, prefix-url, etc..
