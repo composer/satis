@@ -41,9 +41,21 @@ use Composer\IO\ConsoleIO;
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class BuildCommand extends Command {
-    protected function configure() {
-        $this->setName('build')->setDescription('Builds a composer repository out of a json file')->setDefinition(array(new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'), new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null), new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null), new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'), new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'), new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'), new InputOption('only-last', null, InputOption::VALUE_OPTIONAL, 'Dump only last x versions from a package'),))->setHelp(<<<EOT
+class BuildCommand extends Command
+{
+    protected function configure()
+    {
+        $this->setName('build')->setDescription('Builds a composer repository out of a json file')->setDefinition(array(
+                new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
+                new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
+                new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
+                    'Packages that should be built, if not provided all packages are.', null),
+                new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
+                new InputOption('latest-only', null, InputOption::VALUE_NONE, 'Dump latest dependent packages only'),
+                new InputOption('only-last', null, InputOption::VALUE_OPTIONAL,
+                    'Dump only last x versions from a package'),
+            ))->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
 (satis.json is used by default) and outputs a composer
 repository in the given output-dir.
@@ -79,14 +91,15 @@ The json config file accepts the following keys:
 - "twig-template": Location of twig template to use for
   building the html output.
 EOT
-            );
+        );
     }
 
     /**
      * @param InputInterface $input The input instance
      * @param OutputInterface $output The output instance
      */
-    protected function execute(InputInterface $input, OutputInterface $output) {
+    protected function execute(InputInterface $input, OutputInterface $output)
+    {
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
@@ -172,7 +185,18 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array(), $onlyLast) {
+    private function selectPackages(
+        Composer $composer,
+        OutputInterface $output,
+        $verbose,
+        $requireAll,
+        $requireDependencies,
+        $requireDevDependencies,
+        $minimumStability,
+        $skipErrors,
+        array $packagesFilter = array(),
+        $onlyLast
+    ) {
         $selected = array();
 
         // run over all packages and store matching ones
@@ -315,7 +339,8 @@ EOT
      * @param   int $lastX Number of latest packages
      * @return  array
      */
-    private function onlyLast($selected, $lastX) {
+    private function onlyLast($selected, $lastX)
+    {
         $packageVersions = array();
         $versionPackage = array();
         foreach ($selected as $package) {
@@ -361,7 +386,14 @@ EOT
      * @param bool $skipErrors If true, any exception while dumping a package will be ignored.
      * @return void
      */
-    private function dumpDownloads(array $config, array &$packages, InputInterface $input, OutputInterface $output, $outputDir, $skipErrors) {
+    private function dumpDownloads(
+        array $config,
+        array &$packages,
+        InputInterface $input,
+        OutputInterface $output,
+        $outputDir,
+        $skipErrors
+    ) {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
         } else {
@@ -449,7 +481,8 @@ EOT
     }
 
 
-    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename) {
+    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
+    {
         $repo = array('packages' => array());
         $dumper = new ArrayDumper;
         foreach ($packages as $package) {
@@ -465,7 +498,8 @@ EOT
         return $filenameWithHash;
     }
 
-    private function dumpPackagesJson($includes, OutputInterface $output, $filename) {
+    private function dumpPackagesJson($includes, OutputInterface $output, $filename)
+    {
         $repo = array('packages' => array(), 'includes' => $includes,);
 
         $output->writeln('<info>Writing packages.json</info>');
@@ -473,7 +507,14 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array()) {
+    private function dumpWeb(
+        array $packages,
+        OutputInterface $output,
+        PackageInterface $rootPackage,
+        $directory,
+        $template = null,
+        array $dependencies = array()
+    ) {
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__ . '/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
@@ -492,12 +533,19 @@ EOT
 
         $output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array('name' => $name, 'url' => $rootPackage->getHomepage(), 'description' => $rootPackage->getDescription(), 'packages' => $mappedPackages, 'dependencies' => $dependencies,));
+        $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array(
+                'name' => $name,
+                'url' => $rootPackage->getHomepage(),
+                'description' => $rootPackage->getDescription(),
+                'packages' => $mappedPackages,
+                'dependencies' => $dependencies,
+            ));
 
         file_put_contents($directory . '/index.html', $content);
     }
 
-    private function loadDumpedPackages($filename, array $packagesFilter = array()) {
+    private function loadDumpedPackages($filename, array $packagesFilter = array())
+    {
         $packages = array();
         $repoJson = new JsonFile($filename);
         $dirName = dirname($filename);
@@ -531,18 +579,23 @@ EOT
         return $packages;
     }
 
-    private function getMappedPackageList(array $packages) {
+    private function getMappedPackageList(array $packages)
+    {
         $groupedPackages = $this->groupPackagesByName($packages);
 
         $mappedPackages = array();
         foreach ($groupedPackages as $name => $packages) {
-            $mappedPackages[$name] = array('highest' => $this->getHighestVersion($packages), 'versions' => $this->getDescSortedVersions($packages),);
+            $mappedPackages[$name] = array(
+                'highest' => $this->getHighestVersion($packages),
+                'versions' => $this->getDescSortedVersions($packages),
+            );
         }
 
         return $mappedPackages;
     }
 
-    private function groupPackagesByName(array $packages) {
+    private function groupPackagesByName(array $packages)
+    {
         $groupedPackages = array();
         foreach ($packages as $package) {
             $groupedPackages[$package->getName()][] = $package;
@@ -551,7 +604,8 @@ EOT
         return $groupedPackages;
     }
 
-    private function getHighestVersion(array $packages) {
+    private function getHighestVersion(array $packages)
+    {
         $highestVersion = null;
         foreach ($packages as $package) {
             if (null === $highestVersion || version_compare($package->getVersion(), $highestVersion->getVersion(), '>=')) {
@@ -562,7 +616,8 @@ EOT
         return $highestVersion;
     }
 
-    private function getDescSortedVersions(array $packages) {
+    private function getDescSortedVersions(array $packages)
+    {
         usort($packages, function ($a, $b) {
             return version_compare($b->getVersion(), $a->getVersion());
         });
