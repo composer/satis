@@ -271,6 +271,44 @@ EOT
         // process links if any
         $depsLinks = array();
 
+        $selectPackage = function(PackageInterface $package) use(
+            $verbose,
+            $output,
+            &$selected,
+            $requireAll,
+            $requireDependencies,
+            $requireDevDependencies,
+            &$links,
+            &$depsLinks
+        ) {
+            if ($verbose) {
+                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+            }
+            $selected[$package->getUniqueName()] = $package;
+
+            if (!$requireAll) {
+                $required = array();
+                if ($requireDependencies) {
+                    $required = $package->getRequires();
+                }
+                if ($requireDevDependencies) {
+                    $required = array_merge($required, $package->getDevRequires());
+                }
+                // append non-platform dependencies
+                foreach ($required as $dependencyLink) {
+                    $target = $dependencyLink->getTarget();
+                    if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
+                        $linkId = $target.' '.$dependencyLink->getConstraint();
+                        // prevent loading multiple times the same link
+                        if (!isset($depsLinks[$linkId])) {
+                            $links[] = $dependencyLink;
+                            $depsLinks[$linkId] = true;
+                        }
+                    }
+                }
+            }
+        };
+
         $i = 0;
         while (isset($links[$i])) {
             $link = $links[$i];
@@ -286,32 +324,7 @@ EOT
 
                 // add matching package if not yet selected
                 if (!isset($selected[$package->getUniqueName()])) {
-                    if ($verbose) {
-                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
-                    }
-                    $selected[$package->getUniqueName()] = $package;
-
-                    if (!$requireAll) {
-                        $required = array();
-                        if ($requireDependencies) {
-                            $required = $package->getRequires();
-                        }
-                        if ($requireDevDependencies) {
-                            $required = array_merge($required, $package->getDevRequires());
-                        }
-                        // append non-platform dependencies
-                        foreach ($required as $dependencyLink) {
-                            $target = $dependencyLink->getTarget();
-                            if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
-                                $linkId = $target.' '.$dependencyLink->getConstraint();
-                                // prevent loading multiple times the same link
-                                if (!isset($depsLinks[$linkId])) {
-                                    $links[] = $dependencyLink;
-                                    $depsLinks[$linkId] = true;
-                                }
-                            }
-                        }
-                    }
+                    $selectPackage($package);
                 }
             }
 
