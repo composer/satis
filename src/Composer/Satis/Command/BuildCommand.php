@@ -75,12 +75,16 @@ The json config file accepts the following keys:
 - <info>"minimum-stability"</info>: sets default stability for packages
   (default: dev), see
   http://getcomposer.org/doc/04-schema.md#minimum-stability
+- <info>"dependency-minimum-stability"</info>: sets default stability for
+  required packages (default: dev)
 - <info>"require-dependencies"</info>: if you mark a few packages as
   required to mirror packagist for example, setting this
   to true will make satis automatically require all of your
   requirements' dependencies.
 - <info>"require-dev-dependencies"</info>: works like require-dependencies
   but requires dev requirements rather than regular ones.
+- <info>"only-latest-dependencies"</info>: Requires only the latest package
+  that satisisfies any dependency.
 - <info>"config"</info>: all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
 - <info>"output-html"</info>: boolean, controls whether the repository
@@ -132,6 +136,7 @@ EOT
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
         $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $onlyLatestDependencies = isset($config['only-latest-dependencies']) && true === $config['only-latest-dependencies'];
 
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
@@ -139,6 +144,7 @@ EOT
         }
 
         $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+        $dependencyMinimumStability =  isset($config['dependency-minimum-stability']) ? $config['dependency-minimum-stability'] : $minimumStability;
 
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
@@ -149,7 +155,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $onlyLatestDependencies, $minimumStability, $dependencyMinimumStability, $skipErrors, $packagesFilter);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -192,7 +198,7 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $onlyLatestDependencies, $minimumStability, $dependencyMinimumStability, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
 
