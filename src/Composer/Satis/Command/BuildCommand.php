@@ -144,7 +144,7 @@ EOT
         }
 
         $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
-        $dependencyMinimumStability =  isset($config['dependency-minimum-stability']) ? $config['dependency-minimum-stability'] : $minimumStability;
+        $dependencyMinimumStability =  isset($config['dependency-minimum-stability']) ? $config['dependency-minimum-stability'] : 'dev';
 
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
