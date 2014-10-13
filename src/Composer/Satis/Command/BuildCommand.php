@@ -14,6 +14,12 @@ namespace Composer\Satis\Command;
 
 use Composer\Config\JsonConfigSource;
 use Composer\Package\Loader\ArrayLoader;
+use Composer\Repository\RepositoryInterface;
+use Composer\Satis\PackageSelection\FilteredPackageSelection;
+use Composer\Satis\PackageSelection\LinkResolver;
+use Composer\Satis\PackageSelection\PackageSelection;
+use Composer\Satis\PackageSelection\RequireDepsLinkProvider;
+use Composer\Satis\PackageSelection\RequireDevDepsLinkProvider;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -29,9 +35,6 @@ use Composer\Package\BasePackage;
 use Composer\Package\LinkConstraint\VersionConstraint;
 use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\PackageInterface;
-use Composer\Package\Link;
-use Composer\Repository\ComposerRepository;
-use Composer\Repository\PlatformRepository;
 use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
 use Composer\Factory;
@@ -149,7 +152,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packages = $this->selectPackages($composer, $output, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -192,16 +195,20 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    /**
+     * @param $repositories
+     * @param OutputInterface $output
+     * @param $minimumStability
+     * @param $skipErrors
+     * @return Pool The package pool.
+     */
+    private function buildPackagePool($repositories, OutputInterface $output, $minimumStability, $skipErrors)
     {
-        $selected = array();
+        $output->writeln('<info>Building package pool</info>');
 
-        // run over all packages and store matching ones
-        $output->writeln('<info>Scanning packages</info>');
-
-        $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($minimumStability);
-        foreach ($repos as $repo) {
+        foreach ($repositories as $repo) {
+            /** @var RepositoryInterface $repo */
             try {
                 $pool->addRepository($repo);
             } catch(\Exception $exception) {
@@ -212,117 +219,44 @@ EOT
             }
         }
 
+        return $pool;
+    }
+
+    private function selectPackages(Composer $composer, OutputInterface $output, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    {
+        $pool = $this->buildPackagePool($composer->getRepositoryManager()->getRepositories(), $output, $minimumStability, $skipErrors);
+
+        $linkResolver = new LinkResolver($pool, $output);
+
+        if ($requireDependencies) {
+            $linkResolver->addLinkProvider(new RequireDepsLinkProvider());
+        }
+
+        if ($requireDevDependencies) {
+            $linkResolver->addLinkProvider(new RequireDevDepsLinkProvider());
+        }
+
+        $ps = new PackageSelection($minimumStability, $linkResolver, $output);
+
+        if ($packagesFilter) {
+            $ps = new FilteredPackageSelection($packagesFilter, $ps);
+        }
+
+        // run over all packages and store matching ones
+        $output->writeln('<info>Scanning packages</info>');
+
         if ($requireAll) {
-            $links = array();
-            $filterForPackages = count($packagesFilter) > 0;
-
-            foreach ($repos as $repo) {
-                // collect links for composer repos with providers
-                if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
-                    foreach ($repo->getProviderNames() as $name) {
-                        $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
-                    }
-                } else {
-                    $packages = array();
-                    if($filterForPackages) {
-                        // apply package filter if defined
-                        foreach ($packagesFilter as $filter) {
-                            $packages += $repo->findPackages($filter);
-                        }
-                    } else {
-                        // process other repos directly
-                        $packages = $repo->getPackages();
-                    }
-
-                    foreach ($packages as $package) {
-                        // skip aliases
-                        if ($package instanceof AliasPackage) {
-                            continue;
-                        }
-
-                        if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
-                            continue;
-                        }
-
-                        // add matching package if not yet selected
-                        if (!isset($selected[$package->getUniqueName()])) {
-                            if ($verbose) {
-                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
-                            }
-                            $selected[$package->getUniqueName()] = $package;
-                        }
-                    }
-                }
+            foreach ($composer->getRepositoryManager()->getRepositories() as $repo) {
+                $ps->considerPackagesFromRepo($repo);
             }
         } else {
-            $links = array_values($composer->getPackage()->getRequires());
-
-            // only pick up packages in our filter, if a filter has been set.
-            if (count($packagesFilter) > 0) {
-                 $links = array_filter($links, function(Link $link) use ($packagesFilter) {
-                     return in_array($link->getTarget(), $packagesFilter);
-                });
-            }
-
-            $links = array_values($links);
-        }
-
-
-        // process links if any
-        $depsLinks = array();
-
-        $i = 0;
-        while (isset($links[$i])) {
-            $link = $links[$i];
-            $i++;
-            $name = $link->getTarget();
-            $matches = $pool->whatProvides($name, $link->getConstraint(), true);
-
-            foreach ($matches as $index => $package) {
-                // skip aliases
-                if ($package instanceof AliasPackage) {
-                    $package = $package->getAliasOf();
-                }
-
-                // add matching package if not yet selected
-                if (!isset($selected[$package->getUniqueName()])) {
-                    if ($verbose) {
-                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
-                    }
-                    $selected[$package->getUniqueName()] = $package;
-
-                    if (!$requireAll) {
-                        $required = array();
-                        if ($requireDependencies) {
-                            $required = $package->getRequires();
-                        }
-                        if ($requireDevDependencies) {
-                            $required = array_merge($required, $package->getDevRequires());
-                        }
-                        // append non-platform dependencies
-                        foreach ($required as $dependencyLink) {
-                            $target = $dependencyLink->getTarget();
-                            if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
-                                $linkId = $target.' '.$dependencyLink->getConstraint();
-                                // prevent loading multiple times the same link
-                                if (!isset($depsLinks[$linkId])) {
-                                    $links[] = $dependencyLink;
-                                    $depsLinks[$linkId] = true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (!$matches) {
-                $output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
+            // Add all "require" links of the root package (i. e. our config)
+            foreach ($composer->getPackage()->getRequires() as $link) {
+                $ps->addLink($link);
             }
         }
 
-        ksort($selected, SORT_STRING);
-
-        return $selected;
+        return $ps->getSelectedPackages();
     }
 
     /**
