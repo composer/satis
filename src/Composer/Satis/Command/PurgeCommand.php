@@ -28,7 +28,8 @@ class PurgeCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
             ))
-            ->setHelp(<<<EOT
+            ->setHelp(
+<<<EOT
 The <info>purge</info> command deletes useless archive files, depending
 of given json file (satis.json is used by default) and the
 last json file in the include directory of the given output-dir.
@@ -94,10 +95,12 @@ EOT
             return 1;
         }
 
-        $regex = "/(.*)-(?:.*)-zip-(?:.*)/i";
+        /**
+         * Get vendor-package of archived files
+         */
+        $regex = "/(.*)-(?:.*)-(?:.*)-(?:.*)/i";
 
-        foreach ($files as $file)
-        {
+        foreach ($files as $file) {
             preg_match($regex, $file, $matches);
 
             if (isset($matches[1]) && !in_array($matches[1], $needed)) {
