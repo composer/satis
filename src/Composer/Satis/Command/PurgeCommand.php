@@ -65,7 +65,7 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument');
         }
 
-        $files = glob($input->getArgument('output-dir')."/include/*.json");
+        $files = glob($outputDir."/include/*.json");
 
         if (empty($files)) {
             $output->writeln('<info>No log file</info>');
@@ -87,7 +87,7 @@ EOT
         /**
          * Packages in output-dir
          */
-        $files = scandir($input->getArgument('output-dir')."/".$config['archive']['directory'], 1);
+        $files = scandir($outputDir."/".$config['archive']['directory'], 1);
 
         if (empty($files)) {
             $output->writeln('<info>No archived files</info>');
@@ -106,7 +106,7 @@ EOT
             if (isset($matches[1]) && !in_array($matches[1], $needed)) {
                 $output->writeln("<info>".$matches[1]." :: deleted</info>");
 
-                unlink($input->getArgument('output-dir')."/".$config['archive']['directory']."/".$file);
+                unlink($outputDir."/".$config['archive']['directory']."/".$file);
             }
         }
 
