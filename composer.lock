@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "c232d7edd11dd7f5d4c55852fa2a3cb9",
+    "hash": "b1b6a203f432a4b543e638c5f0dad65f",
     "packages": [
         {
             "name": "composer/composer",
@@ -234,7 +234,7 @@
         },
         {
             "name": "knplabs/github-api",
-            "version": "dev-master",
+            "version": "1.3.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/KnpLabs/php-github-api.git",
@@ -993,7 +993,6 @@
     "minimum-stability": "stable",
     "stability-flags": {
         "composer/composer": 20,
-        "knplabs/github-api": 20,
         "phpspec/phpspec": 20
     },
     "prefer-stable": false,
