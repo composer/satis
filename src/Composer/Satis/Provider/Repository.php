@@ -7,12 +7,12 @@ class Repository
     /**
      * @var string
      */
-    protected $name;
+    private $name;
 
     /**
      * @var string
      */
-    protected $url;
+    private $url;
 
     /**
      * @param string $name
@@ -25,7 +25,7 @@ class Repository
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getName()
     {
@@ -33,7 +33,7 @@ class Repository
     }
 
     /**
-     * @param mixed $name
+     * @param string $name
      */
     public function setName($name)
     {
@@ -41,7 +41,7 @@ class Repository
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getUrl()
     {
@@ -49,7 +49,7 @@ class Repository
     }
 
     /**
-     * @param mixed $url
+     * @param string $url
      */
     public function setUrl($url)
     {
