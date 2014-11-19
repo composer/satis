@@ -43,9 +43,6 @@ class DiscoverCommand extends Command
                 new InputOption('exclude', 'e', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Exclude named repositories'),
                 new InputArgument('organisations', InputArgument::IS_ARRAY, 'List of the organisations / namespaces which should be scanned for composer repositories.', null),
             ))
-            ->setHelp(<<<EOT
-EOT
-            )
         ;
     }
 
