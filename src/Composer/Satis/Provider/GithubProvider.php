@@ -47,7 +47,7 @@ class GithubProvider implements ProviderInterface
     /**
      * @param array $repository
      *
-     * @return array
+     * @return boolean
      */
     private function isComposerAware(array $repository)
     {

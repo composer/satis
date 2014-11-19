@@ -16,11 +16,17 @@ class DiscoverCommand extends Command
      */
     protected $providerFactory;
 
+    /**
+     * @param ProviderFactory $providerFactory
+     */
     public function setProviderFactory(ProviderFactory $providerFactory)
     {
         $this->providerFactory = $providerFactory;
     }
 
+    /**
+     * @return ProviderFactory
+     */
     public function getProviderFactory()
     {
         if ($this->providerFactory === null) {

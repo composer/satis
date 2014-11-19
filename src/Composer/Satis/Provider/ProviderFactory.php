@@ -23,7 +23,8 @@ class ProviderFactory
 
     /**
      *
-     * @param InputInterface  $input
+     * @param string         $name
+     * @param InputInterface $input
      *
      * @throws UnknownProviderException
      * @return ProviderInterface
