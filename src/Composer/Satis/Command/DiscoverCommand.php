@@ -48,7 +48,7 @@ class DiscoverCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $provider = $this->getProviderFactory()->create($input->getOption('provider'), $input, $output);
+        $provider = $this->getProviderFactory()->create($input->getOption('provider'), $input);
 
         $data = new \stdClass();
         $data->name = $input->getOption('name');

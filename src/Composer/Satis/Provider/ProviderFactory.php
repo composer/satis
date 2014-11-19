@@ -5,7 +5,6 @@ namespace Composer\Satis\Provider;
 use Composer\Composer;
 use Github\Client;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class ProviderFactory
 {
@@ -25,12 +24,11 @@ class ProviderFactory
     /**
      *
      * @param InputInterface  $input
-     * @param OutputInterface $output
      *
      * @throws UnknownProviderException
      * @return ProviderInterface
      */
-    public function create($name, InputInterface $input, OutputInterface $output)
+    public function create($name, InputInterface $input)
     {
         switch ($name) {
             case 'github':
