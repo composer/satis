@@ -15,8 +15,8 @@ class GithubProviderSpec extends ObjectBehavior
     {
         $this->beConstructedWith($client);
 
-        $client->api('organization')->willReturn($organization);
-        $client->api('repo')->willReturn($repo);
+        $client->organizations()->willReturn($organization);
+        $client->repositories()->willReturn($repo);
         $repo->contents()->willReturn($contents);
         $organization->setPerPage(Argument::any())->willReturn($organization);
     }
@@ -49,7 +49,7 @@ class GithubProviderSpec extends ObjectBehavior
             )
         );
         $organization->repositories('sample-organisation', 'private')->willReturn($data)->shouldBeCalled();
-        $contents->exists('owner_login', 'sample_repo', 'composer.json', 'master')->willReturn(true);
+        $contents->exists('owner_login', 'sample_repo', 'composer.json')->willReturn(true);
 
         $reposities = $this->getRepositories('sample-organisation');
 
@@ -79,10 +79,8 @@ class GithubProviderSpec extends ObjectBehavior
             )
         );
         $organization->repositories('sample-organisation', 'private')->willReturn($data)->shouldBeCalled();
-        $contents->exists('owner_login', 'sample_repo', 'composer.json', 'master')->willReturn(true);
-        $contents->exists('owner_login', 'sample_repo', 'composer.json', 'develop')->shouldNotBeCalled();
-        $contents->exists('owner_login', 'sample_repo2', 'composer.json', 'master')->willReturn(false);
-        $contents->exists('owner_login', 'sample_repo2', 'composer.json', 'develop')->shouldBeCalled()->willReturn(false);
+        $contents->exists('owner_login', 'sample_repo', 'composer.json')->willReturn(true);
+        $contents->exists('owner_login', 'sample_repo2', 'composer.json')->willReturn(false);
 
         $reposities = $this->getRepositories('sample-organisation');
 

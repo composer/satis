@@ -33,7 +33,7 @@ class GithubProvider implements ProviderInterface
     {
         $repositories = array();
 
-        foreach ($this->client->api('organization')->setPerPage(100)->repositories($organisation, 'private') as $repository) {
+        foreach ($this->client->organizations()->setPerPage(100)->repositories($organisation, 'private') as $repository) {
             if (!$this->isComposerAware($repository)) {
                 continue;
             }
@@ -49,19 +49,12 @@ class GithubProvider implements ProviderInterface
      *
      * @return array
      */
-    protected function isComposerAware(array $repository)
+    private function isComposerAware(array $repository)
     {
-        return $this->hasComposerFile($repository['owner']['login'], $repository['name'], 'master')
-            || $this->hasComposerFile($repository['owner']['login'], $repository['name'], 'develop');
-    }
-
-    private function hasComposerFile($owner, $repository, $branch)
-    {
-        return $this->client->api('repo')->contents()->exists(
-            $owner,
-            $repository,
-            'composer.json',
-            $branch
+        return $this->client->repositories()->contents()->exists(
+            $repository['owner']['login'],
+            $repository['name'],
+            'composer.json'
         );
     }
 }
