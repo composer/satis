@@ -55,4 +55,4 @@ class Repository
     {
         $this->url = $url;
     }
-} 
+}

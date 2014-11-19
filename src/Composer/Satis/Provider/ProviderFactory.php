@@ -51,4 +51,4 @@ class ProviderFactory
                 throw new UnknownProviderException(sprintf('Failed to load provider named: %s', $name));
         }
     }
-} 
+}

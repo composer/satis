@@ -42,12 +42,33 @@ class DiscoverCommand extends Command
             ->setName('discover')
             ->setDescription('Generates json file which can be used to generate repository from the given provider')
             ->setDefinition(array(
-                new InputOption('provider', 'p', InputOption::VALUE_OPTIONAL, 'Provider which should be used to fetch list of repositories', 'github'),
-                new InputOption('auth', 'a', InputOption::VALUE_OPTIONAL, 'Authentication data in provider specific format'),
+                new InputOption(
+                    'provider',
+                    'p',
+                    InputOption::VALUE_OPTIONAL,
+                    'Provider which should be used to fetch list of repositories',
+                    'github'
+                ),
+                new InputOption(
+                    'auth',
+                    'a',
+                    InputOption::VALUE_OPTIONAL,
+                    'Authentication data in provider specific format'
+                ),
                 new InputOption('name', null, InputOption::VALUE_OPTIONAL, 'Name of the repository', 'My repository'),
                 new InputOption('homepage', null, InputOption::VALUE_OPTIONAL, 'Homepage of the repository'),
-                new InputOption('exclude', 'e', InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Exclude named repositories'),
-                new InputArgument('organisations', InputArgument::IS_ARRAY, 'List of the organisations / namespaces which should be scanned for composer repositories.', null),
+                new InputOption(
+                    'exclude',
+                    'e',
+                    InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
+                    'Exclude named repositories'
+                ),
+                new InputArgument(
+                    'organisations',
+                    InputArgument::IS_ARRAY,
+                    'List of the organisations / namespaces which should be scanned for composer repositories.',
+                    null
+                ),
             ))
         ;
     }
@@ -81,4 +102,4 @@ class DiscoverCommand extends Command
 
         $output->write(json_encode($data, JSON_PRETTY_PRINT));
     }
-} 
+}

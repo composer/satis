@@ -10,4 +10,4 @@ interface ProviderInterface
      * @return Repository[]
      */
     public function getRepositories($organisation);
-} 
+}

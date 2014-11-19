@@ -32,8 +32,9 @@ class GithubProvider implements ProviderInterface
     public function getRepositories($organisation)
     {
         $repositories = array();
+        $organisations = $this->client->organizations()->setPerPage(100);
 
-        foreach ($this->client->organizations()->setPerPage(100)->repositories($organisation, 'private') as $repository) {
+        foreach ($organisations->repositories($organisation, 'private') as $repository) {
             if (!$this->isComposerAware($repository)) {
                 continue;
             }
