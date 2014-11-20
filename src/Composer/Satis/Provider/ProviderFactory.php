@@ -46,7 +46,6 @@ class ProviderFactory
                 }
 
                 return new GithubProvider($client, $token);
-                break;
             default:
                 throw new UnknownProviderException(sprintf('Failed to load provider named: %s', $name));
         }
