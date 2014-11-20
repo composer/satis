@@ -63,33 +63,33 @@ repository in the given output-dir.
 
 The json config file accepts the following keys:
 
-- "repositories": defines which repositories are searched
+- <info>"repositories"</info>: defines which repositories are searched
   for packages.
-- "output-dir": where to output the repository files
+- <info>"output-dir"</info>: where to output the repository files
   if not provided as an argument when calling build.
-- "require-all": boolean, if true, all packages present
+- <info>"require-all"</info>: boolean, if true, all packages present
   in the configured repositories will be present in the
   dumped satis repository.
-- "require": if you do not want to dump all packages,
+- <info>"require"</info>: if you do not want to dump all packages,
   you can explicitly require them by name and version.
-- "minimum-stability": sets default stability for packages
+- <info>"minimum-stability"</info>: sets default stability for packages
   (default: dev), see
   http://getcomposer.org/doc/04-schema.md#minimum-stability
-- "require-dependencies": if you mark a few packages as
+- <info>"require-dependencies"</info>: if you mark a few packages as
   required to mirror packagist for example, setting this
   to true will make satis automatically require all of your
   requirements' dependencies.
-- "require-dev-dependencies": works like require-dependencies
+- <info>"require-dev-dependencies"</info>: works like require-dependencies
   but requires dev requirements rather than regular ones.
-- "config": all config options from composer, see
+- <info>"config"</info>: all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
-- "output-html": boolean, controls whether the repository
+- <info>"output-html"</info>: boolean, controls whether the repository
   has an html page as well or not.
-- "name": for html output, this defines the name of the
+- <info>"name"</info>: for html output, this defines the name of the
   repository.
-- "homepage": for html output, this defines the home URL
+- <info>"homepage"</info>: for html output, this defines the home URL
   of the repository (where you will host it).
-- "twig-template": Location of twig template to use for
+- <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
 EOT
             )
