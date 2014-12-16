@@ -31,8 +31,8 @@ class PurgeCommand extends Command
             ->setHelp(
 <<<EOT
 The <info>purge</info> command deletes useless archive files, depending
-of given json file (satis.json is used by default) and the
-last json file in the include directory of the given output-dir.
+on given json file (satis.json is used by default) and the
+lastest json file in the include directory of the given output-dir.
 
 In your satis.json (or other name you give), you must define
 "archive" argument.
@@ -53,10 +53,10 @@ EOT
         $config = $file->read();
 
         /**
-         * Verif if archive is defined
+         * Check whether archive is defined
          */
         if (!isset($config['archive']) || !isset($config['archive']['directory'])) {
-            $output->writeln('<error>You must define "archive" argument in your '.$configFile.'</error>');
+            $output->writeln('<error>You must define "archive" parameter in your '.$configFile.'</error>');
 
             return 1;
         }

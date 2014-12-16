@@ -24,6 +24,8 @@ With the `purge` command, you delete these files.
 
     php bin/satis purge <composer.json> <build-dir>
 
+ > Note: be careful if you reference your archives in your lock file.
+
 Updating
 --------
 
