@@ -63,6 +63,12 @@ class DiscoverCommand extends Command
                     InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
                     'Exclude named repositories'
                 ),
+                new InputOption(
+                    'extra',
+                    null,
+                    InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY,
+                    'Extra repository URL which should be scanned'
+                ),
                 new InputArgument(
                     'organisations',
                     InputArgument::IS_ARRAY,
@@ -96,6 +102,10 @@ class DiscoverCommand extends Command
 
                 $data->repositories[] = array('type' => 'vcs', 'url' => $repository->getUrl());
             }
+        }
+
+        foreach ($input->getOption('extra') as $extra) {
+            $data->repositories[] = array('type' => 'vcs', 'url' => $extra);
         }
 
         $data->{'require-all'} = true;
