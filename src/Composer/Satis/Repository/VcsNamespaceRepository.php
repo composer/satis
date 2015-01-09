@@ -151,7 +151,7 @@ class VcsNamespaceRepository extends VcsRepository
                 $data['version'] = $this->_getBranchWithoutNamespace($branch);
                 //set package namespace to generate package name based upon repository name
                 $data['namespace'] = isset($data['namespace'])
-                    ? $data['namespace'] : $this->_getBranchNamespace($tag);
+                    ? $data['namespace'] : $this->_getBranchNamespace($branch);
                 $data['version_normalized'] = $parsedBranch;
 
                 // make sure branch packages have a dev flag
