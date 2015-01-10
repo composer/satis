@@ -1,5 +1,5 @@
 {
-    "name": "andkirby/katis",
+    "name": "andkirby/satis",
     "description": "Simple Repository Generator (Kirby's Edition for multi-package repository)",
     "keywords": ["package", "repository", "generator"],
     "homepage": "https://github.com/andkirby/satis",
