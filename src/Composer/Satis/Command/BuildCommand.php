@@ -172,16 +172,10 @@ EOT
         $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filenamePrefix);
         $packageFileHash = hash_file('sha1', $packageFile);
 
-        $homepagePath = '';
-        if($homepage = $composer->getPackage()->getHomepage()) {
-            // Calculating absolute path for resources in folder 'include'.
-            $homepagePath = rtrim($homepage, '/').'/';
-        }
-
         $includes = array(
-            $homepagePath.'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
+            'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
         );
-
+        
         $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
