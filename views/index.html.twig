@@ -12,7 +12,13 @@
 
     <div id="doc" class="yui-t7">
         <div id="hd">
-            <h1>{{ name }} Composer Repository</h1>
+            <h1>
+                {% if name %}
+                    {{ name }}
+                {% else %}
+                    The Composer Repository
+                {% endif %}
+            </h1>
             {% if description %}
                 <p>{{ description|raw }}</p>
             {% endif %}
