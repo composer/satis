@@ -53,7 +53,7 @@ class Application extends BaseApplication
     }
 
     /**
-     * @return Composer
+     * @return \Composer\Composer
      */
     public function getComposer($required = true, $config = null)
     {
@@ -68,6 +68,14 @@ class Application extends BaseApplication
 
         return $this->composer;
     }
+
+	/**
+	 * @return Factory
+	 */
+	public function getComposerFactory()
+	{
+		return new Factory();
+	}
 
     /**
      * Initializes all the composer commands
