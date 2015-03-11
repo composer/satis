@@ -59,7 +59,7 @@ class Application extends BaseApplication
     {
         if (null === $this->composer) {
             try {
-                $this->composer = Factory::create($this->io, $config);
+                $this->composer = $this->getComposerFactory()->create($this->io, $config);
             } catch (\InvalidArgumentException $e) {
                 $this->io->write($e->getMessage());
                 exit(1);
