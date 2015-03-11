@@ -69,13 +69,13 @@ class Application extends BaseApplication
         return $this->composer;
     }
 
-	/**
-	 * @return Factory
-	 */
-	public function getComposerFactory()
-	{
-		return new Factory();
-	}
+    /**
+     * @return Factory
+     */
+    public function getComposerFactory()
+    {
+        return new Factory();
+    }
 
     /**
      * Initializes all the composer commands

@@ -350,7 +350,7 @@ EOT
         $whitelist = isset($config['archive']['whitelist']) ? (array) $config['archive']['whitelist'] : array();
         $blacklist = isset($config['archive']['blacklist']) ? (array) $config['archive']['blacklist'] : array();
 
-		$factory = $this->getApplication()->getComposerFactory();
+        $factory = $this->getApplication()->getComposerFactory();
         $composerConfig = $factory->createConfig();
 
         $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
