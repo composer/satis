@@ -45,10 +45,11 @@
                     <div>
                         <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
                         {% if package.highest.description %}
-                            <p>{{ package.highest.description }}</p>
-                        {% endif %}
-                        {% if package.highest.abandoned %}
-                            <p><em class="abandoned">Abandoned software! {% if package.highest.replacementPackage %}Replace with {{ package.highest.replacementPackage }}.{% else %}Avoid using it, no replacement mentioned.{% endif %}</em></p>
+                            <p>{{ package.highest.description }}
+                            {% if package.highest.abandoned %}
+                                <br/><em class="abandoned">Abandoned software! {% if package.highest.replacementPackage %}Replace with {{ package.highest.replacementPackage }}.{% else %}Avoid using it, no replacement mentioned.{% endif %}</em>
+                            {% endif %}
+                            </p>
                         {% endif %}
                         <table>
                             {% if package.highest.homepage %}
