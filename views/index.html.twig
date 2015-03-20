@@ -47,6 +47,9 @@
                         {% if package.highest.description %}
                             <p>{{ package.highest.description }}</p>
                         {% endif %}
+                        {% if package.highest.abandoned %}
+                            <p><em class="abandoned">Abandoned software! {% if package.highest.replacementPackage %}Replace with {{ package.highest.replacementPackage }}.{% else %}Avoid using it, no replacement mentioned.{% endif %}</em></p>
+                        {% endif %}
                         <table>
                             {% if package.highest.homepage %}
                                 <tr>
@@ -91,7 +94,9 @@
                                 <th>Releases</th>
                                 <td>
                                     {% for version in package.versions %}
-                                        {%- if version.distType -%}
+                                        {%- if version.abandoned -%}
+                                            <span class="abandoned" title="abandoned version">{{ version.prettyVersion }}</span>
+                                        {%- elseif version.distType -%}
                                             <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
                                         {%- else -%}
                                             <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
