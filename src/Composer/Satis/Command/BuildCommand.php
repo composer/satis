@@ -13,6 +13,7 @@
 namespace Composer\Satis\Command;
 
 use Composer\Config\JsonConfigSource;
+use Composer\Package\CompletePackage;
 use Composer\Package\Loader\ArrayLoader;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -91,6 +92,8 @@ The json config file accepts the following keys:
   of the repository (where you will host it).
 - <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
+- <info>"abandoned"</info>: Packages that are abandoned. As the key use the
+  package name, as the value use true or the replacement package.
 EOT
             )
         ;
@@ -132,6 +135,7 @@ EOT
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
         $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
 
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
@@ -150,6 +154,12 @@ EOT
 
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+
+        foreach ($packages as $package) {
+            if (array_key_exists($package->getName(), $abandoned)) {
+                $package->setAbandoned($abandoned[$package->getName()]);
+            }
+        }
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -529,8 +539,12 @@ EOT
 
         $mappedPackages = array();
         foreach ($groupedPackages as $name => $packages) {
+            $highest = $this->getHighestVersion($packages);
+
             $mappedPackages[$name] = array(
-                'highest' => $this->getHighestVersion($packages),
+                'highest' => $highest,
+                'abandoned' => $highest->isAbandoned(),
+                'replacement' => $highest->getReplacementPackage(),
                 'versions' => $this->getDescSortedVersions($packages),
             );
         }
