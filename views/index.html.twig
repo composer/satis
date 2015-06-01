@@ -41,6 +41,7 @@
                 Filter by package name:
                 <input type="text" id="search" autocomplete="off" autofocus />
 
+                <div id="package-list">
                 {% for name, package in packages %}
                     <div>
                         <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
@@ -116,6 +117,7 @@
                         </table>
                     </div>
                 {% endfor %}
+                </div>
             </div>
         </div>
         <div id="ft">
@@ -134,10 +136,12 @@
             var ms = 350; // milliseconds
             var needle = $(this).val().toLowerCase(), show;
             timer = setTimeout(function() {
+                $('#package-list').hide();
                 packages.each(function(){
                     show = $(this).text().toLowerCase().indexOf(needle) != -1;
                     $(this).parent().toggle(show);
                 });
+                $('#package-list').show();
             }, ms);
         }).focus();
         $('input#search').change(function(){
