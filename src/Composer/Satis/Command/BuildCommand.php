@@ -327,7 +327,7 @@ EOT
 
     /**
      * @param array           $config   Directory where to create the downloads in, prefix-url, etc..
-     * @param array           $packages Reference to packages so we can rewrite the JSON.
+     * @param array           $packages
      * @param InputInterface  $input
      * @param OutputInterface $output
      * @param string          $outputDir
@@ -335,7 +335,7 @@ EOT
      *
      * @return void
      */
-    private function dumpDownloads(array $config, array &$packages, InputInterface  $input, OutputInterface $output, $outputDir, $skipErrors)
+    private function dumpDownloads(array $config, array $packages, InputInterface  $input, OutputInterface $output, $outputDir, $skipErrors)
     {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
