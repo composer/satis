@@ -364,11 +364,14 @@ EOT
 
         $archiveManager->setOverwriteFiles(false);
 
+        shuffle($packages);
         /* @var \Composer\Package\CompletePackage $package */
-        foreach ($packages as $name => $package) {
+        foreach ($packages as $package) {
             if ('metapackage' === $package->getType()) {
                 continue;
             }
+
+            $name = $package->getName();
 
             if (true === $skipDev && true === $package->isDev()) {
                 $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
