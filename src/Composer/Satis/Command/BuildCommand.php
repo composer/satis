@@ -431,7 +431,7 @@ EOT
         $repo = array('packages' => array());
         $dumper = new ArrayDumper;
         foreach ($packages as $package) {
-            $repo['packages'][$package->getPrettyName()][$package->getPrettyVersion()] = $dumper->dump($package);
+            $repo['packages'][$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
