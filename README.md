@@ -11,7 +11,7 @@ Usage
 
 - Download [Composer](https://getcomposer.org/download/): `curl -sS https://getcomposer.org/installer | php`
 - Install satis: `php composer.phar create-project composer/satis --stability=dev --keep-vcs`
-- Build a repository: `php bin/satis build <composer.json> <build-dir>`
+- Build a repository: `php bin/satis build <configuration file> <build-dir>`
 
 Read the more detailed instructions in the 
 [documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
