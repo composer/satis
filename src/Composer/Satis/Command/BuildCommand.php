@@ -50,6 +50,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
+                new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ))
@@ -145,8 +146,36 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
         }
 
-        $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        if (($singleRepositoryUrl = $input->getOption('repository-url')) !== null
+            && FALSE !== ($otherPackagesCache = @file_get_contents($outputDir.'/packages.cache')))
+        {
+            $otherPackages = unserialize($otherPackagesCache);
+
+            // find repository configuration
+            $singleRepositoryConfig = null;
+            foreach ($config['repositories'] as $r) {
+                if ($r['url'] == $singleRepositoryUrl) {
+                    $singleRepositoryConfig = $r;
+                    break;
+                }  
+            }
+            if ($singleRepositoryConfig === null) {
+                throw new \InvalidArgumentException('Requested repository not found in configuration: '.$singleRepositoryUrl);
+            }
+
+            // use only selected repository
+            $config['repositories'] = array($singleRepositoryConfig);
+
+            $composer = $this->getApplication()->getComposer(true, $config);
+            $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+
+            // merge with cached data
+            $packages = array_merge($otherPackages, $packages);
+            ksort($packages, SORT_STRING);
+        } else {
+            $composer = $this->getApplication()->getComposer(true, $config);
+            $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        }
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -155,6 +184,8 @@ EOT
         if (isset($config['archive']['directory'])) {
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
+
+        file_put_contents($outputDir.'/packages.cache', serialize($packages));
 
         $filenamePrefix = $outputDir.'/include/all';
         $filename = $outputDir.'/packages.json';
