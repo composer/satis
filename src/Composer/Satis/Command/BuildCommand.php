@@ -34,7 +34,6 @@ use Composer\Repository\ComposerRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Json\JsonFile;
 use Composer\Satis\Satis;
-use Composer\Factory;
 use Composer\Util\Filesystem;
 use Composer\Util\RemoteFilesystem;
 use Composer\IO\ConsoleIO;
@@ -351,8 +350,9 @@ EOT
         $whitelist = isset($config['archive']['whitelist']) ? (array) $config['archive']['whitelist'] : array();
         $blacklist = isset($config['archive']['blacklist']) ? (array) $config['archive']['blacklist'] : array();
 
-        $composerConfig = Factory::createConfig();
-        $factory = new Factory;
+        $factory = $this->getApplication()->getComposerFactory();
+        $composerConfig = $factory->createConfig();
+
         $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
         $io->loadConfiguration($composerConfig);
 

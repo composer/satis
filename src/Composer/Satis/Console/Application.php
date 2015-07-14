@@ -53,13 +53,13 @@ class Application extends BaseApplication
     }
 
     /**
-     * @return Composer
+     * @return \Composer\Composer
      */
     public function getComposer($required = true, $config = null)
     {
         if (null === $this->composer) {
             try {
-                $this->composer = Factory::create($this->io, $config);
+                $this->composer = $this->getComposerFactory()->create($this->io, $config);
             } catch (\InvalidArgumentException $e) {
                 $this->io->write($e->getMessage());
                 exit(1);
@@ -67,6 +67,14 @@ class Application extends BaseApplication
         }
 
         return $this->composer;
+    }
+
+    /**
+     * @return Factory
+     */
+    public function getComposerFactory()
+    {
+        return new Factory();
     }
 
     /**
