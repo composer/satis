@@ -12,6 +12,7 @@
 
 namespace Composer\Satis\Console;
 
+use Composer\Composer;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
