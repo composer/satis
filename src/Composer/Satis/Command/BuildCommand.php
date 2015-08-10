@@ -417,8 +417,8 @@ EOT
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
 
-                if ($includeArchiveChecksum === true) {
-                  $package->setDistSha1Checksum(hash_file('sha1', $path));
+                if ($includeArchiveChecksum) {
+                    $package->setDistSha1Checksum(hash_file('sha1', $path));
                 }
 
                 $package->setDistReference($package->getSourceReference());
