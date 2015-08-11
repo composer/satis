@@ -348,6 +348,8 @@ EOT
         $whitelist = isset($config['archive']['whitelist']) ? (array) $config['archive']['whitelist'] : array();
         $blacklist = isset($config['archive']['blacklist']) ? (array) $config['archive']['blacklist'] : array();
 
+        $includeArchiveChecksum = isset($config['archive']['checksum']) ? (bool) $config['archive']['checksum'] : true;
+
         $composerConfig = Factory::createConfig();
         $factory = new Factory;
         $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
@@ -414,7 +416,11 @@ EOT
                 $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
-                $package->setDistSha1Checksum(hash_file('sha1', $path));
+
+                if ($includeArchiveChecksum) {
+                    $package->setDistSha1Checksum(hash_file('sha1', $path));
+                }
+
                 $package->setDistReference($package->getSourceReference());
             } catch(\Exception $exception) {
                 if(!$skipErrors) {
