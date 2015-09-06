@@ -158,7 +158,7 @@ EOT
 
         $filenamePrefix = $outputDir.'/include/all';
         $filename = $outputDir.'/packages.json';
-        if(!empty($packagesFilter)) {
+        if (!empty($packagesFilter)) {
             // in case of an active package filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $this->loadDumpedPackages($filename, $packagesFilter);
@@ -172,7 +172,7 @@ EOT
         $includes = array(
             'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
         );
-        
+
         $this->dumpPackagesJson($includes, $output, $filename);
 
         if ($htmlView) {
@@ -201,8 +201,8 @@ EOT
         foreach ($repos as $repo) {
             try {
                 $pool->addRepository($repo);
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
+            } catch (\Exception $exception) {
+                if (!$skipErrors) {
                     throw $exception;
                 }
                 $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
@@ -221,7 +221,7 @@ EOT
                     }
                 } else {
                     $packages = array();
-                    if($filterForPackages) {
+                    if ($filterForPackages) {
                         // apply package filter if defined
                         foreach ($packagesFilter as $filter) {
                             $packages += $repo->findPackages($filter);
@@ -422,8 +422,8 @@ EOT
                 }
 
                 $package->setDistReference($package->getSourceReference());
-            } catch(\Exception $exception) {
-                if(!$skipErrors) {
+            } catch (\Exception $exception) {
+                if (!$skipErrors) {
                     throw $exception;
                 }
                 $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
@@ -431,7 +431,7 @@ EOT
         }
     }
 
-    
+
     private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
     {
         $repo = array('packages' => array());
@@ -447,13 +447,13 @@ EOT
         $output->writeln("<info>wrote packages json $filenameWithHash</info>");
         return $filenameWithHash;
     }
-    
+
     private function dumpPackagesJson($includes, OutputInterface $output, $filename){
         $repo = array(
             'packages'          => array(),
             'includes'          => $includes,
         );
-        
+
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
@@ -514,7 +514,7 @@ EOT
                     if (is_array($jsonPackage)) {
                         foreach ($jsonPackage as $jsonVersion) {
                             if (is_array($jsonVersion)) {
-                                if(isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                if (isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
                                     continue;
                                 }
                                 $package = $loader->load($jsonVersion);
