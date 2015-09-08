@@ -146,36 +146,22 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
         }
 
-        if (($singleRepositoryUrl = $input->getOption('repository-url')) !== null
-            && FALSE !== ($otherPackagesCache = @file_get_contents($outputDir.'/packages.cache')))
-        {
-            $otherPackages = unserialize($otherPackagesCache);
-
-            // find repository configuration
+        if (($singleRepositoryUrl = $input->getOption('repository-url')) !== null) {
             $singleRepositoryConfig = null;
             foreach ($config['repositories'] as $r) {
                 if ($r['url'] == $singleRepositoryUrl) {
                     $singleRepositoryConfig = $r;
                     break;
-                }  
+                }
             }
             if ($singleRepositoryConfig === null) {
                 throw new \InvalidArgumentException('Requested repository not found in configuration: '.$singleRepositoryUrl);
             }
-
-            // use only selected repository
             $config['repositories'] = array($singleRepositoryConfig);
-
-            $composer = $this->getApplication()->getComposer(true, $config);
-            $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
-
-            // merge with cached data
-            $packages = array_merge($otherPackages, $packages);
-            ksort($packages, SORT_STRING);
-        } else {
-            $composer = $this->getApplication()->getComposer(true, $config);
-            $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
         }
+
+        $composer = $this->getApplication()->getComposer(true, $config);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -185,12 +171,10 @@ EOT
             $this->dumpDownloads($config, $packages, $input, $output, $outputDir, $skipErrors);
         }
 
-        file_put_contents($outputDir.'/packages.cache', serialize($packages));
-
         $filenamePrefix = $outputDir.'/include/all';
         $filename = $outputDir.'/packages.json';
-        if (!empty($packagesFilter)) {
-            // in case of an active package filter we need to load the dumped packages.json and merge the
+        if (!empty($packagesFilter) || !empty($singleRepositoryConfig)) {
+            // in case of an active package or repository filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $this->loadDumpedPackages($filename, $packagesFilter);
             $packages += $oldPackages;
