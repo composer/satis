@@ -50,6 +50,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
+                new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ))
@@ -145,6 +146,20 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
         }
 
+        if (($singleRepositoryUrl = $input->getOption('repository-url')) !== null) {
+            $singleRepositoryConfig = null;
+            foreach ($config['repositories'] as $r) {
+                if ($r['url'] == $singleRepositoryUrl) {
+                    $singleRepositoryConfig = $r;
+                    break;
+                }
+            }
+            if ($singleRepositoryConfig === null) {
+                throw new \InvalidArgumentException('Requested repository not found in configuration: '.$singleRepositoryUrl);
+            }
+            $config['repositories'] = array($singleRepositoryConfig);
+        }
+
         $composer = $this->getApplication()->getComposer(true, $config);
         $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
@@ -158,8 +173,8 @@ EOT
 
         $filenamePrefix = $outputDir.'/include/all';
         $filename = $outputDir.'/packages.json';
-        if (!empty($packagesFilter)) {
-            // in case of an active package filter we need to load the dumped packages.json and merge the
+        if (!empty($packagesFilter) || !empty($singleRepositoryConfig)) {
+            // in case of an active package or repository filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $this->loadDumpedPackages($filename, $packagesFilter);
             $packages += $oldPackages;
