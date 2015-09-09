@@ -18,7 +18,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Composer\Satis\Command;
 use Composer\IO\ConsoleIO;
-use Composer\Factory;
+use Composer\Satis\Composer\Factory;
 use Composer\Util\ErrorHandler;
 use Composer\Satis\Satis;
 
