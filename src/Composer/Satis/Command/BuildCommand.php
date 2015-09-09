@@ -14,6 +14,7 @@ namespace Composer\Satis\Command;
 
 use Composer\Config\JsonConfigSource;
 use Composer\Package\Loader\ArrayLoader;
+use Composer\Package\RootPackageInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -26,7 +27,6 @@ use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
 use Composer\Package\LinkConstraint\MultiConstraint;
-use Composer\Package\PackageInterface;
 use Composer\Package\Link;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\PlatformRepository;
@@ -459,7 +459,7 @@ EOT
         $repoJson->write($repo);
     }
 
-    private function dumpWeb(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
+    private function dumpWeb(array $packages, OutputInterface $output, RootPackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
     {
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
