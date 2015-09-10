@@ -88,6 +88,9 @@ The json config file accepts the following keys:
   of the repository (where you will host it).
 - <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
+- <info>"notify-batch"</info>: Allows you to specify a URL that will
+  be called every time a user installs a package, see
+  https://getcomposer.org/doc/05-repositories.md#notify-batch
 EOT
             )
         ;
@@ -173,7 +176,16 @@ EOT
             'include/all$'.$packageFileHash.'.json' => array( 'sha1'=>$packageFileHash ),
         );
 
-        $this->dumpPackagesJson($includes, $output, $filename);
+        $repo = array(
+            'packages'          => array(),
+            'includes'          => $includes
+        );
+
+        if (array_key_exists('notify-batch', $config)) {
+            $repo['notify-batch'] = $config['notify-batch'];
+        }
+
+        $this->dumpPackagesJson($repo, $output, $filename);
 
         if ($htmlView) {
             $dependencies = array();
@@ -448,12 +460,7 @@ EOT
         return $filenameWithHash;
     }
 
-    private function dumpPackagesJson($includes, OutputInterface $output, $filename){
-        $repo = array(
-            'packages'          => array(),
-            'includes'          => $includes,
-        );
-
+    private function dumpPackagesJson(array $repo, OutputInterface $output, $filename){
         $output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
