@@ -76,5 +76,6 @@ class Application extends BaseApplication
     protected function registerCommands()
     {
         $this->add(new Command\BuildCommand());
+        $this->add(new Command\DiscoverCommand());
     }
 }
