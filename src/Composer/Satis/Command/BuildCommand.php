@@ -72,12 +72,16 @@ The json config file accepts the following keys:
 - <info>"minimum-stability"</info>: sets default stability for packages
   (default: dev), see
   http://getcomposer.org/doc/04-schema.md#minimum-stability
+- <info>"dependency-minimum-stability"</info>: sets default stability for
+  required packages (default: dev)
 - <info>"require-dependencies"</info>: if you mark a few packages as
   required to mirror packagist for example, setting this
   to true will make satis automatically require all of your
   requirements' dependencies.
 - <info>"require-dev-dependencies"</info>: works like require-dependencies
   but requires dev requirements rather than regular ones.
+- <info>"only-latest-dependencies"</info>: Requires only the latest package
+  that satisisfies any dependency.
 - <info>"config"</info>: all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
 - <info>"output-html"</info>: boolean, controls whether the repository
@@ -129,6 +133,7 @@ EOT
         $requireAll = isset($config['require-all']) && true === $config['require-all'];
         $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $onlyLatestDependencies = isset($config['only-latest-dependencies']) && true === $config['only-latest-dependencies'];
 
         if (!$requireAll && !isset($config['require'])) {
             $output->writeln('No explicit requires defined, enabling require-all');
@@ -136,6 +141,7 @@ EOT
         }
 
         $minimumStability =  isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+        $dependencyMinimumStability =  isset($config['dependency-minimum-stability']) ? $config['dependency-minimum-stability'] : 'dev';
 
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
@@ -146,7 +152,7 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packages = $this->selectPackages($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $onlyLatestDependencies, $minimumStability, $dependencyMinimumStability, $skipErrors, $packagesFilter);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -189,9 +195,10 @@ EOT
         }
     }
 
-    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    private function selectPackages(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $onlyLatestDependencies, $minimumStability, $dependencyMinimumStability, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
+        $selectedPackageNames = array();
 
         // run over all packages and store matching ones
         $output->writeln('<info>Scanning packages</info>');
@@ -267,10 +274,58 @@ EOT
 
         // process links if any
         $depsLinks = array();
+        $initialLinkCount = count($links);
+        $addingDependencies = false;
+
+        // Selects a package and adds its requirements
+        $selectPackage = function(PackageInterface $package) use(
+            $verbose,
+            $output,
+            &$selected,
+            &$selectedPackageNames,
+            $requireAll,
+            $requireDependencies,
+            $requireDevDependencies,
+            &$links,
+            &$depsLinks
+        ) {
+            if ($verbose) {
+                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+            }
+            $selected[$package->getUniqueName()] = $package;
+            $selectedPackageNames[$package->getName()] = true;
+
+            if (!$requireAll) {
+                $required = array();
+                if ($requireDependencies) {
+                    $required = $package->getRequires();
+                }
+                if ($requireDevDependencies) {
+                    $required = array_merge($required, $package->getDevRequires());
+                }
+                // append non-platform dependencies
+                foreach ($required as $dependencyLink) {
+                    $target = $dependencyLink->getTarget();
+                    if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
+                        $linkId = $target.' '.$dependencyLink->getConstraint();
+                        // prevent loading multiple times the same link
+                        if (!isset($depsLinks[$linkId])) {
+                            $links[] = $dependencyLink;
+                            $depsLinks[$linkId] = true;
+                        }
+                    }
+                }
+            }
+        };
+
+        $depsPackages = array();
 
         $i = 0;
         while (isset($links[$i])) {
             $link = $links[$i];
+            if ($initialLinkCount === $i) {
+                $addingDependencies = true;
+            }
             $i++;
             $name = $link->getTarget();
             $matches = $pool->whatProvides($name, $link->getConstraint(), true);
@@ -281,35 +336,36 @@ EOT
                     $package = $package->getAliasOf();
                 }
 
+                if ($addingDependencies && BasePackage::$stabilities[$package->getStability()] > BasePackage::$stabilities[$dependencyMinimumStability]) {
+                    continue;
+                }
                 // add matching package if not yet selected
                 if (!isset($selected[$package->getUniqueName()])) {
-                    if ($verbose) {
-                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
-                    }
-                    $selected[$package->getUniqueName()] = $package;
-
-                    if (!$requireAll) {
-                        $required = array();
-                        if ($requireDependencies) {
-                            $required = $package->getRequires();
-                        }
-                        if ($requireDevDependencies) {
-                            $required = array_merge($required, $package->getDevRequires());
-                        }
-                        // append non-platform dependencies
-                        foreach ($required as $dependencyLink) {
-                            $target = $dependencyLink->getTarget();
-                            if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
-                                $linkId = $target.' '.$dependencyLink->getConstraint();
-                                // prevent loading multiple times the same link
-                                if (!isset($depsLinks[$linkId])) {
-                                    $links[] = $dependencyLink;
-                                    $depsLinks[$linkId] = true;
-                                }
+                    if ($addingDependencies && $onlyLatestDependencies) {
+                        if (!isset($selectedPackageNames[$package->getName()])) {
+                            if (!isset($depsPackages[$package->getName()])) {
+                                $depsPackages[$package->getName()] = array();
                             }
+                            $depsPackages[$package->getName()][] = $package;
                         }
+                    } else {
+                        $selectPackage($package);
                     }
                 }
+            }
+
+            if (!isset($links[$i])) {
+                foreach ($depsPackages as $name => $packages) {
+                    // Select the latest package from the dependencies
+                    $selectedPackage = null;
+                    foreach ($packages as $package) {
+                        if (null === $selectedPackage || version_compare($package->getVersion(), $selectedPackage->getVersion(), '>')) {
+                            $selectedPackage = $package;
+                        }
+                    }
+                    $selectPackage($selectedPackage);
+                }
+                $depsPackages = array();
             }
 
             if (!$matches) {
