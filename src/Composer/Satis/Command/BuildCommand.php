@@ -232,10 +232,6 @@ EOT
                     }
 
                     foreach ($packages as $package) {
-                        // skip aliases
-                        if ($package instanceof AliasPackage) {
-                            continue;
-                        }
 
                         if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
                             continue;
