@@ -242,11 +242,11 @@ EOT
                         }
 
                         // add matching package if not yet selected
-                        if (!isset($selected[$package->getUniqueName()])) {
+                        if (!isset($selected[$package->getPrettyVersion()])) {
                             if ($verbose) {
                                 $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                             }
-                            $selected[$package->getUniqueName()] = $package;
+                            $selected[$package->getPrettyVersion()] = $package;
                         }
                     }
                 }
