@@ -43,6 +43,12 @@ Nils Adermann - <naderman@naderman.de> - <http://twitter.com/naderman> - <http:/
 
 See also the list of [contributors](https://github.com/composer/satis/contributors) who participated in this project.
 
+Community Tools
+---------------
+- [satis-go](https://github.com/benschw/satis-go) - A simple web server for managing Satis configuration and hosting the generated Composer repository.
+
+
+
 License
 -------
 
