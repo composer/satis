@@ -19,14 +19,18 @@ use Composer\IO\ConsoleIO;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class DownloadsBuilder extends Builder
+class DownloadsBuilder extends Builder implements BuilderInterface
 {
+    private $input;
+
+    private $skipErrors;
+
+    private $helperSet;
+
     /**
      * @param array          $packages
-     * @param InputInterface $input
-     * @param bool           $skipErrors If true, any exception while dumping a package will be ignored.
      */
-    public function dump(array $packages, InputInterface  $input, $skipErrors, $helperSet)
+    public function dump(array $packages)
     {
         if (isset($this->config['archive']['absolute-directory'])) {
             $directory = $this->config['archive']['absolute-directory'];
@@ -46,7 +50,7 @@ class DownloadsBuilder extends Builder
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory();
-        $io = new ConsoleIO($input, $this->output, $helperSet);
+        $io = new ConsoleIO($this->input, $this->output, $this->helperSet);
         $io->loadConfiguration($composerConfig);
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
@@ -117,11 +121,32 @@ class DownloadsBuilder extends Builder
 
                 $package->setDistReference($package->getSourceReference());
             } catch (\Exception $exception) {
-                if (!$skipErrors) {
+                if (!$this->skipErrors) {
                     throw $exception;
                 }
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
+    }
+
+    public function setInputInterface(InputInterface $input)
+    {
+        $this->input = $input;
+
+        return $this;
+    }
+
+    public function setSkipErrors($skipErrors)
+    {
+        $this->skipErrors = (bool) $skipErrors;
+
+        return $this;
+    }
+
+    public function setHelperSet($helperSet)
+    {
+        $this->helperSet = $helperSet;
+
+        return $this;
     }
 }

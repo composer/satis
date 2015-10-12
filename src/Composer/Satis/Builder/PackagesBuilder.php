@@ -28,7 +28,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class PackagesBuilder extends Builder
+class PackagesBuilder extends Builder implements BuilderInterface
 {
     private $filenamePrefix;
 

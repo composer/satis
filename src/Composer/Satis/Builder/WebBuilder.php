@@ -17,9 +17,13 @@ use Composer\Package\PackageInterface;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class WebBuilder extends Builder
+class WebBuilder extends Builder implements BuilderInterface
 {
-    public function dump(array $packages, PackageInterface $rootPackage, array $dependencies = array())
+    private $rootPackage;
+
+    private $dependencies;
+
+    public function dump(array $packages)
     {
         $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
 
@@ -29,27 +33,48 @@ class WebBuilder extends Builder
 
         $mappedPackages = $this->getMappedPackageList($packages);
 
-        $name = $rootPackage->getPrettyName();
+        $name = $this->rootPackage->getPrettyName();
         if ($name === '__root__') {
             $name = 'A';
             $this->output->writeln('Define a "name" property in your json config to name the repository');
         }
 
-        if (!$rootPackage->getHomepage()) {
+        if (!$this->rootPackage->getHomepage()) {
             $this->output->writeln('Define a "homepage" property in your json config to configure the repository URL');
         }
+
+        $this->setDependencies($packages);
 
         $this->output->writeln('<info>Writing web view</info>');
 
         $content = $twig->render($twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig', array(
             'name' => $name,
-            'url' => $rootPackage->getHomepage(),
-            'description' => $rootPackage->getDescription(),
+            'url' => $this->rootPackage->getHomepage(),
+            'description' => $this->rootPackage->getDescription(),
             'packages' => $mappedPackages,
-            'dependencies' => $dependencies,
+            'dependencies' => $this->dependencies,
         ));
 
         file_put_contents($this->outputDir.'/index.html', $content);
+    }
+
+    public function setRootPackage(PackageInterface $rootPackage)
+    {
+        $this->rootPackage = $rootPackage;
+    }
+
+    private function setDependencies(array $packages)
+    {
+        $dependencies = array();
+        foreach ($packages as $package) {
+            foreach ($package->getRequires() as $link) {
+                $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
+            }
+        }
+
+        $this->dependencies = $dependencies;
+
+        return $this;
     }
 
     private function getMappedPackageList(array $packages)

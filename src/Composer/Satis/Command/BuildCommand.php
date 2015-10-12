@@ -129,7 +129,12 @@ EOT
 
         if (isset($config['archive']['directory'])) {
             $downloads = new DownloadsBuilder($output, $outputDir, $config);
-            $downloads->dump($packages, $input, $skipErrors, $this->getApplication()->getHelperSet());
+            $downloads
+                ->setInputInterface($input)
+                ->setSkipErrors($skipErrors)
+                ->setHelperSet($this->getApplication()->getHelperSet())
+            ;
+            $downloads->dump($packages);
         }
 
         if (!empty($packagesFilter)) {
@@ -147,16 +152,9 @@ EOT
         }
 
         if ($htmlView) {
-            $dependencies = array();
-            foreach ($packages as $package) {
-                foreach ($package->getRequires() as $link) {
-                    $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
-                }
-            }
-
-            $rootPackage = $composer->getPackage();
             $web = new WebBuilder($output, $outputDir, $config);
-            $web->dump($packages, $rootPackage, $dependencies);
+            $web->setRootPackage($composer->getPackage());
+            $web->dump($packages);
         }
     }
 
