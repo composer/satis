@@ -27,7 +27,7 @@ use Composer\Json\JsonFile;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class PackagesList extends Builder
+class PackagesBuilder extends Builder
 {
     public function select(Composer $composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
     {

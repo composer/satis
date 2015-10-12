@@ -17,7 +17,7 @@ use Composer\Package\PackageInterface;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class Web extends Builder
+class WebBuilder extends Builder
 {
     public function dump(array $packages, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
     {

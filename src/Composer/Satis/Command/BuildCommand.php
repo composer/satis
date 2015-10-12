@@ -22,6 +22,9 @@ use Composer\Composer;
 use Composer\Config;
 use Composer\Json\JsonFile;
 use Composer\Util\RemoteFilesystem;
+use Composer\Satis\Builder\PackagesBuilder;
+use Composer\Satis\Builder\DownloadsBuilder;
+use Composer\Satis\Builder\WebBuilder;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -134,12 +137,12 @@ EOT
 
         $composer = $this->getApplication()->getComposer(true, $config);
         #JamesRezo
-        $packagesList = new \Composer\Satis\Builder\PackagesList($output);
-        $packages = $packagesList->select($composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packagesBuilder = new PackagesBuilder($output);
+        $packages = $packagesBuilder->select($composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
             #JamesRezo
-            $downloads = new \Composer\Satis\Builder\Downloads($output);
+            $downloads = new DownloadsBuilder($output);
             $downloads->dump($config, $packages, $input, $outputDir, $skipErrors, $this->getApplication()->getHelperSet());
         }
 
@@ -153,7 +156,7 @@ EOT
             ksort($packages);
         }
 
-        $packagesList->dump($packages, $filenamePrefix);
+        $packagesBuilder->dump($packages, $filenamePrefix);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -170,7 +173,7 @@ EOT
             $rootPackage = $composer->getPackage();
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
             #JamesRezo
-            $web = new \Composer\Satis\Builder\Web($output);
+            $web = new WebBuilder($output);
             $web->dump($packages, $rootPackage, $outputDir, $twigTemplate, $dependencies);
         }
     }

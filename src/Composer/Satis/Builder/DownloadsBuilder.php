@@ -19,7 +19,7 @@ use Composer\IO\ConsoleIO;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class Downloads extends Builder
+class DownloadsBuilder extends Builder
 {
     /**
      * @param array          $config     Directory where to create the downloads in, prefix-url, etc..
