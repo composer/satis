@@ -134,13 +134,13 @@ EOT
 
         $composer = $this->getApplication()->getComposer(true, $config);
         #JamesRezo
-        $packagesList = new \Composer\Satis\Builder\PackagesList();
-        $packages = $packagesList->select($composer, $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packagesList = new \Composer\Satis\Builder\PackagesList($output);
+        $packages = $packagesList->select($composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
             #JamesRezo
-            $downloads = new \Composer\Satis\Builder\Downloads();
-            $downloads->dump($config, $packages, $input, $output, $outputDir, $skipErrors, $this->getApplication()->getHelperSet());
+            $downloads = new \Composer\Satis\Builder\Downloads($output);
+            $downloads->dump($config, $packages, $input, $outputDir, $skipErrors, $this->getApplication()->getHelperSet());
         }
 
         $filenamePrefix = $outputDir.'/include/all';
@@ -153,7 +153,7 @@ EOT
             ksort($packages);
         }
 
-        $packagesList->dump($packages, $output, $filenamePrefix);
+        $packagesList->dump($packages, $filenamePrefix);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -170,8 +170,8 @@ EOT
             $rootPackage = $composer->getPackage();
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
             #JamesRezo
-            $web = new \Composer\Satis\Builder\Web();
-            $web->dump($packages, $output, $rootPackage, $outputDir, $twigTemplate, $dependencies);
+            $web = new \Composer\Satis\Builder\Web($output);
+            $web->dump($packages, $rootPackage, $outputDir, $twigTemplate, $dependencies);
         }
     }
 

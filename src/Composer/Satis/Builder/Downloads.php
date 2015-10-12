@@ -12,7 +12,6 @@
 
 namespace Composer\Satis\Builder;
 
-use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
@@ -20,17 +19,16 @@ use Composer\IO\ConsoleIO;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class Downloads
+class Downloads extends Builder
 {
     /**
-     * @param array           $config     Directory where to create the downloads in, prefix-url, etc..
-     * @param array           $packages
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     * @param string          $outputDir
-     * @param bool            $skipErrors If true, any exception while dumping a package will be ignored.
+     * @param array          $config     Directory where to create the downloads in, prefix-url, etc..
+     * @param array          $packages
+     * @param InputInterface $input
+     * @param string         $outputDir
+     * @param bool           $skipErrors If true, any exception while dumping a package will be ignored.
      */
-    public function dump(array $config, array $packages, InputInterface  $input, OutputInterface $output, $outputDir, $skipErrors, $helperSet)
+    public function dump(array $config, array $packages, InputInterface  $input, $outputDir, $skipErrors, $helperSet)
     {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
@@ -38,7 +36,7 @@ class Downloads
             $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
         }
 
-        $output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
+        $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
 
         $format = isset($config['archive']['format']) ? $config['archive']['format'] : 'zip';
         $endpoint = isset($config['archive']['prefix-url']) ? $config['archive']['prefix-url'] : $config['homepage'];
@@ -50,7 +48,7 @@ class Downloads
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory();
-        $io = new ConsoleIO($input, $output, $helperSet);
+        $io = new ConsoleIO($input, $this->output, $helperSet);
         $io->loadConfiguration($composerConfig);
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
@@ -71,22 +69,22 @@ class Downloads
             $name = $package->getName();
 
             if (true === $skipDev && true === $package->isDev()) {
-                $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
+                $this->output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
                 continue;
             }
 
             $names = $package->getNames();
             if ($whitelist && !array_intersect($whitelist, $names)) {
-                $output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
+                $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
                 continue;
             }
 
             if ($blacklist && array_intersect($blacklist, $names)) {
-                $output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
+                $this->output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
                 continue;
             }
 
-            $output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
+            $this->output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
 
             try {
                 if ('pear-library' === $package->getType()) {
@@ -124,7 +122,7 @@ class Downloads
                 if (!$skipErrors) {
                     throw $exception;
                 }
-                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
     }

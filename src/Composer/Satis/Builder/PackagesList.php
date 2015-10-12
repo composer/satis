@@ -12,7 +12,6 @@
 
 namespace Composer\Satis\Builder;
 
-use Symfony\Component\Console\Output\OutputInterface;
 use Composer\Composer;
 use Composer\Repository\ComposerRepository;
 use Composer\Package\Link;
@@ -28,14 +27,14 @@ use Composer\Json\JsonFile;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class PackagesList
+class PackagesList extends Builder
 {
-    public function select(Composer $composer, OutputInterface $output, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    public function select(Composer $composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
 
         // run over all packages and store matching ones
-        $output->writeln('<info>Scanning packages</info>');
+        $this->output->writeln('<info>Scanning packages</info>');
 
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($minimumStability);
@@ -46,7 +45,7 @@ class PackagesList
                 if (!$skipErrors) {
                     throw $exception;
                 }
-                $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
 
@@ -85,7 +84,7 @@ class PackagesList
                         // add matching package if not yet selected
                         if (!isset($selected[$package->getUniqueName()])) {
                             if ($verbose) {
-                                $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                                $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                             }
                             $selected[$package->getUniqueName()] = $package;
                         }
@@ -124,7 +123,7 @@ class PackagesList
                 // add matching package if not yet selected
                 if (!isset($selected[$package->getUniqueName()])) {
                     if ($verbose) {
-                        $output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                        $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                     }
                     $selected[$package->getUniqueName()] = $package;
 
@@ -153,7 +152,7 @@ class PackagesList
             }
 
             if (!$matches) {
-                $output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
+                $this->output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
             }
         }
 
@@ -162,16 +161,16 @@ class PackagesList
         return $selected;
     }
 
-    public function dump(array $packages, OutputInterface $output, $filename)
+    public function dump(array $packages, $filename)
     {
-        $packageFile = $this->dumpPackageIncludeJson($packages, $output, $filename);
+        $packageFile = $this->dumpPackageIncludeJson($packages, $filename);
         $packageFileHash = hash_file('sha1', $packageFile);
 
         $includes = array(
             'include/all$'.$packageFileHash.'.json' => array('sha1' => $packageFileHash),
         );
 
-        $this->dumpPackagesJson($includes, $output, $filename);
+        $this->dumpPackagesJson($includes, $filename);
     }
 
     public function load($filename, array $packagesFilter = array())
@@ -213,7 +212,7 @@ class PackagesList
         return $packages;
     }
 
-    private function dumpPackageIncludeJson(array $packages, OutputInterface $output, $filename)
+    private function dumpPackageIncludeJson(array $packages, $filename)
     {
         $repo = array('packages' => array());
         $dumper = new ArrayDumper();
@@ -225,19 +224,19 @@ class PackagesList
         $hash = hash_file('sha1', $filename);
         $filenameWithHash = $filename.'$'.$hash.'.json';
         rename($filename, $filenameWithHash);
-        $output->writeln("<info>wrote packages json $filenameWithHash</info>");
+        $this->output->writeln("<info>wrote packages json $filenameWithHash</info>");
 
         return $filenameWithHash;
     }
 
-    private function dumpPackagesJson($includes, OutputInterface $output, $filename)
+    private function dumpPackagesJson($includes, $filename)
     {
         $repo = array(
             'packages' => array(),
             'includes' => $includes,
         );
 
-        $output->writeln('<info>Writing packages.json</info>');
+        $this->output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($filename);
         $repoJson->write($repo);
     }

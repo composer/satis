@@ -12,15 +12,14 @@
 
 namespace Composer\Satis\Builder;
 
-use Symfony\Component\Console\Output\OutputInterface;
 use Composer\Package\PackageInterface;
 
 /**
  * @author James Hautot <james@rezo.net>
  */
-class Web
+class Web extends Builder
 {
-    public function dump(array $packages, OutputInterface $output, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
+    public function dump(array $packages, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
     {
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -31,14 +30,14 @@ class Web
         $name = $rootPackage->getPrettyName();
         if ($name === '__root__') {
             $name = 'A';
-            $output->writeln('Define a "name" property in your json config to name the repository');
+            $this->output->writeln('Define a "name" property in your json config to name the repository');
         }
 
         if (!$rootPackage->getHomepage()) {
-            $output->writeln('Define a "homepage" property in your json config to configure the repository URL');
+            $this->output->writeln('Define a "homepage" property in your json config to configure the repository URL');
         }
 
-        $output->writeln('<info>Writing web view</info>');
+        $this->output->writeln('<info>Writing web view</info>');
 
         $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array(
             'name' => $name,
