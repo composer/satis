@@ -140,7 +140,7 @@ EOT
         if (isset($config['archive']['directory'])) {
             #JamesRezo
             $downloads = new \Composer\Satis\Builder\Downloads();
-            $downloads->dump($config, $packages, $input, $output, $outputDir, $skipErrors);
+            $downloads->dump($config, $packages, $input, $output, $outputDir, $skipErrors, $this->getApplication()->getHelperSet());
         }
 
         $filenamePrefix = $outputDir.'/include/all';

@@ -30,7 +30,7 @@ class Downloads
      * @param string          $outputDir
      * @param bool            $skipErrors If true, any exception while dumping a package will be ignored.
      */
-    public function dump(array $config, array $packages, InputInterface  $input, OutputInterface $output, $outputDir, $skipErrors)
+    public function dump(array $config, array $packages, InputInterface  $input, OutputInterface $output, $outputDir, $skipErrors, $helperSet)
     {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
@@ -50,7 +50,7 @@ class Downloads
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory();
-        $io = new ConsoleIO($input, $output, $this->getApplication()->getHelperSet());
+        $io = new ConsoleIO($input, $output, $helperSet);
         $io->loadConfiguration($composerConfig);
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */

@@ -23,6 +23,7 @@ use Composer\Repository\PlatformRepository;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\DependencyResolver\Pool;
+use Composer\Json\JsonFile;
 
 /**
  * @author James Hautot <james@rezo.net>
