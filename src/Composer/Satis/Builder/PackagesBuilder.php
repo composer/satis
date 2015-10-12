@@ -34,17 +34,29 @@ class PackagesBuilder extends Builder
 
     private $filename;
 
-    public function __construct(OutputInterface $output, $outputDir)
+    public function __construct(OutputInterface $output, $outputDir, $config)
     {
-        parent::__construct($output, $outputDir);
+        parent::__construct($output, $outputDir, $config);
 
         $this->filenamePrefix = $this->outputDir.'/include/all';
         $this->filename = $this->outputDir.'/packages.json';
     }
 
-    public function select(Composer $composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
+    public function select(Composer $composer, $verbose, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
+
+        // fetch options
+        $requireAll = isset($this->config['require-all']) && true === $this->config['require-all'];
+        $requireDependencies = isset($this->config['require-dependencies']) && true === $this->config['require-dependencies'];
+        $requireDevDependencies = isset($this->config['require-dev-dependencies']) && true === $this->config['require-dev-dependencies'];
+
+        if (!$requireAll && !isset($config['require'])) {
+            $output->writeln('No explicit requires defined, enabling require-all');
+            $requireAll = true;
+        }
+
+        $minimumStability = isset($this->config['minimum-stability']) ? $this->config['minimum-stability'] : 'dev';
 
         // run over all packages and store matching ones
         $this->output->writeln('<info>Scanning packages</info>');

@@ -19,9 +19,11 @@ use Composer\Package\PackageInterface;
  */
 class WebBuilder extends Builder
 {
-    public function dump(array $packages, PackageInterface $rootPackage, $template = null, array $dependencies = array())
+    public function dump(array $packages, PackageInterface $rootPackage, array $dependencies = array())
     {
-        $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
+        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+
+        $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
 
@@ -39,7 +41,7 @@ class WebBuilder extends Builder
 
         $this->output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render($template ? pathinfo($template, PATHINFO_BASENAME) : 'index.html.twig', array(
+        $content = $twig->render($twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig', array(
             'name' => $name,
             'url' => $rootPackage->getHomepage(),
             'description' => $rootPackage->getDescription(),

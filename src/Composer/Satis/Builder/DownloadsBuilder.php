@@ -22,28 +22,27 @@ use Composer\IO\ConsoleIO;
 class DownloadsBuilder extends Builder
 {
     /**
-     * @param array          $config     Directory where to create the downloads in, prefix-url, etc..
      * @param array          $packages
      * @param InputInterface $input
      * @param bool           $skipErrors If true, any exception while dumping a package will be ignored.
      */
-    public function dump(array $config, array $packages, InputInterface  $input, $skipErrors, $helperSet)
+    public function dump(array $packages, InputInterface  $input, $skipErrors, $helperSet)
     {
-        if (isset($config['archive']['absolute-directory'])) {
-            $directory = $config['archive']['absolute-directory'];
+        if (isset($this->config['archive']['absolute-directory'])) {
+            $directory = $this->config['archive']['absolute-directory'];
         } else {
-            $directory = sprintf('%s/%s', $this->outputDir, $config['archive']['directory']);
+            $directory = sprintf('%s/%s', $this->outputDir, $this->config['archive']['directory']);
         }
 
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
 
-        $format = isset($config['archive']['format']) ? $config['archive']['format'] : 'zip';
-        $endpoint = isset($config['archive']['prefix-url']) ? $config['archive']['prefix-url'] : $config['homepage'];
-        $skipDev = isset($config['archive']['skip-dev']) ? (bool) $config['archive']['skip-dev'] : false;
-        $whitelist = isset($config['archive']['whitelist']) ? (array) $config['archive']['whitelist'] : array();
-        $blacklist = isset($config['archive']['blacklist']) ? (array) $config['archive']['blacklist'] : array();
+        $format = isset($this->config['archive']['format']) ? $this->config['archive']['format'] : 'zip';
+        $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
+        $skipDev = isset($this->config['archive']['skip-dev']) ? (bool) $this->config['archive']['skip-dev'] : false;
+        $whitelist = isset($this->config['archive']['whitelist']) ? (array) $this->config['archive']['whitelist'] : array();
+        $blacklist = isset($this->config['archive']['blacklist']) ? (array) $this->config['archive']['blacklist'] : array();
 
-        $includeArchiveChecksum = isset($config['archive']['checksum']) ? (bool) $config['archive']['checksum'] : true;
+        $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
 
         $composerConfig = Factory::createConfig();
         $factory = new Factory();
@@ -108,7 +107,7 @@ class DownloadsBuilder extends Builder
                     $archiveFormat = $format;
                 }
                 $archive = basename($path);
-                $distUrl = sprintf('%s/%s/%s', $endpoint, $config['archive']['directory'], $archive);
+                $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
 

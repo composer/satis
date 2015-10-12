@@ -115,18 +115,6 @@ EOT
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
 
-        // fetch options
-        $requireAll = isset($config['require-all']) && true === $config['require-all'];
-        $requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
-        $requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
-
-        if (!$requireAll && !isset($config['require'])) {
-            $output->writeln('No explicit requires defined, enabling require-all');
-            $requireAll = true;
-        }
-
-        $minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
-
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
         }
@@ -136,12 +124,12 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packagesBuilder = new PackagesBuilder($output, $outputDir);
-        $packages = $packagesBuilder->select($composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
+        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config);
+        $packages = $packagesBuilder->select($composer, $verbose, $skipErrors, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
-            $downloads = new DownloadsBuilder($output, $outputDir);
-            $downloads->dump($config, $packages, $input, $skipErrors, $this->getApplication()->getHelperSet());
+            $downloads = new DownloadsBuilder($output, $outputDir, $config);
+            $downloads->dump($packages, $input, $skipErrors, $this->getApplication()->getHelperSet());
         }
 
         if (!empty($packagesFilter)) {
@@ -167,9 +155,8 @@ EOT
             }
 
             $rootPackage = $composer->getPackage();
-            $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
-            $web = new WebBuilder($output, $outputDir);
-            $web->dump($packages, $rootPackage, $twigTemplate, $dependencies);
+            $web = new WebBuilder($output, $outputDir, $config);
+            $web->dump($packages, $rootPackage, $dependencies);
         }
     }
 
