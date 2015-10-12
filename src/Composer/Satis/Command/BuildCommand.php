@@ -136,12 +136,10 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        #JamesRezo
         $packagesBuilder = new PackagesBuilder($output);
         $packages = $packagesBuilder->select($composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
-            #JamesRezo
             $downloads = new DownloadsBuilder($output);
             $downloads->dump($config, $packages, $input, $outputDir, $skipErrors, $this->getApplication()->getHelperSet());
         }
@@ -172,7 +170,6 @@ EOT
 
             $rootPackage = $composer->getPackage();
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
-            #JamesRezo
             $web = new WebBuilder($output);
             $web->dump($packages, $rootPackage, $outputDir, $twigTemplate, $dependencies);
         }
