@@ -247,8 +247,8 @@ class PackagesBuilder extends Builder
         $repoJson = new JsonFile($this->filenamePrefix);
         $repoJson->write($repo);
         $hash = hash_file('sha1', $this->filenamePrefix);
-        $filenameWithHash = $this->filename.'$'.$hash.'.json';
-        rename($this->filename, $filenameWithHash);
+        $filenameWithHash = $this->filenamePrefix.'$'.$hash.'.json';
+        rename($this->filenamePrefix, $filenameWithHash);
         $this->output->writeln("<info>wrote packages json $filenameWithHash</info>");
 
         return $filenameWithHash;
