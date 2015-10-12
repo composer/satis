@@ -23,12 +23,25 @@ use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\DependencyResolver\Pool;
 use Composer\Json\JsonFile;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @author James Hautot <james@rezo.net>
  */
 class PackagesBuilder extends Builder
 {
+    private $filenamePrefix;
+
+    private $filename;
+
+    public function __construct(OutputInterface $output, $outputDir)
+    {
+        parent::__construct($output, $outputDir);
+
+        $this->filenamePrefix = $this->outputDir.'/include/all';
+        $this->filename = $this->outputDir.'/packages.json';
+    }
+
     public function select(Composer $composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
@@ -161,23 +174,23 @@ class PackagesBuilder extends Builder
         return $selected;
     }
 
-    public function dump(array $packages, $filename)
+    public function dump(array $packages)
     {
-        $packageFile = $this->dumpPackageIncludeJson($packages, $filename);
+        $packageFile = $this->dumpPackageIncludeJson($packages);
         $packageFileHash = hash_file('sha1', $packageFile);
 
         $includes = array(
             'include/all$'.$packageFileHash.'.json' => array('sha1' => $packageFileHash),
         );
 
-        $this->dumpPackagesJson($includes, $filename);
+        $this->dumpPackagesJson($includes);
     }
 
-    public function load($filename, array $packagesFilter = array())
+    public function load(array $packagesFilter = array())
     {
         $packages = array();
-        $repoJson = new JsonFile($filename);
-        $dirName = dirname($filename);
+        $repoJson = new JsonFile($this->filename);
+        $dirName = dirname($this->filename);
 
         if ($repoJson->exists()) {
             $loader = new ArrayLoader();
@@ -212,24 +225,24 @@ class PackagesBuilder extends Builder
         return $packages;
     }
 
-    private function dumpPackageIncludeJson(array $packages, $filename)
+    private function dumpPackageIncludeJson(array $packages)
     {
         $repo = array('packages' => array());
         $dumper = new ArrayDumper();
         foreach ($packages as $package) {
             $repo['packages'][$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
-        $repoJson = new JsonFile($filename);
+        $repoJson = new JsonFile($this->filenamePrefix);
         $repoJson->write($repo);
-        $hash = hash_file('sha1', $filename);
-        $filenameWithHash = $filename.'$'.$hash.'.json';
-        rename($filename, $filenameWithHash);
+        $hash = hash_file('sha1', $this->filenamePrefix);
+        $filenameWithHash = $this->filename.'$'.$hash.'.json';
+        rename($this->filename, $filenameWithHash);
         $this->output->writeln("<info>wrote packages json $filenameWithHash</info>");
 
         return $filenameWithHash;
     }
 
-    private function dumpPackagesJson($includes, $filename)
+    private function dumpPackagesJson($includes)
     {
         $repo = array(
             'packages' => array(),
@@ -237,7 +250,7 @@ class PackagesBuilder extends Builder
         );
 
         $this->output->writeln('<info>Writing packages.json</info>');
-        $repoJson = new JsonFile($filename);
+        $repoJson = new JsonFile($this->filename);
         $repoJson->write($repo);
     }
 }

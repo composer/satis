@@ -23,8 +23,11 @@ abstract class Builder
 {
     protected $output;
 
-    public function __construct(OutputInterface $output)
+    protected $outputDir;
+
+    public function __construct(OutputInterface $output, $outputDir)
     {
         $this->output = $output;
+        $this->outputDir = $outputDir;
     }
 }

@@ -19,7 +19,7 @@ use Composer\Package\PackageInterface;
  */
 class WebBuilder extends Builder
 {
-    public function dump(array $packages, PackageInterface $rootPackage, $directory, $template = null, array $dependencies = array())
+    public function dump(array $packages, PackageInterface $rootPackage, $template = null, array $dependencies = array())
     {
         $templateDir = $template ? pathinfo($template, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
         $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -47,7 +47,7 @@ class WebBuilder extends Builder
             'dependencies' => $dependencies,
         ));
 
-        file_put_contents($directory.'/index.html', $content);
+        file_put_contents($this->outputDir.'/index.html', $content);
     }
 
     private function getMappedPackageList(array $packages)

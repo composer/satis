@@ -136,25 +136,23 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packagesBuilder = new PackagesBuilder($output);
+        $packagesBuilder = new PackagesBuilder($output, $outputDir);
         $packages = $packagesBuilder->select($composer, $verbose, $requireAll, $requireDependencies, $requireDevDependencies, $minimumStability, $skipErrors, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
-            $downloads = new DownloadsBuilder($output);
-            $downloads->dump($config, $packages, $input, $outputDir, $skipErrors, $this->getApplication()->getHelperSet());
+            $downloads = new DownloadsBuilder($output, $outputDir);
+            $downloads->dump($config, $packages, $input, $skipErrors, $this->getApplication()->getHelperSet());
         }
 
-        $filenamePrefix = $outputDir.'/include/all';
-        $filename = $outputDir.'/packages.json';
         if (!empty($packagesFilter)) {
             // in case of an active package filter we need to load the dumped packages.json and merge the
             // updated packages in
-            $oldPackages = $packagesList->load($filename, $packagesFilter);
+            $oldPackages = $packagesBuilder->load($packagesFilter);
             $packages += $oldPackages;
             ksort($packages);
         }
 
-        $packagesBuilder->dump($packages, $filenamePrefix);
+        $packagesBuilder->dump($packages);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];
@@ -170,8 +168,8 @@ EOT
 
             $rootPackage = $composer->getPackage();
             $twigTemplate = isset($config['twig-template']) ? $config['twig-template'] : null;
-            $web = new WebBuilder($output);
-            $web->dump($packages, $rootPackage, $outputDir, $twigTemplate, $dependencies);
+            $web = new WebBuilder($output, $outputDir);
+            $web->dump($packages, $rootPackage, $twigTemplate, $dependencies);
         }
     }
 

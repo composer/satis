@@ -25,15 +25,14 @@ class DownloadsBuilder extends Builder
      * @param array          $config     Directory where to create the downloads in, prefix-url, etc..
      * @param array          $packages
      * @param InputInterface $input
-     * @param string         $outputDir
      * @param bool           $skipErrors If true, any exception while dumping a package will be ignored.
      */
-    public function dump(array $config, array $packages, InputInterface  $input, $outputDir, $skipErrors, $helperSet)
+    public function dump(array $config, array $packages, InputInterface  $input, $skipErrors, $helperSet)
     {
         if (isset($config['archive']['absolute-directory'])) {
             $directory = $config['archive']['absolute-directory'];
         } else {
-            $directory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
+            $directory = sprintf('%s/%s', $this->outputDir, $config['archive']['directory']);
         }
 
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
