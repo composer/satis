@@ -19,7 +19,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author James Hautot <james@rezo.net>
  */
-abstract class Builder
+class Builder
 {
     protected $output;
 
