@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * This file is part of Satis.
  *
  * (c) Jordi Boggiano <j.boggiano@seld.be>
@@ -9,7 +9,6 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Composer\Satis\Builder;
 
 use Composer\Composer;
@@ -26,14 +25,25 @@ use Composer\Json\JsonFile;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
+ * Builds the JSON stuff.
+ *
  * @author James Hautot <james@rezo.net>
  */
 class PackagesBuilder extends Builder implements BuilderInterface
 {
+    /** @var string prefix of included json files. */
     private $filenamePrefix;
 
+    /** @var string packages.json file name. */
     private $filename;
 
+    /**
+     * Dedicated Packages Constructor.
+     *
+     * @param OutputInterface $output    The output Interface
+     * @param string          $outputDir The directory where to build
+     * @param array           $config    The parameters from ./satis.json
+     */
     public function __construct(OutputInterface $output, $outputDir, $config)
     {
         parent::__construct($output, $outputDir, $config);
@@ -42,6 +52,16 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $this->filename = $this->outputDir.'/packages.json';
     }
 
+    /**
+     * Sets the list of packages to build.
+     *
+     * @param Composer $composer       The Composer instance
+     * @param bool     $verbose        Output infos is true
+     * @param bool     $skipErrors     Escapes Exceptions if true
+     * @param array    $packagesFilter The active package filter to merge
+     *
+     * @return array list of packages to build
+     */
     public function select(Composer $composer, $verbose, $skipErrors, array $packagesFilter = array())
     {
         $selected = array();
@@ -186,6 +206,11 @@ class PackagesBuilder extends Builder implements BuilderInterface
         return $selected;
     }
 
+    /**
+     * Builds the JSON stuff of the repository.
+     *
+     * @param array $packages List of packages to dump
+     */
     public function dump(array $packages)
     {
         $packageFile = $this->dumpPackageIncludeJson($packages);
@@ -198,6 +223,13 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $this->dumpPackagesJson($includes);
     }
 
+    /**
+     * Loads previously dumped Packages in order to merge with updates.
+     *
+     * @param array $packagesFilter The active package filter to merge
+     *
+     * @return array $packages List of packages to dump
+     */
     public function load(array $packagesFilter = array())
     {
         $packages = array();
@@ -237,6 +269,13 @@ class PackagesBuilder extends Builder implements BuilderInterface
         return $packages;
     }
 
+    /**
+     * Writes includes JSON Files.
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return string $filenameWithHash Includes JSON file name
+     */
     private function dumpPackageIncludeJson(array $packages)
     {
         $repo = array('packages' => array());
@@ -254,6 +293,11 @@ class PackagesBuilder extends Builder implements BuilderInterface
         return $filenameWithHash;
     }
 
+    /**
+     * Writes the packages.json of the repository.
+     *
+     * @param array $includes List of included JSON files.
+     */
     private function dumpPackagesJson($includes)
     {
         $repo = array(

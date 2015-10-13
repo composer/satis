@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * This file is part of Satis.
  *
  * (c) Jordi Boggiano <j.boggiano@seld.be>
@@ -9,26 +9,33 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Composer\Satis\Builder;
 
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Helper\HelperSet;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
 
 /**
+ * Builds the archives of the repository.
+ *
  * @author James Hautot <james@rezo.net>
  */
 class DownloadsBuilder extends Builder implements BuilderInterface
 {
+    /** @var InputInterface $input The input Interface. */
     private $input;
 
+    /** @var bool $skipErrors Escapes Exceptions if true. */
     private $skipErrors;
 
+    /** @var HelperSet $helperSet A HelperSet instance. */
     private $helperSet;
 
     /**
-     * @param array          $packages
+     * Builds the archives of the repository.
+     *
+     * @param array $packages List of packages to dump
      */
     public function dump(array $packages)
     {
@@ -129,6 +136,11 @@ class DownloadsBuilder extends Builder implements BuilderInterface
         }
     }
 
+    /**
+     * Sets the input interface.
+     *
+     * @param InputInterface $input The input Interface
+     */
     public function setInputInterface(InputInterface $input)
     {
         $this->input = $input;
@@ -136,6 +148,11 @@ class DownloadsBuilder extends Builder implements BuilderInterface
         return $this;
     }
 
+    /**
+     * Sets the skipErrors flag.
+     *
+     * @param bool $skipErrors Escapes Exceptions if true
+     */
     public function setSkipErrors($skipErrors)
     {
         $this->skipErrors = (bool) $skipErrors;
@@ -143,7 +160,12 @@ class DownloadsBuilder extends Builder implements BuilderInterface
         return $this;
     }
 
-    public function setHelperSet($helperSet)
+    /**
+     * Sets the HelperSet instance.
+     *
+     * @param HelperSet $helperSet A HelperSet instance
+     */
+    public function setHelperSet(HelperSet $helperSet)
     {
         $this->helperSet = $helperSet;
 

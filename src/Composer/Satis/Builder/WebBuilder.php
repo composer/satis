@@ -1,6 +1,6 @@
 <?php
 
-/*
+/**
  * This file is part of Satis.
  *
  * (c) Jordi Boggiano <j.boggiano@seld.be>
@@ -9,20 +9,28 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-
 namespace Composer\Satis\Builder;
 
 use Composer\Package\PackageInterface;
 
 /**
+ * Build the web pages.
+ *
  * @author James Hautot <james@rezo.net>
  */
 class WebBuilder extends Builder implements BuilderInterface
 {
+    /** @var PackageInterface Main datas to build the pages. */
     private $rootPackage;
 
+    /** @var array List of calculated required packages. */
     private $dependencies;
 
+    /**
+     * Build the web pages.
+     *
+     * @param array $packages List of packages to dump
+     */
     public function dump(array $packages)
     {
         $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
@@ -58,11 +66,23 @@ class WebBuilder extends Builder implements BuilderInterface
         file_put_contents($this->outputDir.'/index.html', $content);
     }
 
+    /**
+     * Defines de main datas of the repository.
+     *
+     * @param PackageInterface $rootPackage [description]
+     */
     public function setRootPackage(PackageInterface $rootPackage)
     {
         $this->rootPackage = $rootPackage;
+
+        return $this;
     }
 
+    /**
+     * Defines the required packages.
+     *
+     * @param array $packages List of packages to dump
+     */
     private function setDependencies(array $packages)
     {
         $dependencies = array();
@@ -77,6 +97,13 @@ class WebBuilder extends Builder implements BuilderInterface
         return $this;
     }
 
+    /**
+     * Gets a list of packages grouped by name with a list of versions.
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return array Grouped list of packages with versions
+     */
     private function getMappedPackageList(array $packages)
     {
         $groupedPackages = $this->groupPackagesByName($packages);
@@ -92,6 +119,13 @@ class WebBuilder extends Builder implements BuilderInterface
         return $mappedPackages;
     }
 
+    /**
+     * Gets a list of packages grouped by name.
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return array List of packages grouped by name
+     */
     private function groupPackagesByName(array $packages)
     {
         $groupedPackages = array();
@@ -102,6 +136,13 @@ class WebBuilder extends Builder implements BuilderInterface
         return $groupedPackages;
     }
 
+    /**
+     * Gets the highest version of packages.
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return string The highest version of a package
+     */
     private function getHighestVersion(array $packages)
     {
         $highestVersion = null;
@@ -114,6 +155,13 @@ class WebBuilder extends Builder implements BuilderInterface
         return $highestVersion;
     }
 
+    /**
+     * Sorts by version the list of packages.
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return array Sorted list of packages by version
+     */
     private function getDescSortedVersions(array $packages)
     {
         usort($packages, function ($a, $b) {
