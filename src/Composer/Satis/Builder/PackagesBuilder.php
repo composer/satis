@@ -71,8 +71,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $requireDependencies = isset($this->config['require-dependencies']) && true === $this->config['require-dependencies'];
         $requireDevDependencies = isset($this->config['require-dev-dependencies']) && true === $this->config['require-dev-dependencies'];
 
-        if (!$requireAll && !isset($config['require'])) {
-            $output->writeln('No explicit requires defined, enabling require-all');
+        if (!$requireAll && !isset($this->config['require'])) {
+            $this->output->writeln('No explicit requires defined, enabling require-all');
             $requireAll = true;
         }
 
