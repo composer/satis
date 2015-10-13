@@ -40,13 +40,14 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /**
      * Dedicated Packages Constructor.
      *
-     * @param OutputInterface $output    The output Interface
-     * @param string          $outputDir The directory where to build
-     * @param array           $config    The parameters from ./satis.json
+     * @param OutputInterface $output     The output Interface
+     * @param string          $outputDir  The directory where to build
+     * @param array           $config     The parameters from ./satis.json
+     * @param bool            $skipErrors Escapes Exceptions if true
      */
-    public function __construct(OutputInterface $output, $outputDir, $config)
+    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {
-        parent::__construct($output, $outputDir, $config);
+        parent::__construct($output, $outputDir, $config, $skipErrors);
 
         $this->filenamePrefix = $this->outputDir.'/include/all';
         $this->filename = $this->outputDir.'/packages.json';
