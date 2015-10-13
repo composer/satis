@@ -26,9 +26,6 @@ class DownloadsBuilder extends Builder implements BuilderInterface
     /** @var InputInterface $input The input Interface. */
     private $input;
 
-    /** @var bool $skipErrors Escapes Exceptions if true. */
-    private $skipErrors;
-
     /** @var HelperSet $helperSet A HelperSet instance. */
     private $helperSet;
 
@@ -144,18 +141,6 @@ class DownloadsBuilder extends Builder implements BuilderInterface
     public function setInputInterface(InputInterface $input)
     {
         $this->input = $input;
-
-        return $this;
-    }
-
-    /**
-     * Sets the skipErrors flag.
-     *
-     * @param bool $skipErrors Escapes Exceptions if true
-     */
-    public function setSkipErrors($skipErrors)
-    {
-        $this->skipErrors = (bool) $skipErrors;
 
         return $this;
     }

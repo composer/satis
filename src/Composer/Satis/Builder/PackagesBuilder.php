@@ -57,12 +57,11 @@ class PackagesBuilder extends Builder implements BuilderInterface
      *
      * @param Composer $composer       The Composer instance
      * @param bool     $verbose        Output infos is true
-     * @param bool     $skipErrors     Escapes Exceptions if true
      * @param array    $packagesFilter The active package filter to merge
      *
      * @return array list of packages to build
      */
-    public function select(Composer $composer, $verbose, $skipErrors, array $packagesFilter = array())
+    public function select(Composer $composer, $verbose, array $packagesFilter = array())
     {
         $selected = array();
 
@@ -87,7 +86,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
             try {
                 $pool->addRepository($repo);
             } catch (\Exception $exception) {
-                if (!$skipErrors) {
+                if (!$this->skipErrors) {
                     throw $exception;
                 }
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));

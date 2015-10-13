@@ -124,14 +124,13 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config);
-        $packages = $packagesBuilder->select($composer, $verbose, $skipErrors, $packagesFilter);
+        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
+        $packages = $packagesBuilder->select($composer, $verbose, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
-            $downloads = new DownloadsBuilder($output, $outputDir, $config);
+            $downloads = new DownloadsBuilder($output, $outputDir, $config, $skipErrors);
             $downloads
                 ->setInputInterface($input)
-                ->setSkipErrors($skipErrors)
                 ->setHelperSet($this->getApplication()->getHelperSet())
             ;
             $downloads->dump($packages);
@@ -152,7 +151,7 @@ EOT
         }
 
         if ($htmlView) {
-            $web = new WebBuilder($output, $outputDir, $config);
+            $web = new WebBuilder($output, $outputDir, $config, $skipErrors);
             $web->setRootPackage($composer->getPackage());
             $web->dump($packages);
         }
