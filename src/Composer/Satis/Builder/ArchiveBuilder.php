@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Helper\HelperSet;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
+use Composer\Package\PackageInterface;
 
 /**
  * Builds the archives of the repository.
@@ -36,19 +37,14 @@ class ArchiveBuilder extends Builder implements BuilderInterface
      */
     public function dump(array $packages)
     {
-        if (isset($this->config['archive']['absolute-directory'])) {
-            $directory = $this->config['archive']['absolute-directory'];
-        } else {
-            $directory = sprintf('%s/%s', $this->outputDir, $this->config['archive']['directory']);
-        }
+        $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
+
+        $directory = $helper->getDirectory($this->outputDir);
 
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
 
         $format = isset($this->config['archive']['format']) ? $this->config['archive']['format'] : 'zip';
         $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
-        $skipDev = isset($this->config['archive']['skip-dev']) ? (bool) $this->config['archive']['skip-dev'] : false;
-        $whitelist = isset($this->config['archive']['whitelist']) ? (array) $this->config['archive']['whitelist'] : array();
-        $blacklist = isset($this->config['archive']['blacklist']) ? (array) $this->config['archive']['blacklist'] : array();
 
         $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
 
@@ -68,25 +64,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
         shuffle($packages);
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $package) {
-            if ('metapackage' === $package->getType()) {
-                continue;
-            }
-
-            $name = $package->getName();
-
-            if (true === $skipDev && true === $package->isDev()) {
-                $this->output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
-                continue;
-            }
-
-            $names = $package->getNames();
-            if ($whitelist && !array_intersect($whitelist, $names)) {
-                $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
-                continue;
-            }
-
-            if ($blacklist && array_intersect($blacklist, $names)) {
-                $this->output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
+            if ($helper->skipDump($package)) {
                 continue;
             }
 

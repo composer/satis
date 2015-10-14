@@ -26,5 +26,8 @@
     },
     "autoload": {
         "psr-0": { "Composer\\Satis": "src/" }
+    },
+    "autoload-dev": {
+        "psr-0": { "Composer\\Test\\Satis": "tests/" }
     }
 }
