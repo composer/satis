@@ -68,7 +68,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                 continue;
             }
 
-            $this->output->writeln(sprintf("<info>Dumping '%s'.</info>", $name));
+            $this->output->writeln(sprintf("<info>Dumping '%s'.</info>", $package->getName()));
 
             try {
                 if ('pear-library' === $package->getType()) {
