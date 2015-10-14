@@ -29,7 +29,7 @@ class Builder
     /** @var array $config The parameters from ./satis.json. */
     protected $config;
 
-    /** @var bool $skipErrors Escapes Exceptions if true. */
+    /** @var bool $skipErrors Skips Exceptions if true. */
     protected $skipErrors;
 
     /**
@@ -38,7 +38,7 @@ class Builder
      * @param OutputInterface $output     The output Interface
      * @param string          $outputDir  The directory where to build
      * @param array           $config     The parameters from ./satis.json
-     * @param bool            $skipErrors Escapes Exceptions if true
+     * @param bool            $skipErrors Skips Exceptions if true
      */
     public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {

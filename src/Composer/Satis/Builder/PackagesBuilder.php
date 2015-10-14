@@ -25,7 +25,7 @@ use Composer\Json\JsonFile;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Builds the JSON stuff.
+ * Builds the JSON files.
  *
  * @author James Hautot <james@rezo.net>
  */
