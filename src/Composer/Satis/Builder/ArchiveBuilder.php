@@ -21,7 +21,7 @@ use Composer\IO\ConsoleIO;
  *
  * @author James Hautot <james@rezo.net>
  */
-class DownloadsBuilder extends Builder implements BuilderInterface
+class ArchiveBuilder extends Builder implements BuilderInterface
 {
     /** @var InputInterface $input The input Interface. */
     private $input;

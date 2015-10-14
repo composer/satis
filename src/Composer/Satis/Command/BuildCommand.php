@@ -23,7 +23,7 @@ use Composer\Config;
 use Composer\Json\JsonFile;
 use Composer\Util\RemoteFilesystem;
 use Composer\Satis\Builder\PackagesBuilder;
-use Composer\Satis\Builder\DownloadsBuilder;
+use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\WebBuilder;
 
 /**
@@ -128,7 +128,7 @@ EOT
         $packages = $packagesBuilder->select($composer, $verbose, $packagesFilter);
 
         if (isset($config['archive']['directory'])) {
-            $downloads = new DownloadsBuilder($output, $outputDir, $config, $skipErrors);
+            $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
             $downloads
                 ->setInputInterface($input)
                 ->setHelperSet($this->getApplication()->getHelperSet())
