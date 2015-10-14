@@ -125,7 +125,8 @@ EOT
 
         $composer = $this->getApplication()->getComposer(true, $config);
         $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
-        $packages = $packagesBuilder->select($composer, $verbose, $packagesFilter);
+        $packagesBuilder->setPackagesFilter($packagesFilter);
+        $packages = $packagesBuilder->select($composer, $verbose);
 
         if (isset($config['archive']['directory'])) {
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
@@ -136,10 +137,10 @@ EOT
             $downloads->dump($packages);
         }
 
-        if (!empty($packagesFilter)) {
+        if (!$packagesBuilder->hasFilterForPackages()) {
             // in case of an active package filter we need to load the dumped packages.json and merge the
             // updated packages in
-            $oldPackages = $packagesBuilder->load($packagesFilter);
+            $oldPackages = $packagesBuilder->load();
             $packages += $oldPackages;
             ksort($packages);
         }

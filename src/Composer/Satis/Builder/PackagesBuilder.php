@@ -37,6 +37,11 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /** @var string packages.json file name. */
     private $filename;
 
+    /** @var array The active package filter to merge. */
+    private $packagesFilter = array();
+
+    private $selected = array();
+
     /**
      * Dedicated Packages Constructor.
      *
@@ -54,18 +59,37 @@ class PackagesBuilder extends Builder implements BuilderInterface
     }
 
     /**
+     * Sets the active package filter to merge
+     *
+     * @param array $packagesFilter The active package filter to merge
+     */
+    public function setPackagesFilter(array $packagesFilter = array())
+    {
+        $this->packagesFilter = $packagesFilter;
+
+        return $this;
+    }
+
+    /**
+     * Tells if there is at least one package filter.
+     *
+     * @return bool true if there is at least one package filter
+     */
+    public function hasFilterForPackages()
+    {
+        return count($this->packagesFilter) > 0;
+    }
+
+    /**
      * Sets the list of packages to build.
      *
      * @param Composer $composer       The Composer instance
-     * @param bool     $verbose        Output infos is true
-     * @param array    $packagesFilter The active package filter to merge
+     * @param bool     $verbose        Output infos if true
      *
      * @return array list of packages to build
      */
-    public function select(Composer $composer, $verbose, array $packagesFilter = array())
+    public function select(Composer $composer, $verbose)
     {
-        $selected = array();
-
         // fetch options
         $requireAll = isset($this->config['require-all']) && true === $this->config['require-all'];
         $requireDependencies = isset($this->config['require-dependencies']) && true === $this->config['require-dependencies'];
@@ -94,60 +118,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
             }
         }
 
-        if ($requireAll) {
-            $links = array();
-            $filterForPackages = count($packagesFilter) > 0;
-
-            foreach ($repos as $repo) {
-                // collect links for composer repos with providers
-                if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
-                    foreach ($repo->getProviderNames() as $name) {
-                        $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
-                    }
-                } else {
-                    $packages = array();
-                    if ($filterForPackages) {
-                        // apply package filter if defined
-                        foreach ($packagesFilter as $filter) {
-                            $packages += $repo->findPackages($filter);
-                        }
-                    } else {
-                        // process other repos directly
-                        $packages = $repo->getPackages();
-                    }
-
-                    foreach ($packages as $package) {
-                        // skip aliases
-                        if ($package instanceof AliasPackage) {
-                            continue;
-                        }
-
-                        if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
-                            continue;
-                        }
-
-                        // add matching package if not yet selected
-                        if (!isset($selected[$package->getUniqueName()])) {
-                            if ($verbose) {
-                                $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
-                            }
-                            $selected[$package->getUniqueName()] = $package;
-                        }
-                    }
-                }
-            }
-        } else {
-            $links = array_values($composer->getPackage()->getRequires());
-
-            // only pick up packages in our filter, if a filter has been set.
-            if (count($packagesFilter) > 0) {
-                $links = array_filter($links, function (Link $link) use ($packagesFilter) {
-                    return in_array($link->getTarget(), $packagesFilter);
-                });
-            }
-
-            $links = array_values($links);
-        }
+        $links = $requireAll ? $this->getAllLinks($repos, $minimumStability, $verbose) : $this->getFilteredLinks($composer);
 
         // process links if any
         $depsLinks = array();
@@ -166,11 +137,11 @@ class PackagesBuilder extends Builder implements BuilderInterface
                 }
 
                 // add matching package if not yet selected
-                if (!isset($selected[$package->getUniqueName()])) {
+                if (!isset($this->selected[$package->getUniqueName()])) {
                     if ($verbose) {
                         $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                     }
-                    $selected[$package->getUniqueName()] = $package;
+                    $this->selected[$package->getUniqueName()] = $package;
 
                     if (!$requireAll) {
                         $required = array();
@@ -201,9 +172,9 @@ class PackagesBuilder extends Builder implements BuilderInterface
             }
         }
 
-        ksort($selected, SORT_STRING);
+        ksort($this->selected, SORT_STRING);
 
-        return $selected;
+        return $this->selected;
     }
 
     /**
@@ -226,11 +197,9 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /**
      * Loads previously dumped Packages in order to merge with updates.
      *
-     * @param array $packagesFilter The active package filter to merge
-     *
      * @return array $packages List of packages to dump
      */
-    public function load(array $packagesFilter = array())
+    public function load()
     {
         $packages = array();
         $repoJson = new JsonFile($this->filename);
@@ -254,7 +223,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
                     if (is_array($jsonPackage)) {
                         foreach ($jsonPackage as $jsonVersion) {
                             if (is_array($jsonVersion)) {
-                                if (isset($jsonVersion['name']) && in_array($jsonVersion['name'], $packagesFilter)) {
+                                if (isset($jsonVersion['name']) && in_array($jsonVersion['name'], $this->packagesFilter)) {
                                     continue;
                                 }
                                 $package = $loader->load($jsonVersion);
@@ -264,6 +233,99 @@ class PackagesBuilder extends Builder implements BuilderInterface
                     }
                 }
             }
+        }
+
+        return $packages;
+    }
+
+    /**
+     * Gets a list of filtered Links.
+     *
+     * @param Composer $composer  The Composer instance
+     *
+     * @return array a list of filtered Links
+     */
+    private function getFilteredLinks(Composer $composer)
+    {
+        $links = array_values($composer->getPackage()->getRequires());
+
+        // only pick up packages in our filter, if a filter has been set.
+        if ($this->hasFilterForPackages()) {
+            $packagesFilter = $this->packagesFilter;
+            $links = array_filter($links, function (Link $link) use ($packagesFilter) {
+                return in_array($link->getTarget(), $packagesFilter);
+            });
+        }
+
+        return array_values($links);
+    }
+
+    /**
+     * Gets all Links.
+     *
+     * This method is called when 'require-all' is set to true.
+     *
+     * @param array  $repos            List of all Repositories configured
+     * @param string $minimumStability The minimum stability each package must have to be selected
+     * @param bool   $verbose          Output infos if true
+     *
+     * @return array all Links
+     */
+    private function getAllLinks($repos, $minimumStability, $verbose)
+    {
+        $links = array();
+
+        foreach ($repos as $repo) {
+            // collect links for composer repos with providers
+            if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
+                foreach ($repo->getProviderNames() as $name) {
+                    $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
+                }
+            } else {
+                $packages = $this->getPackages($repo);
+
+                foreach ($packages as $package) {
+                    // skip aliases
+                    if ($package instanceof AliasPackage) {
+                        continue;
+                    }
+
+                    if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                        continue;
+                    }
+
+                    // add matching package if not yet selected
+                    if (!isset($this->selected[$package->getUniqueName()])) {
+                        if ($verbose) {
+                            $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                        }
+                        $this->selected[$package->getUniqueName()] = $package;
+                    }
+                }
+            }
+        }
+
+        return $links;
+    }
+
+    /**
+     * Gets All or filtered Packages of a Repository.
+     *
+     * @param  array $repo     a Repository
+     * @return array $packages List of Packages
+     */
+    private function getPackages($repo)
+    {
+        $packages = array();
+
+        if ($this->hasFilterForPackages()) {
+            // apply package filter if defined
+            foreach ($this->packagesFilter as $filter) {
+                $packages += $repo->findPackages($filter);
+            }
+        } else {
+            // process other repos directly
+            $packages = $repo->getPackages();
         }
 
         return $packages;
