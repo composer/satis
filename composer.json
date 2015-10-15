@@ -29,5 +29,9 @@
     },
     "autoload-dev": {
         "psr-0": { "Composer\\Test\\Satis": "tests/" }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.5|^5.0.5",
+        "mikey179/vfsStream": "^1.6"
     }
 }
