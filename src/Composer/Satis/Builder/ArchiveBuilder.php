@@ -64,7 +64,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
         shuffle($packages);
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $package) {
-            if ($helper->skipDump($package)) {
+            if ($helper->isSkippable($package)) {
                 continue;
             }
 

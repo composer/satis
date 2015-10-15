@@ -124,6 +124,6 @@ class ArchiveBuilderHelperTest extends \PHPUnit_Framework_TestCase
     public function testSkipDump($expected, $package, $config)
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);
-        $this->assertEquals($helper->skipDump($package), $expected);
+        $this->assertEquals($helper->isSkippable($package), $expected);
     }
 }

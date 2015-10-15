@@ -61,13 +61,13 @@ class ArchiveBuilderHelper
     }
 
     /**
-     * Tells if a package has to be dumped.
+     * Tells if a package has to be dumped or not.
      *
      * @param  PackageInterface $package The package to be dumped
      *
      * @return bool false if the package has to be dumped.
      */
-    public function skipDump(PackageInterface $package)
+    public function isSkippable(PackageInterface $package)
     {
         if ('metapackage' === $package->getType()) {
             return true;
