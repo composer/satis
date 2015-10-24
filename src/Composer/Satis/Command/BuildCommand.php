@@ -370,7 +370,7 @@ EOT
                 continue;
             }
 
-            $name = $package->getName();
+            $name = $package->getPrettyString();
 
             if (true === $skipDev && true === $package->isDev()) {
                 $output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
