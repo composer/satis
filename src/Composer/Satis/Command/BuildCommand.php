@@ -650,7 +650,7 @@ EOT
                 );
             }
 
-            $file = $customDownloader['file'];
+            $file = getcwd() . DIRECTORY_SEPARATOR . $customDownloader['file'];
             $class = $customDownloader['class'];
             $type = $customDownloader['type'];
 
