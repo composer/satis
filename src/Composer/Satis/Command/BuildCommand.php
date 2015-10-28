@@ -13,6 +13,7 @@
 namespace Composer\Satis\Command;
 
 use Composer\Config\JsonConfigSource;
+use Composer\Downloader\DownloadManager;
 use Composer\Package\Loader\ArrayLoader;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -347,6 +348,7 @@ EOT
         $skipDev = isset($config['archive']['skip-dev']) ? (bool) $config['archive']['skip-dev'] : false;
         $whitelist = isset($config['archive']['whitelist']) ? (array) $config['archive']['whitelist'] : array();
         $blacklist = isset($config['archive']['blacklist']) ? (array) $config['archive']['blacklist'] : array();
+        $downloader = isset($config['archive']['downloader']) ? (array) $config['archive']['downloader'] : array();
 
         $includeArchiveChecksum = isset($config['archive']['checksum']) ? (bool) $config['archive']['checksum'] : true;
 
@@ -357,6 +359,8 @@ EOT
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
         $downloadManager = $factory->createDownloadManager($io, $composerConfig);
+
+        $this->configureCustomDownloader($downloadManager, $composerConfig, $io, $downloader, $output);
 
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
@@ -616,5 +620,57 @@ EOT
         }
 
         return $home;
+    }
+
+    /**
+     * @param DownloadManager $downloadManager
+     * @param Config $composerConfig
+     * @param ConsoleIO $io
+     * @param array $downloader
+     * @param OutputInterface $output
+     * @throws \RuntimeException
+     * @throws \InvalidArgumentException
+     */
+    private function configureCustomDownloader(
+        DownloadManager $downloadManager,
+        Config $composerConfig,
+        ConsoleIO $io,
+        array $downloader,
+        OutputInterface $output
+    )
+    {
+        foreach ($downloader as $customDownloader) {
+            if (
+                false === isset($customDownloader['file']) ||
+                false === isset($customDownloader['class']) ||
+                false === isset($customDownloader['type'])
+            ) {
+                throw new \InvalidArgumentException(
+                    'invalid downloader configuration: must have a "file", "class" and "type" property'
+                );
+            }
+
+            $file = getcwd() . DIRECTORY_SEPARATOR . $customDownloader['file'];
+            $class = $customDownloader['class'];
+            $type = $customDownloader['type'];
+
+            if (false === file_exists($file)) {
+                throw new \RuntimeException(
+                    'invalid downloader configuration: configured "file" "' . $file . '" does not exists"'
+                );
+            }
+
+            require_once $file;
+
+            if (false === class_exists($class)) {
+                throw new \RuntimeException(
+                    'invalid downloader configuration: configured "class" ' . $class . '" does not exists"'
+                );
+            }
+
+            $output->writeln('<info>setting customer downloader for type: ' . $type . '</info>');
+
+            $downloadManager->setDownloader($type, new $class($io, $composerConfig));
+        }
     }
 }
