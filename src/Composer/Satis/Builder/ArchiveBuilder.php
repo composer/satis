@@ -11,6 +11,7 @@
  */
 namespace Composer\Satis\Builder;
 
+use Composer\Util\Filesystem;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Helper\HelperSet;
 use Composer\Factory;
