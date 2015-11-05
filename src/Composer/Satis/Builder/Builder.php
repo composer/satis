@@ -1,14 +1,14 @@
 <?php
 
-/**
- * This file is part of Satis.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Satis\Builder;
 
 use Symfony\Component\Console\Output\OutputInterface;
@@ -35,10 +35,10 @@ class Builder
     /**
      * Base Constructor.
      *
-     * @param OutputInterface $output     The output Interface
-     * @param string          $outputDir  The directory where to build
-     * @param array           $config     The parameters from ./satis.json
-     * @param bool            $skipErrors Skips Exceptions if true
+     * @param OutputInterface $output The output Interface
+     * @param string $outputDir The directory where to build
+     * @param array $config The parameters from ./satis.json
+     * @param bool $skipErrors Skips Exceptions if true
      */
     public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {

@@ -1,30 +1,29 @@
 <?php
 
 /*
- * This file is part of Satis.
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
 
 namespace Composer\Satis\Command;
 
-use Composer\Config\JsonConfigSource;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputOption;
 use Composer\Command\Command;
 use Composer\Composer;
 use Composer\Config;
+use Composer\Config\JsonConfigSource;
 use Composer\Json\JsonFile;
-use Composer\Util\RemoteFilesystem;
-use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\ArchiveBuilder;
+use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
+use Composer\Util\RemoteFilesystem;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -79,12 +78,11 @@ The json config file accepts the following keys:
 - <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
 EOT
-            )
-        ;
+            );
     }
 
     /**
-     * @param InputInterface  $input  The input instance
+     * @param InputInterface $input The input instance
      * @param OutputInterface $output The output instance
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -179,9 +177,9 @@ EOT
     }
 
     /**
-     * @return string
-     *
      * @throws \RuntimeException
+     *
+     * @return string
      */
     private function getComposerHome()
     {

@@ -1,19 +1,19 @@
 <?php
 
-/**
- * This file is part of Composer.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Nils Adermann <naderman@naderman.de>
- *     Jordi Boggiano <j.boggiano@seld.be>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Test\Satis;
 
-use Symfony\Component\Console\Output\NullOutput;
 use Composer\Package\Package;
 use Composer\Satis\Builder\WebBuilder;
+use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>
@@ -38,12 +38,14 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
                 new Package('vendor/name', '1.1.0.0', '1.1'),
                 new Package('vendor/name', '1.0.0.0', '1.0'),
             ),
-            array(array(
-                new Package('vendor/name', '1.0.0.0', '1.0'),
-                new Package('vendor/name', '2.0.0.0', '2.0'),
-                new Package('vendor/name', '1.1.0.0', '1.1'),
-                new Package('vendor/name', '2.0.1.0', '2.0.1'),
-            )),
+            array(
+                array(
+                    new Package('vendor/name', '1.0.0.0', '1.0'),
+                    new Package('vendor/name', '2.0.0.0', '2.0'),
+                    new Package('vendor/name', '1.1.0.0', '1.1'),
+                    new Package('vendor/name', '2.0.1.0', '2.0.1'),
+                ),
+            ),
         );
 
         return $data;
@@ -67,12 +69,14 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
 
         $data['test1 stable versions'] = array(
             new Package('vendor/name', '2.0.1.0', '2.0.1'),
-            array(array(
-                new Package('vendor/name', '1.0.0.0', '1.0'),
-                new Package('vendor/name', '2.0.0.0', '2.0'),
-                new Package('vendor/name', '1.1.0.0', '1.1'),
-                new Package('vendor/name', '2.0.1.0', '2.0.1'),
-            )),
+            array(
+                array(
+                    new Package('vendor/name', '1.0.0.0', '1.0'),
+                    new Package('vendor/name', '2.0.0.0', '2.0'),
+                    new Package('vendor/name', '1.1.0.0', '1.1'),
+                    new Package('vendor/name', '2.0.1.0', '2.0.1'),
+                ),
+            ),
         );
 
         return $data;
@@ -105,12 +109,14 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
                     new Package('othervendor/othername', '2.0.1.0', '2.0.1'),
                 ),
             ),
-            array(array(
-                new Package('vendor/name', '1.0.0.0', '1.0'),
-                new Package('othervendor/othername', '1.1.0.0', '1.1'),
-                new Package('vendor/name', '2.0.0.0', '2.0'),
-                new Package('othervendor/othername', '2.0.1.0', '2.0.1'),
-            )),
+            array(
+                array(
+                    new Package('vendor/name', '1.0.0.0', '1.0'),
+                    new Package('othervendor/othername', '1.1.0.0', '1.1'),
+                    new Package('vendor/name', '2.0.0.0', '2.0'),
+                    new Package('othervendor/othername', '2.0.1.0', '2.0.1'),
+                ),
+            ),
         );
 
         return $data;

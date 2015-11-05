@@ -1,20 +1,20 @@
 <?php
 
-/**
- * This file is part of Composer.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Nils Adermann <naderman@naderman.de>
- *     Jordi Boggiano <j.boggiano@seld.be>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Test\Satis;
 
-use Symfony\Component\Console\Output\NullOutput;
-use Composer\Package\Package;
 use Composer\Package\Link;
+use Composer\Package\Package;
 use Composer\Satis\Builder\ArchiveBuilderHelper;
+use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>
@@ -70,49 +70,49 @@ class ArchiveBuilderHelperTest extends \PHPUnit_Framework_TestCase
         $data['metapackage'] = array(
             true,
             $metapackage,
-            array()
+            array(),
         );
 
         $data['skipDev is true, but package is not'] = array(
             false,
             $package1,
-            array('skip-dev' => 1)
+            array('skip-dev' => 1),
         );
 
         $data['skipDev is true, package isDev'] = array(
             true,
             $package2,
-            array('skip-dev' => 1)
+            array('skip-dev' => 1),
         );
 
         $data['package in whitelist'] = array(
             false,
             $package1,
-            array('whitelist' => array('vendor/name'))
+            array('whitelist' => array('vendor/name')),
         );
 
         $data['package not in whitelist'] = array(
             true,
             $package1,
-            array('whitelist' => array('othervendor/othername'))
+            array('whitelist' => array('othervendor/othername')),
         );
 
         $data['package in blacklist'] = array(
             true,
             $package1,
-            array('blacklist' => array('vendor/name'))
+            array('blacklist' => array('vendor/name')),
         );
 
         $data['package not in blacklist'] = array(
             false,
             $package1,
-            array('blacklist' => array('othervendor/othername'))
+            array('blacklist' => array('othervendor/othername')),
         );
 
         $data['package provides a virtual package in blacklist'] = array(
             true,
             $package3,
-            array('blacklist' => array('vendor/name'))
+            array('blacklist' => array('vendor/name')),
         );
 
         return $data;

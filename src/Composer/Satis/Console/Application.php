@@ -1,26 +1,25 @@
 <?php
 
 /*
- * This file is part of Satis.
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
 
 namespace Composer\Satis\Console;
 
 use Composer\Composer;
+use Composer\Factory;
+use Composer\IO\ConsoleIO;
+use Composer\Satis\Command;
+use Composer\Satis\Satis;
+use Composer\Util\ErrorHandler;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Composer\Satis\Command;
-use Composer\IO\ConsoleIO;
-use Composer\Factory;
-use Composer\Util\ErrorHandler;
-use Composer\Satis\Satis;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
@@ -42,7 +41,7 @@ class Application extends BaseApplication
     public function doRun(InputInterface $input, OutputInterface $output)
     {
         $this->registerCommands();
-        
+
         $styles = Factory::createAdditionalStyles();
         foreach ($styles as $name => $style) {
             $output->getFormatter()->setStyle($name, $style);

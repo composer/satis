@@ -1,22 +1,22 @@
 <?php
 
-/**
- * This file is part of Composer.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Nils Adermann <naderman@naderman.de>
- *     Jordi Boggiano <j.boggiano@seld.be>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Test\Satis;
 
-use Symfony\Component\Console\Output\NullOutput;
-use Composer\Package\Package;
 use Composer\Json\JsonFile;
+use Composer\Package\Package;
 use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamWrapper;
+use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>
@@ -25,14 +25,16 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 {
     public function testNominalCase()
     {
-        $arrayPackage = array("vendor/name" => array(
-            "1.0" => array(
-                "name" => "vendor/name",
-                "version" => "1.0",
-                "version_normalized" => "1.0.0.0",
-                "type" => "library"
+        $arrayPackage = array(
+            "vendor/name" => array(
+                "1.0" => array(
+                    "name" => "vendor/name",
+                    "version" => "1.0",
+                    "version_normalized" => "1.0.0.0",
+                    "type" => "library",
+                ),
             ),
-        ));
+        );
 
         vfsStreamWrapper::register();
         $root = vfsStream::newDirectory('build');

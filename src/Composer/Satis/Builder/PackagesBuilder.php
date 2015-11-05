@@ -1,27 +1,27 @@
 <?php
 
-/**
- * This file is part of Satis.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Satis\Builder;
 
 use Composer\Composer;
-use Composer\Repository\ComposerRepository;
-use Composer\Package\Link;
-use Composer\Package\LinkConstraint\MultiConstraint;
-use Composer\Package\AliasPackage;
-use Composer\Package\BasePackage;
-use Composer\Repository\PlatformRepository;
-use Composer\Package\Loader\ArrayLoader;
-use Composer\Package\Dumper\ArrayDumper;
 use Composer\DependencyResolver\Pool;
 use Composer\Json\JsonFile;
+use Composer\Package\AliasPackage;
+use Composer\Package\BasePackage;
+use Composer\Package\Dumper\ArrayDumper;
+use Composer\Package\Link;
+use Composer\Package\LinkConstraint\MultiConstraint;
+use Composer\Package\Loader\ArrayLoader;
+use Composer\Repository\ComposerRepository;
+use Composer\Repository\PlatformRepository;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -45,10 +45,10 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /**
      * Dedicated Packages Constructor.
      *
-     * @param OutputInterface $output     The output Interface
-     * @param string          $outputDir  The directory where to build
-     * @param array           $config     The parameters from ./satis.json
-     * @param bool            $skipErrors Escapes Exceptions if true
+     * @param OutputInterface $output The output Interface
+     * @param string $outputDir The directory where to build
+     * @param array $config The parameters from ./satis.json
+     * @param bool $skipErrors Escapes Exceptions if true
      */
     public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {
@@ -83,8 +83,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /**
      * Sets the list of packages to build.
      *
-     * @param Composer $composer       The Composer instance
-     * @param bool     $verbose        Output infos if true
+     * @param Composer $composer The Composer instance
+     * @param bool $verbose Output infos if true
      *
      * @return array list of packages to build
      */
@@ -241,7 +241,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /**
      * Gets a list of filtered Links.
      *
-     * @param Composer $composer  The Composer instance
+     * @param Composer $composer The Composer instance
      *
      * @return array a list of filtered Links
      */
@@ -265,9 +265,9 @@ class PackagesBuilder extends Builder implements BuilderInterface
      *
      * This method is called when 'require-all' is set to true.
      *
-     * @param array  $repos            List of all Repositories configured
+     * @param array $repos List of all Repositories configured
      * @param string $minimumStability The minimum stability each package must have to be selected
-     * @param bool   $verbose          Output infos if true
+     * @param bool $verbose Output infos if true
      *
      * @return array all Links
      */
@@ -311,7 +311,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /**
      * Gets All or filtered Packages of a Repository.
      *
-     * @param  array $repo     a Repository
+     * @param  array $repo a Repository
+     *
      * @return array $packages List of Packages
      */
     private function getPackages($repo)

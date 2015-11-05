@@ -1,18 +1,18 @@
 <?php
 
-/**
- * This file is part of Satis.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Satis\Builder;
 
-use Symfony\Component\Console\Output\OutputInterface;
 use Composer\Package\PackageInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Builds the archives of the repository.
@@ -30,8 +30,8 @@ class ArchiveBuilderHelper
     /**
      * Helper Constructor.
      *
-     * @param OutputInterface $output        The output Interface.
-     * @param array           $archiveConfig The 'archive' part of a configuration file.
+     * @param OutputInterface $output The output Interface.
+     * @param array $archiveConfig The 'archive' part of a configuration file.
      */
     public function __construct(OutputInterface $output, array $archiveConfig)
     {
@@ -77,17 +77,20 @@ class ArchiveBuilderHelper
 
         if (true === $this->archiveConfig['skip-dev'] && true === $package->isDev()) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
+
             return true;
         }
 
         $names = $package->getNames();
         if ($this->archiveConfig['whitelist'] && !array_intersect($this->archiveConfig['whitelist'], $names)) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
+
             return true;
         }
 
         if ($this->archiveConfig['blacklist'] && array_intersect($this->archiveConfig['blacklist'], $names)) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
+
             return true;
         }
 

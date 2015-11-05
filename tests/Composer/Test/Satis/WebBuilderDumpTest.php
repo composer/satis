@@ -1,22 +1,22 @@
 <?php
 
-/**
- * This file is part of Composer.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Nils Adermann <naderman@naderman.de>
- *     Jordi Boggiano <j.boggiano@seld.be>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Test\Satis;
 
-use Symfony\Component\Console\Output\NullOutput;
-use Composer\Package\RootPackage;
 use Composer\Package\Package;
+use Composer\Package\RootPackage;
 use Composer\Satis\Builder\WebBuilder;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamWrapper;
+use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>

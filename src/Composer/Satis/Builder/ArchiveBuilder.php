@@ -1,22 +1,21 @@
 <?php
 
-/**
- * This file is part of Satis.
+/*
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
+
 namespace Composer\Satis\Builder;
 
-use Composer\Util\Filesystem;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Helper\HelperSet;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
-use Composer\Package\PackageInterface;
+use Composer\Util\Filesystem;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Builds the archives of the repository.
