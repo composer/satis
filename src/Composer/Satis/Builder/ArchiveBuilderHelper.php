@@ -73,7 +73,7 @@ class ArchiveBuilderHelper
             return true;
         }
 
-        $name = $package->getName();
+        $name = $package->getPrettyString();
 
         if (true === $this->archiveConfig['skip-dev'] && true === $package->isDev()) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
