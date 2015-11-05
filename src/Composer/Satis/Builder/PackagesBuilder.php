@@ -214,6 +214,17 @@ class PackagesBuilder extends Builder implements BuilderInterface
 
             foreach ($jsonIncludes as $includeFile => $includeConfig) {
                 $includeJson = new JsonFile($dirName.'/'.$includeFile);
+
+                if (!$includeJson->exists()) {
+                    $this->output->writeln(sprintf(
+                        '<error>File \'%s\' does not exist, defined in "includes" in \'%s\'</error>',
+                        $includeJson->getPath(),
+                        $repoJson->getPath()
+                    ));
+
+                    continue;
+                }
+
                 $jsonPackages = $includeJson->read();
                 $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
                     ? $jsonPackages['packages']
