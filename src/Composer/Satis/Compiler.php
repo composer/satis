@@ -147,14 +147,14 @@ class Compiler
         return <<<'EOF'
 #!/usr/bin/env php
 <?php
+
 /*
- * This file is part of Satis.
+ * This file is part of composer/statis.
  *
- * (c) Jordi Boggiano <j.boggiano@seld.be>
- *     Nils Adermann <naderman@naderman.de>
+ * (c) Composer <https://github.com/composer>
  *
  * For the full copyright and license information, please view
- * the license that is located at the bottom of this file.
+ * the LICENSE file that was distributed with this source code.
  */
 
 Phar::mapPhar('satis.phar');
