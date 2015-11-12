@@ -19,6 +19,7 @@ use Composer\Json\JsonFile;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
+use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -122,9 +123,9 @@ EOT
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
-        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
-        $packagesBuilder->setPackagesFilter($packagesFilter);
-        $packages = $packagesBuilder->select($composer, $verbose);
+        $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
+        $packageSelection->setPackagesFilter($packagesFilter);
+        $packages = $packageSelection->select($composer, $verbose);
 
         if (isset($config['archive']['directory'])) {
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
@@ -135,14 +136,15 @@ EOT
             $downloads->dump($packages);
         }
 
-        if (!$packagesBuilder->hasFilterForPackages()) {
+        if (!$packageSelection->hasFilterForPackages()) {
             // in case of an active package filter we need to load the dumped packages.json and merge the
             // updated packages in
-            $oldPackages = $packagesBuilder->load();
+            $oldPackages = $packageSelection->load();
             $packages += $oldPackages;
             ksort($packages);
         }
 
+        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
         $packagesBuilder->dump($packages);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
