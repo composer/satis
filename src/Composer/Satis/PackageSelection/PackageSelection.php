@@ -26,7 +26,7 @@ use Composer\Repository\RepositoryInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
- * Builds the JSON files.
+ * Builds the Packages list.
  *
  * @author James Hautot <james@rezo.net>
  */
@@ -41,16 +41,16 @@ class PackageSelection
     /** @var string packages.json file name. */
     private $filename;
 
-    /** @var bool [description] */
+    /** @var bool Selects All Packages if true. */
     private $requireAll;
 
-    /** @var bool [description] */
+    /** @var bool Add required dependencies if true. */
     private $requireDependencies;
 
-    /** @var bool [description] */
+    /** @var bool required dev-dependencies if true. */
     private $requireDevDependencies;
 
-    /** @var string [description] */
+    /** @var string Minimum stability accepted for Packages in the list. */
     private $minimumStability;
 
     /** @var array The active package filter to merge. */
@@ -340,11 +340,11 @@ class PackageSelection
     }
 
     /**
-     * [getRequired description]
+     * Gets the required Links if needed.
      *
-     * @param  PackageInterface $package [description]
+     * @param  PackageInterface $package A package
      *
-     * @return array                     [description]
+     * @return array                     A list of Links
      */
     private function getRequired(PackageInterface $package)
     {
