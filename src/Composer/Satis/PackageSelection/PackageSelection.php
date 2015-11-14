@@ -162,7 +162,7 @@ class PackageSelection
                     }
                     $this->selected[$package->getUniqueName()] = $package;
 
-                    if (!$requireAll) {
+                    if (!$this->requireAll) {
                         $required = $this->getRequired($package);
                         // append non-platform dependencies
                         foreach ($required as $dependencyLink) {
