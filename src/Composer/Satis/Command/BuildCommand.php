@@ -141,10 +141,7 @@ EOT
 
         if (isset($config['archive']['directory'])) {
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
-            $downloads
-                ->setInputInterface($input)
-                ->setHelperSet($this->getApplication()->getHelperSet())
-            ;
+            $downloads->setComposer($composer);
             $downloads->dump($packages);
         }
 

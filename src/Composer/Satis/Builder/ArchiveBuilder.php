@@ -11,11 +11,9 @@
 
 namespace Composer\Satis\Builder;
 
+use Composer\Composer;
 use Composer\Factory;
-use Composer\IO\ConsoleIO;
 use Composer\Util\Filesystem;
-use Symfony\Component\Console\Helper\HelperSet;
-use Symfony\Component\Console\Input\InputInterface;
 
 /**
  * Builds the archives of the repository.
@@ -24,11 +22,8 @@ use Symfony\Component\Console\Input\InputInterface;
  */
 class ArchiveBuilder extends Builder implements BuilderInterface
 {
-    /** @var InputInterface $input The input Interface. */
-    private $input;
-
-    /** @var HelperSet $helperSet A HelperSet instance. */
-    private $helperSet;
+    /** @var Composer A Composer instance. */
+    private $composer;
 
     /**
      * Builds the archives of the repository.
@@ -48,13 +43,11 @@ class ArchiveBuilder extends Builder implements BuilderInterface
 
         $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
 
-        $composerConfig = Factory::createConfig();
+        $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
-        $io = new ConsoleIO($this->input, $this->output, $this->helperSet);
-        $io->loadConfiguration($composerConfig);
 
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
-        $downloadManager = $factory->createDownloadManager($io, $composerConfig);
+        $downloadManager = $this->composer->getDownloadManager();
 
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
@@ -112,25 +105,13 @@ class ArchiveBuilder extends Builder implements BuilderInterface
     }
 
     /**
-     * Sets the input interface.
+     * Sets the Composer instance.
      *
-     * @param InputInterface $input The input Interface
+     * @param Composer $composer A Composer instance
      */
-    public function setInputInterface(InputInterface $input)
+    public function setComposer(Composer $composer)
     {
-        $this->input = $input;
-
-        return $this;
-    }
-
-    /**
-     * Sets the HelperSet instance.
-     *
-     * @param HelperSet $helperSet A HelperSet instance
-     */
-    public function setHelperSet(HelperSet $helperSet)
-    {
-        $this->helperSet = $helperSet;
+        $this->composer = $composer;
 
         return $this;
     }
