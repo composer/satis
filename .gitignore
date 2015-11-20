@@ -1,5 +1,6 @@
 /.settings
 /.project
+/.idea
 /.buildpath
 /satis.phar
 /vendor

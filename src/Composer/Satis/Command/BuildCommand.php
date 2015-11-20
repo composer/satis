@@ -40,6 +40,7 @@ class BuildCommand extends Command
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
+                new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ))
@@ -91,7 +92,12 @@ EOT
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
+        $repositoryUrl = $input->getOption('repository-url');
         $skipErrors = (bool) $input->getOption('skip-errors');
+
+        if ($repositoryUrl !== null && count($packagesFilter) > 0) {
+            throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
+        }
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
@@ -124,7 +130,13 @@ EOT
 
         $composer = $this->getApplication()->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
-        $packageSelection->setPackagesFilter($packagesFilter);
+
+        if ($repositoryUrl !== null) {
+            $packageSelection->setRepositoryFilter($repositoryUrl);
+        } else {
+            $packageSelection->setPackagesFilter($packagesFilter);
+        }
+
         $packages = $packageSelection->select($composer, $verbose);
 
         if (isset($config['archive']['directory'])) {
