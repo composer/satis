@@ -56,6 +56,9 @@ class PackageSelection
     /** @var array The active package filter to merge. */
     private $packagesFilter = array();
 
+    /** @var string The active repository filter to merge. */
+    private $repositoryFilter;
+
     /** @var array The selected packages from config */
     private $selected = array();
 
@@ -87,6 +90,28 @@ class PackageSelection
         }
 
         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+    }
+
+    /**
+     * Sets the active repository filter to merge
+     *
+     * @param string $repositoryFilter The active repository filter to merge
+     */
+    public function setRepositoryFilter($repositoryFilter)
+    {
+        $this->repositoryFilter = $repositoryFilter;
+
+        return $this;
+    }
+
+    /**
+     * Tells if repository list should be reduced to single repository
+     *
+     * @return bool true if repository filter is set
+     */
+    public function hasRepositoryFilter()
+    {
+        return $this->repositoryFilter !== null;
     }
 
     /**
@@ -126,7 +151,16 @@ class PackageSelection
 
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
-        foreach ($repos as $repo) {
+        foreach ($repos as $key => $repo) {
+            if ($this->hasRepositoryFilter()) {
+                $repoConfig = $repo->getRepoConfig();
+                if (isset($repoConfig['url']) && $repoConfig['url'] !== $this->repositoryFilter) {
+                    unset($repos[$key]);
+
+                    continue;
+                }
+            }
+
             try {
                 $pool->addRepository($repo);
             } catch (\Exception $exception) {
@@ -135,6 +169,10 @@ class PackageSelection
                 }
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
+        }
+
+        if($this->hasRepositoryFilter() && count($repos) !== 1) {
+            throw new \InvalidArgumentException(sprintf('Specified repository url %s does not exist.', $this->repositoryFilter));
         }
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
