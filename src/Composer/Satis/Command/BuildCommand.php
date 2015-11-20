@@ -96,7 +96,7 @@ EOT
         $skipErrors = (bool) $input->getOption('skip-errors');
 
         if ($repositoryUrl !== null && count($packagesFilter) > 0) {
-            throw new \InvalidArgumentException('Package and repository-url argument can not be used together.');
+            throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
         }
 
         // load auth.json authentication information and pass it to the io interface
@@ -131,7 +131,7 @@ EOT
         $composer = $this->getApplication()->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
-        if($repositoryUrl !== null) {
+        if ($repositoryUrl !== null) {
             $packageSelection->setRepositoryFilter($repositoryUrl);
         } else {
             $packageSelection->setPackagesFilter($packagesFilter);

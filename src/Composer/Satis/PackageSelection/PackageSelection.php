@@ -171,8 +171,8 @@ class PackageSelection
             }
         }
 
-        if($this->hasRepositoryFilter() && count($repos) !== 1) {
-            throw new \InvalidArgumentException(sprintf('Specified repository url %s does not exist.', $this->repositoryFilter));
+        if ($this->hasRepositoryFilter() && count($repos) !== 1) {
+            throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
         }
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
