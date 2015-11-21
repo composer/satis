@@ -34,5 +34,10 @@
         "phpunit/phpunit": "^4.5 || ^5.0.5",
         "phpunit/phpunit-mock-objects": "2.3.0 || ^3.0",
         "mikey179/vfsStream": "^1.6"
+    },
+    "config": {
+        "platform": {
+            "php": "5.3.3"
+        }
     }
 }
