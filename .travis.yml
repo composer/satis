@@ -25,7 +25,6 @@ matrix:
     - php: nightly
 
 before_install:
-  - rm -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini
   - flags="--no-interaction --no-progress --prefer-dist"
   - if [ `phpenv version-name` == "5.3.3" ]; then flags="--ignore-platform-reqs $flags"; fi
 
