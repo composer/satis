@@ -20,7 +20,7 @@
     "bin": ["bin/satis"],
     "require": {
         "php": "^5.3.2 || ^7.0",
-        "composer/composer": "^1.0.*@dev",
+        "composer/composer": "1.0.*@dev",
         "twig/twig": "^1.7",
         "symfony/console": "^2.1"
     },
