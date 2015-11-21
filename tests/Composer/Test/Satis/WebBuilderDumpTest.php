@@ -81,7 +81,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
         $webBuilder->dump(array($this->package));
 
         $html = $this->root->getChild('build/index.html')->getContent();
-        
+
         $this->assertRegExp('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
 }

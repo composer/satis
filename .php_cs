@@ -12,12 +12,15 @@ EOF;
 $finder = Symfony\CS\Finder\DefaultFinder::create()
     ->files()
     ->name('*.php')
-    ->in(__DIR__.'/src')
-    ->in(__DIR__.'/tests')
+    ->exclude('vendor')
+    ->in(__DIR__)
 ;
 
 /* fabpot/php-cs-fixer:^2.0-dev */
-return Symfony\CS\Config\Config::create()
+return Symfony\CS\Config\Config::create('Satis', 'Satis style guide')
+    ->setUsingCache(false)
+    ->setUsingLinter(true)
+    ->setRiskyAllowed(true)
     ->setRules(array(
         '@PSR2' => true,
         'concat_without_spaces' => true,

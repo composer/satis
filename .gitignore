@@ -2,8 +2,7 @@
 /.project
 /.idea
 /.buildpath
-/satis.phar
 /vendor
-/phpunit.xml
+phpunit.xml
 composer.phar
-.php_cs.cache
+satis.phar

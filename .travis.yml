@@ -24,11 +24,13 @@ matrix:
   allow_failures:
     - php: nightly
 
-before_script:
+before_install:
   - rm -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini
-  - flags=""
-  - if [ `phpenv version-name` == "5.3.3" ]; then flags="--ignore-platform-reqs"; fi
-  - composer install $flags --no-interaction --no-progress --prefer-dist
+  - flags="--no-interaction --no-progress --prefer-dist"
+  - if [ `phpenv version-name` == "5.3.3" ]; then flags="--ignore-platform-reqs $flags"; fi
+
+install:
+  - composer install $flags
 
 script:
   - vendor/bin/phpunit
