@@ -11,8 +11,8 @@
 
 namespace Composer\Test\Satis;
 
+use Composer\Package\CompletePackage;
 use Composer\Package\Link;
-use Composer\Package\Package;
 use Composer\Package\RootPackage;
 use Composer\Satis\Builder\WebBuilder;
 use org\bovigo\vfs\vfsStream;
@@ -34,7 +34,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
     {
         $this->rootPackage = new RootPackage("dummy root package", 0, 0);
 
-        $this->package = new Package('vendor/name', '1.0.0.0', '1.0');
+        $this->package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
         $this->root = $this->setFileSystem();
     }
@@ -58,6 +58,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
         $this->assertRegExp('/<title>dummy root package Composer Repository<\/title>/', $html);
         $this->assertRegExp('/<h3 id="vendor\/name">vendor\/name<\/h3>/', $html);
+        $this->assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
     }
 
     public function testRepositoryWithNoName()
@@ -83,5 +84,38 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
         $html = $this->root->getChild('build/index.html')->getContent();
 
         $this->assertRegExp('/<a href="#dummytest">dummytest<\/a>/', $html);
+    }
+
+    public function dataAbandoned()
+    {
+        $data = array();
+
+        $data['Abandoned not replaced'] = array(
+            true,
+            '/No replacement was suggested/',
+        );
+
+        $data['Abandoned and replaced'] = array(
+            'othervendor/othername',
+            '/Use othervendor\/othername instead/',
+        );
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataAbandoned
+     */
+    public function testAbandoned($abandoned, $expected)
+    {
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), array(), false);
+        $webBuilder->setRootPackage($this->rootPackage);
+        $this->package->setAbandoned($abandoned);
+        $webBuilder->dump(array($this->package));
+
+        $html = $this->root->getChild('build/index.html')->getContent();
+
+        $this->assertRegExp('/Package vendor\/name is abandoned, you should avoid using it/', $html);
+        $this->assertRegExp($expected, $html);
     }
 }
