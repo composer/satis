@@ -1,0 +1,111 @@
+diff --git a/src/Composer/Satis/Builder/WebBuilder.php b/src/Composer/Satis/Builder/WebBuilder.php
+index f137211..a6aa5f8 100644
+--- a/src/Composer/Satis/Builder/WebBuilder.php
++++ b/src/Composer/Satis/Builder/WebBuilder.php
+@@ -110,8 +110,12 @@ private function getMappedPackageList(array $packages)
+ 
+         $mappedPackages = array();
+         foreach ($groupedPackages as $name => $packages) {
++            $highest = $this->getHighestVersion($packages);
++
+             $mappedPackages[$name] = array(
+-                'highest' => $this->getHighestVersion($packages),
++                'highest' => $highest,
++                'abandoned' => $highest->isAbandoned(),
++                'replacement' => $highest->getReplacementPackage(),
+                 'versions' => $this->getDescSortedVersions($packages),
+             );
+         }
+diff --git a/src/Composer/Satis/Command/BuildCommand.php b/src/Composer/Satis/Command/BuildCommand.php
+index 554e2e7..de19534 100644
+--- a/src/Composer/Satis/Command/BuildCommand.php
++++ b/src/Composer/Satis/Command/BuildCommand.php
+@@ -79,6 +79,8 @@ protected function configure()
+   of the repository (where you will host it).
+ - <info>"twig-template"</info>: Location of twig template to use for
+   building the html output.
++- <info>"abandoned"</info>: Packages that are abandoned. As the key use the
++  package name, as the value use true or the replacement package.
+ EOT
+             );
+     }
+diff --git a/src/Composer/Satis/PackageSelection/PackageSelection.php b/src/Composer/Satis/PackageSelection/PackageSelection.php
+index 43ba5c5..5a773a4 100644
+--- a/src/Composer/Satis/PackageSelection/PackageSelection.php
++++ b/src/Composer/Satis/PackageSelection/PackageSelection.php
+@@ -62,6 +62,9 @@ class PackageSelection
+     /** @var array The selected packages from config */
+     private $selected = array();
+ 
++    /** @var array A list of packages marked as abandoned */
++    private $abandoned = array();
++
+     /**
+      * Base Constructor.
+      *
+@@ -90,6 +93,7 @@ private function fetchOptions($config)
+         }
+ 
+         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
++        $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
+     }
+ 
+     /**
+@@ -223,6 +227,8 @@ public function select(Composer $composer, $verbose)
+             }
+         }
+ 
++        $this->setAbandoned();
++
+         ksort($this->selected, SORT_STRING);
+ 
+         return $this->selected;
+@@ -284,6 +290,18 @@ public function load()
+     }
+ 
+     /**
++     * Mark packages as abandoned by Configuration file
++     */
++    private function setAbandoned()
++    {
++        foreach ($this->selected as $package) {
++            if (array_key_exists($package->getName(), $this->abandoned)) {
++                $package->setAbandoned($this->abandoned[$package->getName()]);
++            }
++        }
++    }
++
++    /**
+      * Gets a list of filtered Links.
+      *
+      * @param Composer $composer The Composer instance
+diff --git a/views/index.html.twig b/views/index.html.twig
+index 1d86ba2..5cc8315 100644
+--- a/views/index.html.twig
++++ b/views/index.html.twig
+@@ -45,6 +45,16 @@
+                 {% for name, package in packages %}
+                     <div>
+                         <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
++                        {% if package.abandoned %}
++                            <p class="abandoned">
++                                Package {{ package.highest.name }} is abandoned, you should avoid using it.
++                                {% if package.replacement %}
++                                    Use {{ package.replacement }} instead.
++                                {% else %}
++                                    No replacement was suggested.
++                                {% endif %}
++                            </p>
++                        {% endif %}
+                         {% if package.highest.description %}
+                             <p>{{ package.highest.description }}</p>
+                         {% endif %}
+diff --git a/views/styles.css b/views/styles.css
+index 0a52dbc..b7906c9 100644
+--- a/views/styles.css
++++ b/views/styles.css
+@@ -27,3 +27,4 @@ th { background-color: #eee }
+ input#search { font-size: 20px; margin: 5px 0; padding: 4px 5px; width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; }
+ #lastupdate { text-align: right; }
+ #lastupdate time { font-weight: bold; }
++.abandoned { border: 1px solid #800; background: #fee; text-align: center; padding: 5px; margin: 20px 0; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 3px; }
