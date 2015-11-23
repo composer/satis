@@ -335,7 +335,10 @@ class PackageSelection
                         continue;
                     }
 
-                    if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                    if (BasePackage::$stabilities[$package->getStability()] > BasePackage::$stabilities[$minimumStability]) {
+                        if ($verbose) {
+                            $this->output->writeln('Skipped '.$package->getPrettyName().' ('.$package->getStability().')');
+                        }
                         continue;
                     }
 
