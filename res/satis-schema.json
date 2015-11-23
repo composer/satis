@@ -1,0 +1,115 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "name": "Repository Configuration",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [ "name", "homepage" ],
+    "properties": {
+        "name": {
+            "type": "string",
+            "description": "Repository name."
+        },
+        "description": {
+            "type": "string",
+            "description": "Short Repository description."
+        },
+        "homepage": {
+            "type": "string",
+            "description": "Homepage URL for the project.",
+            "format": "uri"
+        },
+        "require": {
+            "type": "object",
+            "description": "This is a hash of package name (keys) and version constraints (values) that are required to run this package.",
+            "additionalProperties": true
+        },
+        "archive": {
+            "type": "object",
+            "description": "Options for creating package archives for distribution.",
+            "additionalProperties": false,
+            "required": ["directory"],
+            "properties": {
+                "directory": {
+                    "type": "string",
+                    "description": "The location of the dist files."
+                },
+                "format": {
+                    "type": "string",
+                    "description": "Archve format.",
+                    "pattern": "^zip|tar$"
+                },
+                "absolute-directory": {
+                    "type": "string",
+                    "description": "The absolute path of the dist files."
+                },
+                "skip-dev": {
+                    "type": "boolean",
+                    "description": "If true, will not create downloads for branches."
+                },
+                "whitelist": {
+                    "type": "array",
+                    "description": "List of whitelisted packages.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "blacklist": {
+                    "type": "array",
+                    "description": "List of whitelisted packages.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "prefix-url": {
+                    "type": "string",
+                    "description": "Location of the downloads.",
+                    "format": "uri"
+                }
+            }
+        },
+        "repositories": {
+            "type": ["object", "array"],
+            "description": "A set of additional repositories where packages can be found.",
+            "additionalProperties": true
+        },
+        "minimum-stability": {
+            "type": ["string"],
+            "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable.",
+            "pattern": "^dev|alpha|beta|rc|RC|stable$"
+        },
+        "abandoned": {
+            "type": "object",
+            "description": "List of packages marked as abandoned for this repository, the mark can be boolean or a package name/URL pointing to a recommended alternative.",
+            "additionalProperties": true
+        },
+        "require-all": {
+            "type": "boolean",
+            "description": "If true, selects all versions of all packages in the repositories defined."
+        },
+        "require-dependecies": {
+            "type": "boolean",
+            "description": "If true, resolve and add all dependencies of each required package."
+        },
+        "require-dev-dependecies": {
+            "type": "boolean",
+            "description": "If true, resolve and add all Dev dependencies of each required package."
+        },
+        "output-dir": {
+            "type": "string",
+            "description": "The directory where the static Repository is built."
+        },
+        "output-html": {
+            "type": "boolean",
+            "description": "If true, build a static web page."
+        },
+        "twig-template": {
+            "type": "string",
+            "description": "Path to a template for the static web page."
+        },
+        "extra": {
+            "type": ["object", "array"],
+            "description": "Arbitrary extra data that can be used by plugins, for example, package of type composer-plugin may have a 'class' key defining an installer class name.",
+            "additionalProperties": true
+        }
+    }
+}
