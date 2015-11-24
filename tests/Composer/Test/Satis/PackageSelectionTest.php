@@ -157,7 +157,7 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, array($package)));
     }
 
-    public function dataSetAbandoned()
+    public function dataSetSelectedAsAbandoned()
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
         $packageAbandoned1 = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
@@ -186,9 +186,9 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * @dataProvider dataSetAbandoned
+     * @dataProvider dataSetSelectedAsAbandoned
      */
-    public function testSetAbandoned($expected, $config)
+    public function testSetSelectedAsAbandoned($expected, $config)
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
@@ -197,7 +197,7 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         ), false);
 
         $reflection = new \ReflectionClass(get_class($builder));
-        $method = $reflection->getMethod('setAbandoned');
+        $method = $reflection->getMethod('setSelectedAsAbandoned');
         $method->setAccessible(true);
 
         $property = $reflection->getProperty('selected');

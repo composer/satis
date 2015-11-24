@@ -227,7 +227,7 @@ class PackageSelection
             }
         }
 
-        $this->setAbandoned();
+        $this->setSelectedAsAbandoned();
 
         ksort($this->selected, SORT_STRING);
 
@@ -290,9 +290,9 @@ class PackageSelection
     }
 
     /**
-     * Mark packages as abandoned by Configuration file
+     * Marks selected packages as abandoned by Configuration file
      */
-    private function setAbandoned()
+    private function setSelectedAsAbandoned()
     {
         foreach ($this->selected as $name => $package) {
             if (array_key_exists($package->getName(), $this->abandoned)) {
