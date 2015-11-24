@@ -79,6 +79,8 @@ The json config file accepts the following keys:
   of the repository (where you will host it).
 - <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
+- <info>"abandoned"</info>: Packages that are abandoned. As the key use the
+  package name, as the value use true or the replacement package.
 EOT
             );
     }

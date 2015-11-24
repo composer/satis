@@ -62,6 +62,9 @@ class PackageSelection
     /** @var array The selected packages from config */
     private $selected = array();
 
+    /** @var array A list of packages marked as abandoned */
+    private $abandoned = array();
+
     /**
      * Base Constructor.
      *
@@ -90,6 +93,7 @@ class PackageSelection
         }
 
         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+        $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
     }
 
     /**
@@ -223,6 +227,8 @@ class PackageSelection
             }
         }
 
+        $this->setSelectedAsAbandoned();
+
         ksort($this->selected, SORT_STRING);
 
         return $this->selected;
@@ -281,6 +287,19 @@ class PackageSelection
         }
 
         return $packages;
+    }
+
+    /**
+     * Marks selected packages as abandoned by Configuration file
+     */
+    private function setSelectedAsAbandoned()
+    {
+        foreach ($this->selected as $name => $package) {
+            if (array_key_exists($package->getName(), $this->abandoned)) {
+                $package->setAbandoned($this->abandoned[$package->getName()]);
+                $this->selected[$package->getUniqueName()] = $package;
+            }
+        }
     }
 
     /**

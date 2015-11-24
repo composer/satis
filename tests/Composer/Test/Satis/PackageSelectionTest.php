@@ -11,6 +11,7 @@
 
 namespace Composer\Test\Satis;
 
+use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Repository\ArrayRepository;
@@ -154,5 +155,57 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $property->setValue($builder, $requireDevDependencies);
 
         $this->assertSame($expected, $method->invokeArgs($builder, array($package)));
+    }
+
+    public function dataSetSelectedAsAbandoned()
+    {
+        $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
+        $packageAbandoned1 = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
+        $packageAbandoned1->setAbandoned(true);
+        $packageAbandoned2 = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
+        $packageAbandoned2->setAbandoned('othervendor/othername');
+
+        $data = array();
+
+        $data['Nothing Abandonned'] = array(
+            array($package->getUniqueName() => $package),
+            array(),
+        );
+
+        $data['Package Abandonned without Replacement'] = array(
+            array($package->getUniqueName() => $packageAbandoned1),
+            array('vendor/name' => true),
+        );
+
+        $data['Package Abandonned with Replacement'] = array(
+            array($package->getUniqueName() => $packageAbandoned2),
+            array('vendor/name' => 'othervendor/othername'),
+        );
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataSetSelectedAsAbandoned
+     */
+    public function testSetSelectedAsAbandoned($expected, $config)
+    {
+        $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
+
+        $builder = new PackageSelection(new NullOutput(), 'build', array(
+            'abandoned' => $config,
+        ), false);
+
+        $reflection = new \ReflectionClass(get_class($builder));
+        $method = $reflection->getMethod('setSelectedAsAbandoned');
+        $method->setAccessible(true);
+
+        $property = $reflection->getProperty('selected');
+        $property->setAccessible(true);
+        $property->setValue($builder, array($package->getUniqueName() => $package));
+
+        $method->invokeArgs($builder, array());
+
+        $this->assertEquals($expected, $property->getValue($builder));
     }
 }
