@@ -15,7 +15,7 @@
         },
         "homepage": {
             "type": "string",
-            "description": "Homepage URL for the project.",
+            "description": "Homepage URL for the Repository.",
             "format": "uri"
         },
         "require": {
@@ -39,7 +39,7 @@
                 },
                 "format": {
                     "type": "string",
-                    "description": "Archve format.",
+                    "description": "Archive format.",
                     "pattern": "^zip|tar$"
                 },
                 "absolute-directory": {
@@ -59,7 +59,7 @@
                 },
                 "blacklist": {
                     "type": "array",
-                    "description": "List of whitelisted packages.",
+                    "description": "List of blacklisted packages.",
                     "items": {
                         "type": "string"
                     }
@@ -229,21 +229,8 @@
                 "github-expose-hostname": {
                     "type": "boolean",
                     "description": "Defaults to true. If set to false, the OAuth tokens created to access the github API will have a date instead of the machine hostname."
-                },
-                "archive-format": {
-                    "type": "string",
-                    "description": "The default archiving format when not provided on cli, defaults to \"tar\"."
-                },
-                "archive-dir": {
-                    "type": "string",
-                    "description": "The default archive path when not provided on cli, defaults to \".\"."
                 }
             }
-        },
-        "extra": {
-            "type": ["object", "array"],
-            "description": "Arbitrary extra data.",
-            "additionalProperties": true
         }
     }
 }
