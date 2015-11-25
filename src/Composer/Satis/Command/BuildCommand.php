@@ -147,8 +147,8 @@ EOT
             $downloads->dump($packages);
         }
 
-        if ($packageSelection->hasFilterForPackages()) {
-            // in case of an active package filter we need to load the dumped packages.json and merge the
+        if ($packageSelection->hasFilterForPackages() || $packageSelection->hasRepositoryFilter()) {
+            // in case of an active filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $packageSelection->load();
             $packages += $oldPackages;
