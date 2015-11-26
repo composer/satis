@@ -23,6 +23,8 @@ use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
+use Seld\JsonLint\JsonParser;
+use Seld\JsonLint\ParsingException;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -119,7 +121,7 @@ EOT
 
         try {
             $this->check($configFile);
-        } catch (JsonValidationException $e) {
+        } catch (\Exception $e) {
             if (!$skipErrors) {
                 throw $e;
             }
@@ -226,32 +228,45 @@ EOT
     }
 
     /**
-     * Validates the schema of the current config according to satis-schema.json rules.
+     * Validates the syntax and the schema of the current config json file
+     * according to satis-schema.json rules.
      *
      * @param  string $configFile      The json file to use
      *
-     * @throws JsonValidationException
+     * @throws ParsingException        if the json file has an invalid syntax
+     * @throws JsonValidationException if the json file doesn't match the schema
      *
      * @return bool                    true on success
      */
     private function check($configFile)
     {
         $content = file_get_contents($configFile);
-        $data = json_decode($content);
 
-        $schemaFile = __DIR__.'/../../../../res/satis-schema.json';
-        $schema = json_decode(file_get_contents($schemaFile));
-        $validator = new Validator();
-        $validator->check($data, $schema);
-
-        if (!$validator->isValid()) {
-            $errors = array();
-            foreach ((array) $validator->getErrors() as $error) {
-                $errors[] = ($error['property'] ? $error['property'].' : ' : '').$error['message'];
+        $parser = new JsonParser();
+        $result = $parser->lint($content);
+        if (null === $result) {
+            if (defined('JSON_ERROR_UTF8') && JSON_ERROR_UTF8 === json_last_error()) {
+                throw new \UnexpectedValueException('"'.$configFile.'" is not UTF-8, could not parse as JSON');
             }
-            throw new JsonValidationException('The json config file does not match the expected JSON schema', $errors);
+
+            $data = json_decode($content);
+
+            $schemaFile = __DIR__.'/../../../../res/satis-schema.json';
+            $schema = json_decode(file_get_contents($schemaFile));
+            $validator = new Validator();
+            $validator->check($data, $schema);
+
+            if (!$validator->isValid()) {
+                $errors = array();
+                foreach ((array) $validator->getErrors() as $error) {
+                    $errors[] = ($error['property'] ? $error['property'].' : ' : '').$error['message'];
+                }
+                throw new JsonValidationException('The json config file does not match the expected JSON schema', $errors);
+            }
+
+            return true;
         }
 
-        return true;
+        throw new ParsingException('"'.$configFile.'" does not contain valid JSON'."\n".$result->getMessage(), $result->getDetails());
     }
 }
