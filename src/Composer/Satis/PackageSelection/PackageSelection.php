@@ -297,7 +297,6 @@ class PackageSelection
         foreach ($this->selected as $name => $package) {
             if (array_key_exists($package->getName(), $this->abandoned)) {
                 $package->setAbandoned($this->abandoned[$package->getName()]);
-                $this->selected[$package->getUniqueName()] = $package;
             }
         }
     }
