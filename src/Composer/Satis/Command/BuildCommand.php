@@ -16,11 +16,13 @@ use Composer\Composer;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
 use Composer\Json\JsonFile;
+use Composer\Json\JsonValidationException;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
+use JsonSchema\Validator;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -97,10 +99,6 @@ EOT
         $repositoryUrl = $input->getOption('repository-url');
         $skipErrors = (bool) $input->getOption('skip-errors');
 
-        if ($repositoryUrl !== null && count($packagesFilter) > 0) {
-            throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
-        }
-
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
         $io->loadConfiguration($this->getConfiguration());
@@ -117,6 +115,19 @@ EOT
                 return 1;
             }
             $config = $file->read();
+        }
+
+        try {
+            $this->check($configFile);
+        } catch (JsonValidationException $e) {
+            if (!$skipErrors) {
+                throw $e;
+            }
+            $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $e->getMessage()));
+        }
+
+        if ($repositoryUrl !== null && count($packagesFilter) > 0) {
+            throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
         }
 
         // disable packagist by default
@@ -212,5 +223,35 @@ EOT
         }
 
         return $home;
+    }
+
+    /**
+     * Validates the schema of the current config according to satis-schema.json rules.
+     *
+     * @param  string $configFile      The json file to use
+     *
+     * @throws JsonValidationException
+     *
+     * @return bool                    true on success
+     */
+    private function check($configFile)
+    {
+        $content = file_get_contents($configFile);
+        $data = json_decode($content);
+
+        $schemaFile = __DIR__.'/../../../../res/satis-schema.json';
+        $schema = json_decode(file_get_contents($schemaFile));
+        $validator = new Validator();
+        $validator->check($data, $schema);
+
+        if (!$validator->isValid()) {
+            $errors = array();
+            foreach ((array) $validator->getErrors() as $error) {
+                $errors[] = ($error['property'] ? $error['property'].' : ' : '').$error['message'];
+            }
+            throw new JsonValidationException('The json config file does not match the expected JSON schema', $errors);
+        }
+
+        return true;
     }
 }
