@@ -125,7 +125,7 @@ EOT
             if (!$skipErrors) {
                 throw $e;
             }
-            $output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $e->getMessage()));
+            $output->writeln(sprintf("<warning>Skipping Exception '%s'.</warning>", $e->getMessage()));
         }
 
         if ($repositoryUrl !== null && count($packagesFilter) > 0) {
