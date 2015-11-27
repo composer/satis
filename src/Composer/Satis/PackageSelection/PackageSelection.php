@@ -158,7 +158,7 @@ class PackageSelection
         foreach ($repos as $key => $repo) {
             if ($this->hasRepositoryFilter()) {
                 $repoConfig = $repo->getRepoConfig();
-                if (isset($repoConfig['url']) && $repoConfig['url'] !== $this->repositoryFilter) {
+                if (!isset($repoConfig['url']) || $repoConfig['url'] !== $this->repositoryFilter) {
                     unset($repos[$key]);
 
                     continue;
@@ -175,8 +175,12 @@ class PackageSelection
             }
         }
 
-        if ($this->hasRepositoryFilter() && count($repos) !== 1) {
-            throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
+        if ($this->hasRepositoryFilter()) {
+            if (count($repos) == 0) {
+                throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
+            } else if (count($repos) > 1) {
+                throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
+            }
         }
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
