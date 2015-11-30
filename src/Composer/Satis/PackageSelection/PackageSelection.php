@@ -21,6 +21,7 @@ use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
 use Composer\Repository\ComposerRepository;
+use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -140,6 +141,7 @@ class PackageSelection
         return count($this->packagesFilter) > 0;
     }
 
+
     /**
      * Sets the list of packages to build.
      *
@@ -147,6 +149,8 @@ class PackageSelection
      * @param bool $verbose Output infos if true
      *
      * @return array list of packages to build
+     *
+     * @throws \InvalidArgumentException
      */
     public function select(Composer $composer, $verbose)
     {
@@ -156,7 +160,7 @@ class PackageSelection
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
         foreach ($repos as $key => $repo) {
-            if ($this->hasRepositoryFilter()) {
+            if ($repo instanceof ConfigurableRepositoryInterface && $this->hasRepositoryFilter()) {
                 $repoConfig = $repo->getRepoConfig();
                 if (!isset($repoConfig['url']) || $repoConfig['url'] !== $this->repositoryFilter) {
                     unset($repos[$key]);
@@ -176,7 +180,7 @@ class PackageSelection
         }
 
         if ($this->hasRepositoryFilter()) {
-            if (count($repos) == 0) {
+            if (count($repos) === 0) {
                 throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
             } else if (count($repos) > 1) {
                 throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
