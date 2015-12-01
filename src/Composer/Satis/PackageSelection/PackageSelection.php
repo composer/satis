@@ -159,11 +159,19 @@ class PackageSelection
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
         foreach ($repos as $key => $repo) {
-            if ($repo instanceof ConfigurableRepositoryInterface && $this->hasRepositoryFilter()) {
-                $repoConfig = $repo->getRepoConfig();
-                if (!isset($repoConfig['url']) || $repoConfig['url'] !== $this->repositoryFilter) {
+            if ($this->hasRepositoryFilter()) {
+                $skipThis = false;
+                if ($repo instanceof ConfigurableRepositoryInterface) {
+                    $repoConfig = $repo->getRepoConfig();
+                    if (!isset($repoConfig['url']) || $repoConfig['url'] !== $this->repositoryFilter) {
+                        $skipThis = true;
+                    }
+                } else {
+                    $skipThis = true;
+                } 
+                
+                if ($skipThis) {
                     unset($repos[$key]);
-
                     continue;
                 }
             }
