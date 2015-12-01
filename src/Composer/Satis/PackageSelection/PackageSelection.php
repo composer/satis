@@ -145,7 +145,7 @@ class PackageSelection
      *
      * @throws \InvalidArgumentException
      *
-     * @return array list of packages to build
+     * @return PackageInterface[]
      */
     public function select(Composer $composer, $verbose)
     {
@@ -237,7 +237,7 @@ class PackageSelection
     /**
      * Loads previously dumped Packages in order to merge with updates.
      *
-     * @return array $packages List of packages to dump
+     * @return PackageInterface[]
      */
     public function load()
     {
@@ -306,7 +306,7 @@ class PackageSelection
      *
      * @param Composer $composer The Composer instance
      *
-     * @return array a list of filtered Links
+     * @return Link[]
      */
     private function getFilteredLinks(Composer $composer)
     {
@@ -332,7 +332,7 @@ class PackageSelection
      * @param string $minimumStability The minimum stability each package must have to be selected
      * @param bool $verbose Output infos if true
      *
-     * @return array all Links
+     * @return Link[]
      */
     private function getAllLinks($repos, $minimumStability, $verbose)
     {
@@ -377,9 +377,9 @@ class PackageSelection
     /**
      * Gets All or filtered Packages of a Repository.
      *
-     * @param  RepositoryInterface $repo a Repository
+     * @param RepositoryInterface $repo a Repository
      *
-     * @return array $packages List of Packages
+     * @return PackageInterface[]
      */
     private function getPackages(RepositoryInterface $repo)
     {
@@ -401,9 +401,9 @@ class PackageSelection
     /**
      * Gets the required Links if needed.
      *
-     * @param  PackageInterface $package A package
+     * @param PackageInterface $package A package
      *
-     * @return array                     A list of Links
+     * @return Link[]
      */
     private function getRequired(PackageInterface $package)
     {
@@ -422,9 +422,9 @@ class PackageSelection
     /**
      * Filter given repositories.
      *
-     * @param array $repositories
+     * @param RepositoryInterface[] $repositories
      *
-     * @return array
+     * @return RepositoryInterface[]
      */
     private function filterRepositories(array $repositories)
     {
