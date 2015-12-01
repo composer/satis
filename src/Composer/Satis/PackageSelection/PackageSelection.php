@@ -158,22 +158,19 @@ class PackageSelection
 
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
-        foreach ($repos as $key => $repo) {
-            if ($repo instanceof ConfigurableRepositoryInterface && $this->hasRepositoryFilter()) {
-                $repoConfig = $repo->getRepoConfig();
-                if (!isset($repoConfig['url']) || $repoConfig['url'] !== $this->repositoryFilter) {
-                    unset($repos[$key]);
 
-                    continue;
-                }
-            }
+        if ($this->hasRepositoryFilter()) {
+            $repos = $this->filterRepositories($repos);
+        }
 
+        foreach ($repos as $repo) {
             try {
                 $pool->addRepository($repo);
             } catch (\Exception $exception) {
                 if (!$this->skipErrors) {
                     throw $exception;
                 }
+
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
@@ -424,5 +421,31 @@ class PackageSelection
         }
 
         return $required;
+    }
+
+    /**
+     * Filter given repositories.
+     *
+     * @param array $repositories
+     *
+     * @return array
+     */
+    private function filterRepositories(array $repositories)
+    {
+        $url = $this->repositoryFilter;
+
+        return array_filter($repositories, function ($repository) use ($url) {
+            if (!($repository instanceof ConfigurableRepositoryInterface)) {
+                return false;
+            }
+
+            $config = $repository->getRepoConfig();
+
+            if (!isset($config['url']) || $config['url'] !== $url) {
+                return false;
+            }
+
+            return true;
+        });
     }
 }
