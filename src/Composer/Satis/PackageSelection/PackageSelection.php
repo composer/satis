@@ -21,6 +21,7 @@ use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
 use Composer\Repository\ComposerRepository;
+use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -62,6 +63,9 @@ class PackageSelection
     /** @var array The selected packages from config */
     private $selected = array();
 
+    /** @var array A list of packages marked as abandoned */
+    private $abandoned = array();
+
     /**
      * Base Constructor.
      *
@@ -90,6 +94,7 @@ class PackageSelection
         }
 
         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
+        $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
     }
 
     /**
@@ -142,6 +147,8 @@ class PackageSelection
      * @param Composer $composer The Composer instance
      * @param bool $verbose Output infos if true
      *
+     * @throws \InvalidArgumentException
+     *
      * @return array list of packages to build
      */
     public function select(Composer $composer, $verbose)
@@ -152,9 +159,9 @@ class PackageSelection
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
         foreach ($repos as $key => $repo) {
-            if ($this->hasRepositoryFilter()) {
+            if ($repo instanceof ConfigurableRepositoryInterface && $this->hasRepositoryFilter()) {
                 $repoConfig = $repo->getRepoConfig();
-                if (isset($repoConfig['url']) && $repoConfig['url'] !== $this->repositoryFilter) {
+                if (!isset($repoConfig['url']) || $repoConfig['url'] !== $this->repositoryFilter) {
                     unset($repos[$key]);
 
                     continue;
@@ -171,8 +178,12 @@ class PackageSelection
             }
         }
 
-        if ($this->hasRepositoryFilter() && count($repos) !== 1) {
-            throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
+        if ($this->hasRepositoryFilter()) {
+            if (count($repos) === 0) {
+                throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
+            } elseif (count($repos) > 1) {
+                throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
+            }
         }
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
@@ -222,6 +233,8 @@ class PackageSelection
                 $this->output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
             }
         }
+
+        $this->setSelectedAsAbandoned();
 
         ksort($this->selected, SORT_STRING);
 
@@ -284,6 +297,18 @@ class PackageSelection
     }
 
     /**
+     * Marks selected packages as abandoned by Configuration file
+     */
+    private function setSelectedAsAbandoned()
+    {
+        foreach ($this->selected as $name => $package) {
+            if (array_key_exists($package->getName(), $this->abandoned)) {
+                $package->setAbandoned($this->abandoned[$package->getName()]);
+            }
+        }
+    }
+
+    /**
      * Gets a list of filtered Links.
      *
      * @param Composer $composer The Composer instance
@@ -335,7 +360,10 @@ class PackageSelection
                         continue;
                     }
 
-                    if ($package->getStability() > BasePackage::$stabilities[$minimumStability]) {
+                    if (BasePackage::$stabilities[$package->getStability()] > BasePackage::$stabilities[$minimumStability]) {
+                        if ($verbose) {
+                            $this->output->writeln('Skipped '.$package->getPrettyName().' ('.$package->getStability().')');
+                        }
                         continue;
                     }
 

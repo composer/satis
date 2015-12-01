@@ -13,12 +13,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/composer/composer.git",
-                "reference": "f2b0e2284a2aea72be15fd5c4947c22c22cce009"
+                "reference": "26a74a12001046481ee7dc237418aceb40f93947"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/composer/composer/zipball/f2b0e2284a2aea72be15fd5c4947c22c22cce009",
-                "reference": "f2b0e2284a2aea72be15fd5c4947c22c22cce009",
+                "url": "https://api.github.com/repos/composer/composer/zipball/26a74a12001046481ee7dc237418aceb40f93947",
+                "reference": "26a74a12001046481ee7dc237418aceb40f93947",
                 "shasum": ""
             },
             "require": {
@@ -79,7 +79,7 @@
                 "dependency",
                 "package"
             ],
-            "time": "2015-11-21 02:59:25"
+            "time": "2015-11-30 15:11:02"
         },
         {
             "name": "composer/semver",
@@ -468,7 +468,7 @@
         },
         {
             "name": "symfony/filesystem",
-            "version": "v2.6.11",
+            "version": "v2.6.12",
             "target-dir": "Symfony/Component/Filesystem",
             "source": {
                 "type": "git",

@@ -27,3 +27,4 @@ th { background-color: #eee }
 input#search { font-size: 20px; margin: 5px 0; padding: 4px 5px; width: 100%; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; }
 #lastupdate { text-align: right; }
 #lastupdate time { font-weight: bold; }
+.abandoned { border: 1px solid #800; background: #fee; text-align: center; padding: 5px; margin: 20px 0; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 3px; }

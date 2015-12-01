@@ -79,6 +79,8 @@ The json config file accepts the following keys:
   of the repository (where you will host it).
 - <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
+- <info>"abandoned"</info>: Packages that are abandoned. As the key use the
+  package name, as the value use true or the replacement package.
 EOT
             );
     }
@@ -145,8 +147,8 @@ EOT
             $downloads->dump($packages);
         }
 
-        if (!$packageSelection->hasFilterForPackages()) {
-            // in case of an active package filter we need to load the dumped packages.json and merge the
+        if ($packageSelection->hasFilterForPackages() || $packageSelection->hasRepositoryFilter()) {
+            // in case of an active filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $packageSelection->load();
             $packages += $oldPackages;

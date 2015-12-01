@@ -110,8 +110,12 @@ class WebBuilder extends Builder implements BuilderInterface
 
         $mappedPackages = array();
         foreach ($groupedPackages as $name => $packages) {
+            $highest = $this->getHighestVersion($packages);
+
             $mappedPackages[$name] = array(
-                'highest' => $this->getHighestVersion($packages),
+                'highest' => $highest,
+                'abandoned' => $highest->isAbandoned(),
+                'replacement' => $highest->getReplacementPackage(),
                 'versions' => $this->getDescSortedVersions($packages),
             );
         }
