@@ -141,16 +141,15 @@ class PackageSelection
         return count($this->packagesFilter) > 0;
     }
 
-
     /**
      * Sets the list of packages to build.
      *
      * @param Composer $composer The Composer instance
      * @param bool $verbose Output infos if true
      *
-     * @return array list of packages to build
-     *
      * @throws \InvalidArgumentException
+     *
+     * @return array list of packages to build
      */
     public function select(Composer $composer, $verbose)
     {
@@ -182,7 +181,7 @@ class PackageSelection
         if ($this->hasRepositoryFilter()) {
             if (count($repos) === 0) {
                 throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
-            } else if (count($repos) > 1) {
+            } elseif (count($repos) > 1) {
                 throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
             }
         }
