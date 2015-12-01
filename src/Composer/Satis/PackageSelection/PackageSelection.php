@@ -105,8 +105,6 @@ class PackageSelection
     public function setRepositoryFilter($repositoryFilter)
     {
         $this->repositoryFilter = $repositoryFilter;
-
-        return $this;
     }
 
     /**
@@ -127,8 +125,6 @@ class PackageSelection
     public function setPackagesFilter(array $packagesFilter = array())
     {
         $this->packagesFilter = $packagesFilter;
-
-        return $this;
     }
 
     /**
