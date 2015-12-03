@@ -231,6 +231,10 @@
                     "description": "Defaults to true. If set to false, the OAuth tokens created to access the github API will have a date instead of the machine hostname."
                 }
             }
+        },
+        "notify-batch": {
+            "type": "string",
+            "description": "a URL that will be called every time a user installs a package."
         }
     }
 }
