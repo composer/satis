@@ -31,16 +31,7 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
     {
         $this->package = new Package('vendor/name', '1.0.0.0', '1.0');
 
-        $this->root = $this->setFileSystem();
-    }
-
-    protected function setFileSystem()
-    {
-        vfsStreamWrapper::register();
-        $root = vfsStream::newDirectory('build');
-        vfsStreamWrapper::setRoot($root);
-
-        return $root;
+        $this->root = vfsStream::setup('build');
     }
 
     public function testNominalCase()
