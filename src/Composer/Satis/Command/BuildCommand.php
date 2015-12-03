@@ -81,6 +81,9 @@ The json config file accepts the following keys:
   building the html output.
 - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
   package name, as the value use true or the replacement package.
+- <info>"notify-batch"</info>: Allows you to specify a URL that will
+  be called every time a user installs a package, see
+  https://getcomposer.org/doc/05-repositories.md#notify-batch
 EOT
             );
     }

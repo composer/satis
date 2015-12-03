@@ -98,6 +98,10 @@ class PackagesBuilder extends Builder implements BuilderInterface
             'includes' => $includes,
         );
 
+        if (isset($this->config['notify-batch'])) {
+            $repo['notify-batch'] = $this->config['notify-batch'];
+        }
+
         $this->output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($this->filename);
         $repoJson->write($repo);

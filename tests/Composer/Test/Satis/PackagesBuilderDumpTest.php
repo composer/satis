@@ -23,6 +23,17 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 {
+    protected $package;
+
+    protected $root;
+
+    protected function setUp()
+    {
+        $this->package = new Package('vendor/name', '1.0.0.0', '1.0');
+
+        $this->root = vfsStream::setup('build');
+    }
+
     public function testNominalCase()
     {
         $arrayPackage = array(
@@ -36,26 +47,42 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
             ),
         );
 
-        vfsStreamWrapper::register();
-        $root = vfsStream::newDirectory('build');
-        vfsStreamWrapper::setRoot($root);
         $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
             'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
             'require' => array('vendor/name' => '*'),
         ), false);
         $packages = array(
-            new Package('vendor/name', '1.0.0.0', '1.0'),
+            $this->package,
         );
 
         $packagesBuilder->dump($packages);
 
-        $packagesJson = JsonFile::parseJson($root->getChild('build/packages.json')->getContent());
+        $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
         $tmpArray = array_keys($packagesJson['includes']);
         $includeJson = array_shift($tmpArray);
         $includeJsonFile = 'build/'.$includeJson;
         $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
 
-        $packagesIncludeJson = JsonFile::parseJson($root->getChild($includeJsonFile)->getContent());
+        $packagesIncludeJson = JsonFile::parseJson($this->root->getChild($includeJsonFile)->getContent());
         $this->assertEquals($arrayPackage, $packagesIncludeJson['packages']);
+        $this->assertArrayNotHasKey('notify-batch', $packagesJson);
+    }
+
+    public function testNotifyBatch()
+    {
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
+            'notify-batch' => 'http://localhost:54715/notify',
+            'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
+            'require' => array('vendor/name' => '*'),
+        ), false);
+        $packages = array(
+            $this->package,
+        );
+
+        $packagesBuilder->dump($packages);
+
+        $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
+
+        $this->assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
     }
 }
