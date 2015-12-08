@@ -164,7 +164,10 @@ EOT
         }
 
         $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
-        $packagesBuilder->dump($packages);
+        $updated = $packagesBuilder->dump($packages);
+        if (!$updated) {
+            return;
+        }
 
         if ($htmlView = !$input->getOption('no-html-output')) {
             $htmlView = !isset($config['output-html']) || $config['output-html'];

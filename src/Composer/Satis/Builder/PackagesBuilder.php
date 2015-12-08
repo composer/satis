@@ -60,6 +60,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
      * Builds the JSON stuff of the repository.
      *
      * @param array $packages List of packages to dump
+     *
+     * @param boolean package.json is updated or not
      */
     public function dump(array $packages)
     {
@@ -71,14 +73,14 @@ class PackagesBuilder extends Builder implements BuilderInterface
                 'provider-includes' => $includes,
                 'providers-url' => $this->archiveEndpoint . "/%package%$%hash%.json"
             );
-            $this->dumpPackagesJson($repo);
+            return $this->dumpPackagesJson($repo);
         } else {
             list($file, $hash) = $this->dumpPackageIncludeAllJson($packages);
-            $this->dumpPackagesJson([
+            return $this->dumpPackagesJson([
                 'packages' => array(),
-                'includes' => [
-                    'includes/all$'.$hash.'.json'  => ['sha1' => $hash]
-                ]
+                'includes' => array(
+                    'includes/all$'.$hash.'.json'  => array('sha1' => $hash)
+                )
             ]);
         }
     }
@@ -92,7 +94,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
      */
     private function dumpPackageIncludeAllJson(array $packages)
     {
-        $providers = [];
+        $providers = array();
         $dumper = new ArrayDumper();
         foreach ($packages as $package) {
             $providers[$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
@@ -123,8 +125,10 @@ class PackagesBuilder extends Builder implements BuilderInterface
                     $name => $versions
                 )
             );
-            list($file, $hash) = $this->writeJson($repo, $this->filenamePrefix . '/' . $name . '$%hash%.json');
-            $this->output->writeln("<info>wrote ".$package->getName()." json $file</info>");
+            list($file, $hash, $updated) = $this->writeJson($repo, $this->filenamePrefix . '/' . $name . '$%hash%.json');
+            if ($updated) {
+                $this->output->writeln("<info>wrote ".$name." json $file</info>");
+            }
             $hashes[$name] = array('sha256' => $hash);
         }
         return $hashes;
@@ -142,8 +146,10 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $repo = array(
             'providers' => $providers
         );
-        list($file, $hash) = $this->writeJson($repo, $this->filenamePrefix . '/all$%hash%.json');
-        $this->output->writeln("<info>wrote provider json $file</info>");
+        list($file, $hash, $updated) = $this->writeJson($repo, $this->filenamePrefix . '/all$%hash%.json');
+        if ($updated) {
+            $this->output->writeln("<info>wrote provider json $file</info>");
+        }
         return array(
             "p/all$%hash%.json" => array(
                 "sha256" => $hash
@@ -162,9 +168,12 @@ class PackagesBuilder extends Builder implements BuilderInterface
             $repo['notify-batch'] = $this->config['notify-batch'];
         }
 
-        $this->output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($this->filename);
-        $repoJson->write($repo);
+        list($file, $hash, $updated) = $repoJson->write($repo);
+        if ($updated) {
+            $this->output->writeln('<info>Writing packages.json</info>');
+        }
+        return $updated;
     }
 
     /**
@@ -181,7 +190,11 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $content = JsonFile::encode($data, $options);
         $hash = hash('sha256', $content);
         $file = strtr($file, array('%hash%' => $hash));
-        (new JsonFile($file))->write($data, $options);
-        return array($file, $hash);
+        if (file_exists($file)) {
+            return array($file, $hash, false);
+        } else {
+            (new JsonFile($file))->write($data, $options);
+            return array($file, $hash, true);
+        }
     }
 }

@@ -394,7 +394,7 @@ class PackageSelection
     private function getAllLinks($repos, $minimumStability, $verbose)
     {
         $links = array();
-        $depsLinks = [];
+        $depsLinks = array();
 
         foreach ($repos as $repo) {
             // collect links for composer repos with providers
