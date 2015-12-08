@@ -21,7 +21,6 @@ use Composer\Package\LinkConstraint\MultiConstraint;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
 use Composer\Repository\ComposerRepository;
-use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -66,6 +65,8 @@ class PackageSelection
     /** @var array A list of packages marked as abandoned */
     private $abandoned = array();
 
+    private $repositories = array();
+
     /**
      * Base Constructor.
      *
@@ -95,6 +96,9 @@ class PackageSelection
 
         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
         $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
+        if (isset($config['repositories'])) {
+            $this->repositories = $config['repositories'];
+        }
     }
 
     /**
@@ -152,14 +156,16 @@ class PackageSelection
         // run over all packages and store matching ones
         $this->output->writeln('<info>Scanning packages</info>');
 
-        $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
-
-        if ($this->hasRepositoryFilter()) {
-            $repos = $this->filterRepositories($repos);
+        $rm = $composer->getRepositoryManager();
+        $repos = [];
+        foreach ($this->getRepositories() as $repo) {
+            $repo = $rm->createRepository($repo['type'], $repo);
+            $pool->addRepository($repo);
+            $repos[] = $repo;
         }
 
-        foreach ($repos as $repo) {
+        foreach ($rm->getRepositories() as $repo) {
             try {
                 $pool->addRepository($repo);
             } catch (\Exception $exception) {
@@ -189,6 +195,10 @@ class PackageSelection
             $link = $links[$i];
             ++$i;
             $name = $link->getTarget();
+            if (isset($depsLinks[$name . ' ' . $link->getConstraint()])) {
+                continue;
+            }
+            $depsLinks[$name . ' ' . $link->getConstraint()] = true;
             $matches = $pool->whatProvides($name, $link->getConstraint(), true);
 
             foreach ($matches as $index => $package) {
@@ -246,46 +256,93 @@ class PackageSelection
         $dirName = dirname($this->filename);
 
         if ($repoJson->exists()) {
-            $loader = new ArrayLoader();
             $jsonIncludes = $repoJson->read();
-            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
-                ? $jsonIncludes['includes']
-                : array();
+            if (isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])) {
+                $packages = $this->loadIncludes($dirName, $jsonIncludes['includes']);
+            } elseif (isset($jsonIncludes['provider-includes'])
+                      && is_array($jsonIncludes['provider-includes'])) {
+                $packages = $this->loadProviderIncludes($jsonIncludes['provider-includes']);
+            }
+        }
+        return $packages;
+    }
 
-            foreach ($jsonIncludes as $includeFile => $includeConfig) {
-                $includeJson = new JsonFile($dirName.'/'.$includeFile);
+    private function loadIncludes($dirName, $jsonIncludes)
+    {
+        $loader = new ArrayLoader();
+        $packages = [];
+        foreach ($jsonIncludes as $includeFile => $includeConfig) {
+            $includeJson = new JsonFile($dirName.'/'.$includeFile);
 
-                if (!$includeJson->exists()) {
+            if (!$includeJson->exists()) {
+                $this->output->writeln(sprintf(
+                    '<error>File \'%s\' does not exist, defined in "includes" in \'%s\'</error>',
+                    $includeJson->getPath(),
+                    $dirName
+                ));
+
+                continue;
+            }
+            $packages = array_merge($packages, $this->loadPackages($loader, $includeJson->read()));
+        }
+        return $packages;
+    }
+
+    private function loadProviderIncludes($dirName, $providerIncludes)
+    {
+        $loader = new ArrayLoader();
+        foreach ($providerIncludes as $key => $hash) {
+            $includeFile = strtr($key, array('%hash%' => $hash['sha256']));
+            $includeJson = new JsonFile($dirName.'/'.$includeFile);
+            if (!$includeJson->exists()) {
+                $this->output->writeln(sprintf(
+                    '<error>File \'%s\' does not exist, defined in "includes" in \'%s\'</error>',
+                    $includeJson->getPath(),
+                    $dirName
+                ));
+                continue;
+            }
+            $providers = $includeJson->read();
+            foreach ($providers['providers'] as $package => $hash) {
+                $file = strtr($path, array(
+                    '%package%' => $package,
+                    '%hash%' => $hash
+                ));
+                $json = new JsonFile($dirName . $file);
+                if (!$json->exists()) {
                     $this->output->writeln(sprintf(
                         '<error>File \'%s\' does not exist, defined in "includes" in \'%s\'</error>',
-                        $includeJson->getPath(),
-                        $repoJson->getPath()
+                        $json->getPath(),
+                        $includeFile
                     ));
-
                     continue;
                 }
+                $packages = array_merge($packages, $this->loadPackages($loader, $json->read()));
+            }
+        }
+        return $packages;
+    }
 
-                $jsonPackages = $includeJson->read();
-                $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
-                    ? $jsonPackages['packages']
-                    : array();
+    private function loadPackages($loader, $jsonPackages)
+    {
+        $packages = [];
+        $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
+                      ? $jsonPackages['packages']
+                      : array();
 
-                foreach ($jsonPackages as $jsonPackage) {
-                    if (is_array($jsonPackage)) {
-                        foreach ($jsonPackage as $jsonVersion) {
-                            if (is_array($jsonVersion)) {
-                                if (isset($jsonVersion['name']) && in_array($jsonVersion['name'], $this->packagesFilter)) {
-                                    continue;
-                                }
-                                $package = $loader->load($jsonVersion);
-                                $packages[$package->getUniqueName()] = $package;
-                            }
+        foreach ($jsonPackages as $jsonPackage) {
+            if (is_array($jsonPackage)) {
+                foreach ($jsonPackage as $jsonVersion) {
+                    if (is_array($jsonVersion)) {
+                        if (isset($jsonVersion['name']) && in_array($jsonVersion['name'], $this->packagesFilter)) {
+                            continue;
                         }
+                        $package = $loader->load($jsonVersion);
+                        $packages[$package->getUniqueName()] = $package;
                     }
                 }
             }
         }
-
         return $packages;
     }
 
@@ -337,6 +394,7 @@ class PackageSelection
     private function getAllLinks($repos, $minimumStability, $verbose)
     {
         $links = array();
+        $depsLinks = [];
 
         foreach ($repos as $repo) {
             // collect links for composer repos with providers
@@ -366,6 +424,18 @@ class PackageSelection
                             $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
                         }
                         $this->selected[$package->getUniqueName()] = $package;
+                        if ($this->requireAll) {
+                            foreach ($this->getRequired($package) as $dependencyLink) {
+                                $target = $dependencyLink->getTarget();
+                                if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
+                                    $linkId = $target.' '.$dependencyLink->getConstraint();
+                                    if (!isset($depsLinks[$linkId])) {
+                                        $links[] = $dependencyLink;
+                                        $depsLinks[$linkId] = true;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -419,6 +489,15 @@ class PackageSelection
         return $required;
     }
 
+    private function getRepositories()
+    {
+        $repos = isset($this->repositories) ? $this->repositories : [];
+        if ($this->hasRepositoryFilter()) {
+            $repos = $this->filterRepositories($repos);
+        }
+        return $repos;
+    }
+
     /**
      * Filter given repositories.
      *
@@ -431,16 +510,9 @@ class PackageSelection
         $url = $this->repositoryFilter;
 
         return array_filter($repositories, function ($repository) use ($url) {
-            if (!($repository instanceof ConfigurableRepositoryInterface)) {
+            if (isset($repository['url']) || $repository['url'] !== $url) {
                 return false;
             }
-
-            $config = $repository->getRepoConfig();
-
-            if (!isset($config['url']) || $config['url'] !== $url) {
-                return false;
-            }
-
             return true;
         });
     }
