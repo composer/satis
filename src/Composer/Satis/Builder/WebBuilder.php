@@ -12,6 +12,7 @@
 namespace Composer\Satis\Builder;
 
 use Composer\Package\PackageInterface;
+use Symfony\Component\Finder\Finder;
 
 /**
  * Build the web pages.
@@ -39,29 +40,13 @@ class WebBuilder extends Builder implements BuilderInterface
         $loader = new \Twig_Loader_Filesystem($templateDir);
         $twig = new \Twig_Environment($loader);
 
-        $mappedPackages = $this->getMappedPackageList($packages);
-
-        $name = $this->rootPackage->getPrettyName();
-        if ($name === '__root__') {
-            $name = 'A';
-            $this->output->writeln('Define a "name" property in your json config to name the repository');
-        }
-
-        if (!$this->rootPackage->getHomepage()) {
-            $this->output->writeln('Define a "homepage" property in your json config to configure the repository URL');
-        }
+        $this->copyAssets($templateDir);
 
         $this->setDependencies($packages);
 
         $this->output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render($twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig', array(
-            'name' => $name,
-            'url' => $this->rootPackage->getHomepage(),
-            'description' => $this->rootPackage->getDescription(),
-            'packages' => $mappedPackages,
-            'dependencies' => $this->dependencies,
-        ));
+        $content = $twig->render($twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig', $this->getTemplateContext($packages));
 
         file_put_contents($this->outputDir.'/index.html', $content);
     }
@@ -76,6 +61,55 @@ class WebBuilder extends Builder implements BuilderInterface
         $this->rootPackage = $rootPackage;
 
         return $this;
+    }
+
+    /**
+     * Prepare variables that used in twig template
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return array variables use in template 
+     */
+    protected function getTemplateContext($packages)
+    {
+        $name = $this->rootPackage->getPrettyName();
+        $mappedPackages = $this->getMappedPackageList($packages);
+
+        if ($name === '__root__') {
+            $name = 'A';
+            $this->output->writeln('Define a "name" property in your json config to name the repository');
+        }
+
+        if (!$this->rootPackage->getHomepage()) {
+            $this->output->writeln('Define a "homepage" property in your json config to configure the repository URL');
+        }
+        
+        return array(
+            'name' => $name,
+            'url' => $this->rootPackage->getHomepage(),
+            'description' => $this->rootPackage->getDescription(),
+            'packages' => $mappedPackages,
+            'dependencies' => $this->dependencies,
+        );
+    }
+
+    /**
+     * Copies js/css files to output directory
+     *
+     * @param string $fromDir The templates directory
+     */
+    private function copyAssets($fromDir)
+    {
+        $finder = Finder::create()
+            ->ignoreVCS(false)
+            ->ignoreDotFiles(false)
+            ->depth(0)
+            ->name("*.css")
+            ->name("*.js")
+            ->in($fromDir);
+        foreach ($finder as $file => $fileinfo) {
+            copy($file, $this->outputDir . '/' . basename($file));
+        }
     }
 
     /**
