@@ -29,6 +29,9 @@ class PackagesBuilder extends Builder implements BuilderInterface
     /** @var string packages.json file name. */
     private $filename;
 
+    /** @var string provider-includes url prefix */
+    private $archiveEndpoint;
+
     /**
      * Dedicated Packages Constructor.
      *
@@ -41,7 +44,15 @@ class PackagesBuilder extends Builder implements BuilderInterface
     {
         parent::__construct($output, $outputDir, $config, $skipErrors);
 
-        $this->filenamePrefix = $this->outputDir.'/include/all';
+        if (isset($config['archive']['directory'])) {
+            $this->filenamePrefix = $this->outputDir . '/' . $config['archive']['directory'];
+            $url = isset($config['archive']['prefix-url'])
+                 ? $config['archive']['prefix-url']
+                 : $config['homepage'] . '/' . $config['archive']['directory'];
+            $this->archiveEndpoint = parse_url($url, PHP_URL_PATH);
+        } else {
+            $this->filenamePrefix = $this->outputDir . '/includes/all';
+        }
         $this->filename = $this->outputDir.'/packages.json';
     }
 
@@ -52,38 +63,92 @@ class PackagesBuilder extends Builder implements BuilderInterface
      */
     public function dump(array $packages)
     {
-        $packageFile = $this->dumpPackageIncludeJson($packages);
-        $packageFileHash = hash_file('sha1', $packageFile);
-
-        $includes = array(
-            'include/all$'.$packageFileHash.'.json' => array('sha1' => $packageFileHash),
-        );
-
-        $this->dumpPackagesJson($includes);
+        if ($this->archiveEndpoint) {
+            $providers = $this->dumpPackageIncludeJson($packages);
+            $includes = $this->dumpProviderIncludeJson($providers);
+            $repo = array(
+                'packages' => array(),
+                'provider-includes' => $includes,
+                'providers-url' => $this->archiveEndpoint . "/%package%$%hash%.json"
+            );
+            $this->dumpPackagesJson($repo);
+        } else {
+            list($file, $hash) = $this->dumpPackageIncludeAllJson($packages);
+            $this->dumpPackagesJson([
+                'packages' => array(),
+                'includes' => [
+                    'includes/all$'.$hash.'.json'  => ['sha1' => $hash]
+                ]
+            ]);
+        }
     }
 
     /**
-     * Writes includes JSON Files.
+     * Writes package includes JSON Files.
      *
      * @param array $packages List of packages to dump
      *
-     * @return string $filenameWithHash Includes JSON file name
+     * @return string $hashes package hashes
+     */
+    private function dumpPackageIncludeAllJson(array $packages)
+    {
+        $providers = [];
+        $dumper = new ArrayDumper();
+        foreach ($packages as $package) {
+            $providers[$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
+        }
+        return $this->writeJson(['packages' => $providers], $this->filenamePrefix . '$%hash%.json');
+    }
+
+    /**
+     * Writes package includes JSON Files.
+     *
+     * @param array $packages List of packages to dump
+     *
+     * @return string $hashes package hashes
      */
     private function dumpPackageIncludeJson(array $packages)
     {
-        $repo = array('packages' => array());
         $dumper = new ArrayDumper();
+        $providers = array();
+        $hashes = array();
         foreach ($packages as $package) {
-            $repo['packages'][$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
+            $info = $dumper->dump($package);
+            $info['uid'] = crc32($package->getPrettyVersion());
+            $providers[$package->getName()][$package->getPrettyVersion()] = $info;
         }
-        $repoJson = new JsonFile($this->filenamePrefix);
-        $repoJson->write($repo);
-        $hash = hash_file('sha1', $this->filenamePrefix);
-        $filenameWithHash = $this->filenamePrefix.'$'.$hash.'.json';
-        rename($this->filenamePrefix, $filenameWithHash);
-        $this->output->writeln("<info>wrote packages json $filenameWithHash</info>");
+        foreach ($providers as $name => $versions) {
+            $repo = array(
+                'packages' => array(
+                    $name => $versions
+                )
+            );
+            list($file, $hash) = $this->writeJson($repo, $this->filenamePrefix . '/' . $name . '$%hash%.json');
+            $this->output->writeln("<info>wrote ".$package->getName()." json $file</info>");
+            $hashes[$name] = array('sha256' => $hash);
+        }
+        return $hashes;
+    }
 
-        return $filenameWithHash;
+    /**
+     * Writes providers JSON to file
+     *
+     * @param array $providers providers hash
+     *
+     * @return array privder includes file hashes
+     */
+    private function dumpProviderIncludeJson(array $providers)
+    {
+        $repo = array(
+            'providers' => $providers
+        );
+        list($file, $hash) = $this->writeJson($repo, $this->filenamePrefix . '/all$%hash%.json');
+        $this->output->writeln("<info>wrote provider json $file</info>");
+        return array(
+            "p/all$%hash%.json" => array(
+                "sha256" => $hash
+            )
+        );
     }
 
     /**
@@ -91,13 +156,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
      *
      * @param array $includes List of included JSON files.
      */
-    private function dumpPackagesJson($includes)
+    private function dumpPackagesJson($repo)
     {
-        $repo = array(
-            'packages' => array(),
-            'includes' => $includes,
-        );
-
         if (isset($this->config['notify-batch'])) {
             $repo['notify-batch'] = $this->config['notify-batch'];
         }
@@ -105,5 +165,23 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $this->output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($this->filename);
         $repoJson->write($repo);
+    }
+
+    /**
+     * Writes json data to file
+     *
+     * @param array $data data
+     * @param string $file output file name template with '%hash%' to replace
+     *
+     * @return string filename
+     */
+    private function writeJson($data, $file)
+    {
+        $options = JsonFile::JSON_UNESCAPED_SLASHES | JsonFile::JSON_UNESCAPED_UNICODE;
+        $content = JsonFile::encode($data, $options);
+        $hash = hash('sha256', $content);
+        $file = strtr($file, array('%hash%' => $hash));
+        (new JsonFile($file))->write($data, $options);
+        return array($file, $hash);
     }
 }

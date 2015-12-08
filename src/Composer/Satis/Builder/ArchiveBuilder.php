@@ -82,11 +82,12 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                     // Set archive format to `file` to tell composer to download it as is
                     $archiveFormat = 'file';
                 } else {
-                    $path = $archiveManager->archive($package, $format, $directory);
+                    $filename = $this->getPackageFilename($package);
+                    $path = $archiveManager->archive($package, $format, $directory, $filename);
                     $archiveFormat = $format;
+                    $filename = dirname($filename) . '/' . basename($path);
                 }
-                $archive = basename($path);
-                $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $archive);
+                $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $filename);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
 
@@ -102,6 +103,26 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
+    }
+
+    /**
+     * Generate archive filename for a particular version of a package.
+     *
+     * @param PackageInterface $package The package to get a name for
+     *
+     * @return string A filename without an extension
+     */
+    public function getPackageFilename($package)
+    {
+        $nameParts = array(preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName()));
+        if (preg_match('{^[a-f0-9]{40}$}', $package->getDistReference())) {
+            $nameParts = array_merge($nameParts, array($package->getDistReference()));
+        } else {
+            $nameParts = array_merge($nameParts, array($package->getPrettyVersion(), $package->getDistReference()));
+        }
+        return implode('-', array_filter($nameParts, function ($p) {
+            return !empty($p);
+        }));
     }
 
     /**
