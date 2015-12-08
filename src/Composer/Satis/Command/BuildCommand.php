@@ -130,7 +130,7 @@ EOT
             if (isset($config['output-dir'])) {
                 $outputDir = $config['output-dir'];
             } elseif (Filesystem::isLocalPath($configFile)) {
-                $outputDir = dirname($configFile);
+                $outputDir = dirname(realpath($configFile));
             }
         }
 

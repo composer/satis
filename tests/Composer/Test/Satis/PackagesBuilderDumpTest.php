@@ -84,9 +84,9 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
             'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
             'require' => array('vendor/name' => '*'),
             'homepage' => 'http://localhost',
-            'archive' => [
+            'archive' => array(
                 'directory' => 'p'
-            ]
+            )
         ), false);
         $packages = array(
             $this->package,
