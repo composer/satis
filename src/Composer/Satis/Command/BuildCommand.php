@@ -21,6 +21,7 @@ use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
+use Composer\Util\Filesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -38,8 +39,8 @@ class BuildCommand extends Command
             ->setDescription('Builds a composer repository out of a json file')
             ->setDefinition(array(
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
-                new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
+                new InputOption('output-dir', null, InputOption::VALUE_OPTIONAL, 'Location where to output built files', null),
                 new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
@@ -125,12 +126,16 @@ EOT
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist']);
 
-        if (!$outputDir = $input->getArgument('output-dir')) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+        if (!$outputDir = $input->getOption('output-dir')) {
+            if (isset($config['output-dir'])) {
+                $outputDir = $config['output-dir'];
+            } elseif (Filesystem::isLocalPath($configFile)) {
+                $outputDir = dirname($configFile);
+            }
         }
 
         if (null === $outputDir) {
-            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
+            throw new \InvalidArgumentException('The output dir must be specified by option --output-dir or be configured inside '.$input->getArgument('file'));
         }
 
         $composer = $this->getApplication()->getComposer(true, $config);
