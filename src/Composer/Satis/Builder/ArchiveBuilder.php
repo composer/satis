@@ -55,6 +55,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
+        $excludeFiles = array();
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $package) {
             if ($helper->isSkippable($package)) {
@@ -86,6 +87,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                     $archiveFormat = $format;
                 }
                 $archive = basename($path);
+                $excludeFiles[] = $archive;
                 $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
@@ -102,6 +104,8 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
+
+        $this->clean($directory, $excludeFiles);
     }
 
     /**
