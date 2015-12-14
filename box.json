@@ -11,9 +11,15 @@
         "name": "*.php",
         "in": "vendor",
         "exclude": [
-            "phpunit", "mikey179",
-            "phpdocumentor", "sebastian", "phpspec", "doctrine",
-            "test", "tests", "Tests"
+            "phpunit",
+            "mikey179",
+            "phpdocumentor",
+            "sebastian",
+            "phpspec",
+            "doctrine",
+            "test",
+            "tests",
+            "Tests"
         ]
     },{
         "name": "composer-schema.json",
