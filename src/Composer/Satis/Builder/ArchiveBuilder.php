@@ -101,11 +101,19 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                 if (!$this->skipErrors) {
                     throw $exception;
                 }
+
+                //If file exists then exclude it
+                $packageName = $archiveManager->getPackageFilename($package);
+                if ('pear-library' === $package->getType()) {
+                    $excludeFiles[] = $packageName.'.'. pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
+                } else {
+                    $excludeFiles[] = $packageName . '.' . $format;
+                }
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
 
-        $this->clean($directory, $excludeFiles);
+        $this->clean($directory, array_unique($excludeFiles));
     }
 
     /**
