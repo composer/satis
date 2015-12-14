@@ -62,6 +62,17 @@ class Compiler
             ->ignoreVCS(true)
             ->name('*.php')
             ->name('composer-schema.json')
+            ->exclude(array(
+                'phpunit',
+                'mikey179',
+                'phpdocumentor',
+                'sebastian',
+                'phpspec',
+                'doctrine',
+                'test',
+                'tests',
+                'Tests',
+            ))
             ->in(__DIR__.'/../../../vendor/')
         ;
         $finders[] = $finder;
