@@ -64,7 +64,7 @@ class Builder
         }
 
         foreach (array_diff($files, $excludeFiles) as $file) {
-            if (in_array($file, ['.', '..'])) {
+            if (in_array($file, array('.', '..'))) {
                 continue;
             }
 
