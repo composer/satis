@@ -5,7 +5,8 @@
     "stub": true,
     "directories": [ "src", "views" ],
     "files": [
-        "LICENSE"
+        "LICENSE",
+        "res/satis-schema.json"
     ],
     "finder": [{
         "name": "*.php",
