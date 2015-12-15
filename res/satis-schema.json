@@ -93,11 +93,11 @@
             "type": "boolean",
             "description": "If true, selects all versions of all packages in the repositories defined."
         },
-        "require-dependecies": {
+        "require-dependencies": {
             "type": "boolean",
             "description": "If true, resolve and add all dependencies of each required package."
         },
-        "require-dev-dependecies": {
+        "require-dev-dependencies": {
             "type": "boolean",
             "description": "If true, resolve and add all Dev dependencies of each required package."
         },
