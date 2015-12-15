@@ -4,9 +4,7 @@
     <meta charset="utf-8" />
     <meta name="robots" content="noindex,nofollow" />
     <title>{{ name }} Composer Repository</title>
-    <style type="text/css">
-    {% include 'styles.css' %}
-    </style>
+    <link href="{{url}}/styles.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 
@@ -135,9 +133,9 @@
         </div>
     </div>
 
+<script src="{{url}}/jquery-2.0.0.js"></script>
+<script src="{{url}}/moment-2.4.0.js"></script>
     <script>
-    {% include 'jquery-2.0.0.js' %}
-    {% include 'moment-2.4.0.js' %}
     $(function(){
         var packages = $('h3');
         var timer;
