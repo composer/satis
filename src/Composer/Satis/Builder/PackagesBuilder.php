@@ -83,7 +83,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
         rename($this->filenamePrefix, $filenameWithHash);
         $this->output->writeln("<info>wrote packages json $filenameWithHash</info>");
 
-        $this->removeAllBut($this->outputDir . '/include', "all\$$hash.json");
+        $forceRemove = true;
+        $this->removeAllBut($this->outputDir . '/include', "all\$$hash.json", $forceRemove);
 
         return $filenameWithHash;
     }
