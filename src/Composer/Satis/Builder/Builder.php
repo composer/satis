@@ -53,11 +53,19 @@ class Builder
      *
      * @param string          $directory    Directory to clean
      * @param string|string[] $excludeFiles File list to exclude
+     * @param bool            $forceRemove  Forcibly remove files
      *
      * @return void
      */
-    protected function clean($directory, $excludeFiles)
+    protected function removeAllBut($directory, $excludeFiles, $forceRemove = false)
     {
+        $isRemove = $forceRemove ||
+                    (isset($this->config['archive']['autoclean']) && true === $this->config['archive']['autoclean']);
+
+        if (!$isRemove) {
+            return;
+        }
+
         $files = scandir($directory);
         if (!is_array($excludeFiles)) {
             $excludeFiles = (array) $excludeFiles;

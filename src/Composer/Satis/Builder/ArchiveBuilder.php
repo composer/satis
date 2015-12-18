@@ -113,7 +113,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
             }
         }
 
-        $this->clean($directory, array_unique($excludeFiles));
+        $this->removeAllBut($directory, array_unique($excludeFiles));
     }
 
     /**
