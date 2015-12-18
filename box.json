@@ -1,0 +1,36 @@
+{
+    "alias": "satis.phar",
+    "main": "bin/satis",
+    "output": "satis.phar",
+    "stub": true,
+    "directories": [ "src", "views" ],
+    "files": [
+        "LICENSE",
+        "res/satis-schema.json"
+    ],
+    "finder": [{
+        "name": "*.php",
+        "in": "vendor",
+        "exclude": [
+            "phpunit",
+            "mikey179",
+            "phpdocumentor",
+            "sebastian",
+            "phpspec",
+            "doctrine",
+            "test",
+            "tests",
+            "Tests"
+        ]
+    },{
+        "name": "composer-schema.json",
+        "in": "vendor/composer/composer"
+    }],
+    "compression" : "GZ",
+    "compactors": [
+        "Herrera\\Box\\Compactor\\Json",
+        "Herrera\\Box\\Compactor\\Php"
+    ],
+    "chmod": "0755",
+    "algorithm": "SHA1"
+}
