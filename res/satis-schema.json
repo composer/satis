@@ -72,7 +72,7 @@
                 "checksum": {
                     "type": "boolean",
                     "description": "If false, will not provide the sha1 checksum for the dist files."
-                },
+                }
             }
         },
         "repositories": {
