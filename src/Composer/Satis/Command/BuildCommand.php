@@ -88,6 +88,8 @@ The json config file accepts the following keys:
 - <info>"notify-batch"</info>: Allows you to specify a URL that will
   be called every time a user installs a package, see
   https://getcomposer.org/doc/05-repositories.md#notify-batch
+- <info>"include-filename"</info> Specify filename instead of default include/all\${SHA1_HASH}.json
+
 EOT
             );
     }
