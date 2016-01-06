@@ -13,6 +13,7 @@ namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
 use Composer\Package\Dumper\ArrayDumper;
+use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -80,7 +81,9 @@ class PackagesBuilder extends Builder implements BuilderInterface
         $includeFileName = str_replace(
             '{sha1}', $includeFileHash, $this->includeFileName
         );
-        rename($tempFilename, $this->outputDir.'/'.$includeFileName);
+        $fs = new Filesystem();
+        $fs->ensureDirectoryExists(dirname($this->outputDir.'/'.$includeFileName));
+        $fs->rename($tempFilename, $this->outputDir.'/'.$includeFileName);
         $this->output->writeln("<info>Wrote packages json $includeFileName</info>");
 
         $includes = array(
