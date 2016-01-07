@@ -47,4 +47,37 @@ class Builder
         $this->config = $config;
         $this->skipErrors = (bool) $skipErrors;
     }
+
+    /**
+     * Remove from $directory all files excluding $excludeFiles
+     *
+     * @param string          $directory    Directory to clean
+     * @param string|string[] $excludeFiles File list to exclude
+     * @param bool            $forceRemove  Forcibly remove files
+     *
+     * @return void
+     */
+    protected function removeAllBut($directory, $excludeFiles, $forceRemove = false)
+    {
+        $isRemove = $forceRemove ||
+                    (isset($this->config['archive']['autoclean']) && true === $this->config['archive']['autoclean']);
+
+        if (!$isRemove) {
+            return;
+        }
+
+        $files = scandir($directory);
+        if (!is_array($excludeFiles)) {
+            $excludeFiles = (array) $excludeFiles;
+        }
+
+        foreach (array_diff($files, $excludeFiles) as $file) {
+            if (in_array($file, array('.', '..'))) {
+                continue;
+            }
+
+            $this->output->writeln("<info>remove $directory/$file</info>");
+            unlink("$directory/$file");
+        }
+    }
 }

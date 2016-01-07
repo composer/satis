@@ -33,6 +33,10 @@
             "additionalProperties": false,
             "required": ["directory"],
             "properties": {
+                "autoclean": {
+                    "type": "boolean",
+                    "description": "If true, will remove all unused files."
+                },
                 "directory": {
                     "type": "string",
                     "description": "The location of the dist files."

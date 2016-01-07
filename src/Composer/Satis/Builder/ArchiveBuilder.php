@@ -55,6 +55,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
+        $excludeFiles = array();
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $package) {
             if ($helper->isSkippable($package)) {
@@ -86,6 +87,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                     $archiveFormat = $format;
                 }
                 $archive = basename($path);
+                $excludeFiles[] = $archive;
                 $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
@@ -99,9 +101,19 @@ class ArchiveBuilder extends Builder implements BuilderInterface
                 if (!$this->skipErrors) {
                     throw $exception;
                 }
+
+                //If file exists then exclude it
+                $packageName = $archiveManager->getPackageFilename($package);
+                if ('pear-library' === $package->getType()) {
+                    $excludeFiles[] = $packageName.'.'. pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
+                } else {
+                    $excludeFiles[] = $packageName . '.' . $format;
+                }
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
+
+        $this->removeAllBut($directory, array_unique($excludeFiles));
     }
 
     /**
