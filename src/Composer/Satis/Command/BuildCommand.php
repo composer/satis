@@ -124,7 +124,10 @@ EOT
 
         try {
             $this->check($configFile);
-        } catch (\Exception $e) {
+        } catch (JsonValidationException $e) {
+            foreach ($e->getErrors() as $error) {
+                $output->writeln(sprintf('<error>%s</error>', $error));
+            }
             if (!$skipErrors) {
                 throw $e;
             }
