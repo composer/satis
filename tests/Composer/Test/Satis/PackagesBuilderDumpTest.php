@@ -23,51 +23,78 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 {
-    /** @var Package */
+    /** @var vfsStreamDirectory */
     protected $package;
 
-    /** @var vfsStreamDirectory */
+    /**
+     * @var \org\bovigo\vfs\vfsStreamDirectory
+     */
     protected $root;
 
     protected function setUp()
     {
-        $this->package = new Package('vendor/name', '1.0.0.0', '1.0');
-
         $this->root = vfsStream::setup('build');
     }
 
-    public function testNominalCase()
+    protected static function createPackages($majorVersionNumber, $asArray = false)
     {
-        $arrayPackage = array(
-            "vendor/name" => array(
-                "1.0" => array(
-                    "name" => "vendor/name",
-                    "version" => "1.0",
-                    "version_normalized" => "1.0.0.0",
-                    "type" => "library",
+        $version = $majorVersionNumber.'.0';
+        $versionNormalized = $majorVersionNumber.'.0.0.0';
+        if ($asArray) {
+            return array(
+                "vendor/name" => array(
+                    $version => array(
+                        "name" => "vendor/name",
+                        "version" => $version,
+                        "version_normalized" => $versionNormalized,
+                        "type" => "library",
+                    ),
                 ),
-            ),
-        );
+            );
+        }
+        return array(new Package('vendor/name', $versionNormalized, $version));
+    }
 
+    /**
+     * @param bool $providers
+     */
+    public function testNominalCase($providers = false)
+    {
         $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
+            'providers' => $providers,
             'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
             'require' => array('vendor/name' => '*'),
         ), false);
-        $packages = array(
-            $this->package,
-        );
 
-        $packagesBuilder->dump($packages);
+        foreach (array(1, 2, 2) as $i) {
+            $packages = self::createPackages($i);
+            $arrayPackages = self::createPackages($i, true);
 
-        $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
-        $tmpArray = array_keys($packagesJson['includes']);
-        $includeJson = array_shift($tmpArray);
-        $includeJsonFile = 'build/'.$includeJson;
-        $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
+            $packagesBuilder->dump($packages);
 
-        $packagesIncludeJson = JsonFile::parseJson($this->root->getChild($includeJsonFile)->getContent());
-        $this->assertEquals($arrayPackage, $packagesIncludeJson['packages']);
-        $this->assertArrayNotHasKey('notify-batch', $packagesJson);
+            $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
+            $this->assertArrayNotHasKey('notify-batch', $packagesJson);
+
+            if ($providers) {
+                $packageName = key($arrayPackages);
+                $hash = current($packagesJson['providers'][$packageName]);
+                $includeJson = str_replace(array('%package%', '%hash%'), array($packageName, $hash), $packagesJson['providers-url']);
+            } else {
+                $includes = array_keys($packagesJson['includes']);
+                $includeJson = end($includes);
+            }
+
+            $includeJsonFile = 'build/'.$includeJson;
+            $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
+
+            $packagesIncludeJson = JsonFile::parseJson($this->root->getChild($includeJsonFile)->getContent());
+            $this->assertEquals($arrayPackages, $packagesIncludeJson['packages']);
+        }
+    }
+
+    public function testProviders()
+    {
+        $this->testNominalCase(true);
     }
 
     public function testNotifyBatch()
@@ -77,11 +104,8 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
             'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
             'require' => array('vendor/name' => '*'),
         ), false);
-        $packages = array(
-            $this->package,
-        );
 
-        $packagesBuilder->dump($packages);
+        $packagesBuilder->dump(self::createPackages(1));
 
         $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
 
