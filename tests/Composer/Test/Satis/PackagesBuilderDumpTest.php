@@ -78,6 +78,7 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
             if ($providers) {
                 $packageName = key($arrayPackages);
+                $arrayPackages[$packageName][$i . '.0']['uid'] = 1;
                 $hash = current($packagesJson['providers'][$packageName]);
                 $includeJson = str_replace(array('%package%', '%hash%'), array($packageName, $hash), $packagesJson['providers-url']);
             } else {
@@ -102,6 +103,33 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
     public function testProviders()
     {
         $this->testNominalCase(true);
+    }
+
+    public function testProvidersUrl()
+    {
+        $urlToBaseUrlMap = array(
+            null,
+            'http://localhost:1234/' => '/',
+            'http://localhost:1234' => '/',
+            'http://localhost:1234/sub-dir' => '/sub-dir/',
+            'http://localhost:1234/sub-dir/' => '/sub-dir/'
+        );
+        $providersUrlWithoutBase = null;
+        foreach ($urlToBaseUrlMap as $url => $basePath) {
+            $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
+                'providers' => true,
+                'homepage' => $url,
+                'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
+                'require' => array('vendor/name' => '*'),
+            ), false);
+            $packagesBuilder->dump(self::createPackages(1));
+            $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
+            if (!$basePath) {
+                $providersUrlWithoutBase = $packagesJson['providers-url'];
+            } else {
+                $this->assertEquals($basePath . $providersUrlWithoutBase, $packagesJson['providers-url']);
+            }
+        }
     }
 
     public function testNotifyBatch()

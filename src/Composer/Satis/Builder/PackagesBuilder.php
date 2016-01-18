@@ -62,15 +62,25 @@ class PackagesBuilder extends Builder
 
         $repo = array('packages' => array());
         if (isset($this->config['providers']) && $this->config['providers']) {
-            $repo['providers-url'] = 'p/%package%$%hash%.json';
+            $providersUrl = 'p/%package%$%hash%.json';
+            if (!empty($this->config['homepage'])) {
+                $repo['providers-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $providersUrl;
+            } else {
+                $repo['providers-url'] = $providersUrl;
+            }
             $repo['providers'] = array();
+            $i = 1;
             foreach ($packagesByName as $packageName => $versionPackages) {
+                foreach ($versionPackages as $version => &$versionPackage) {
+                    $versionPackage['uid'] = $i;
+                }
                 $includes = $this->dumpPackageIncludeJson(
                     array($packageName => $versionPackages),
-                    str_replace('%package%', $packageName, $repo['providers-url']),
+                    str_replace('%package%', $packageName, $providersUrl),
                     'sha256'
                 );
                 $repo['providers'][$packageName] = current($includes);
+                $i++;
             }
         } else {
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, 'include/all$%hash%.json');
@@ -83,11 +93,10 @@ class PackagesBuilder extends Builder
 
     /**
      * Remove all files matching the includeUrl pattern next to just created include jsons
-     *
-     * @return void
      */
     private function pruneIncludeDirectories()
     {
+        $this->output->writeln("<info>Pruning include directories</info>");
         while ($this->writtenIncludeJsons) {
             list($hash, $includesUrl) = array_shift($this->writtenIncludeJsons);
             $path = $this->outputDir . '/' . ltrim($includesUrl, '/');
