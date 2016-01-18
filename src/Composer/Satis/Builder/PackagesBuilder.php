@@ -77,6 +77,32 @@ class PackagesBuilder extends Builder
         }
 
         $this->dumpPackagesJson($repo);
+
+        $this->pruneIncludeDirectories();
+    }
+
+    /**
+     * Remove all files matching the includeUrl pattern next to just created include jsons
+     *
+     * @return void
+     */
+    private function pruneIncludeDirectories()
+    {
+        while ($this->writtenIncludeJsons) {
+            list($hash, $includesUrl) = array_shift($this->writtenIncludeJsons);
+            $path = $this->outputDir . '/' . ltrim($includesUrl, '/');
+            $dirname = dirname($path);
+            $basename = basename($path);
+            if (strpos($dirname, '%hash%') !== false) {
+                throw new \RuntimeException('Refusing to prune when %hash% is in dirname');
+            }
+            $pattern = '#^' . str_replace('%hash%', '([0-9a-zA-Z]{' . strlen($hash) . '})', preg_quote($basename, '#')) . '$#';
+            foreach (new \DirectoryIterator($dirname) as $file) {
+                if(preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
+                    unlink($file->getPathname());
+                }
+            }
+        }
     }
 
     /**

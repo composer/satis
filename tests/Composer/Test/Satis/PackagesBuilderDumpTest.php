@@ -65,6 +65,7 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
             'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
             'require' => array('vendor/name' => '*'),
         ), false);
+        $lastIncludedJsonFile = null;
 
         foreach (array(1, 2, 2) as $i) {
             $packages = self::createPackages($i);
@@ -89,6 +90,12 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
             $packagesIncludeJson = JsonFile::parseJson($this->root->getChild($includeJsonFile)->getContent());
             $this->assertEquals($arrayPackages, $packagesIncludeJson['packages']);
+
+            if ($lastIncludedJsonFile && $lastIncludedJsonFile !== $includeJsonFile) {
+                $this->assertFalse(is_file(vfsStream::url($lastIncludedJsonFile)), 'Previous files not pruned');
+            }
+
+            $lastIncludedJsonFile = $includeJsonFile;
         }
     }
 
