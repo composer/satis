@@ -72,7 +72,7 @@ class PackagesBuilder extends Builder
             $i = 1;
             foreach ($packagesByName as $packageName => $versionPackages) {
                 foreach ($versionPackages as $version => &$versionPackage) {
-                    $versionPackage['uid'] = $i;
+                    $versionPackage['uid'] = $i++;
                 }
                 $includes = $this->dumpPackageIncludeJson(
                     array($packageName => $versionPackages),
@@ -80,7 +80,6 @@ class PackagesBuilder extends Builder
                     'sha256'
                 );
                 $repo['providers'][$packageName] = current($includes);
-                $i++;
             }
         } else {
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, 'include/all$%hash%.json');
