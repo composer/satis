@@ -97,6 +97,7 @@ class PackagesBuilder extends Builder
     private function pruneIncludeDirectories()
     {
         $this->output->writeln("<info>Pruning include directories</info>");
+        $paths = array();
         while ($this->writtenIncludeJsons) {
             list($hash, $includesUrl) = array_shift($this->writtenIncludeJsons);
             $path = $this->outputDir . '/' . ltrim($includesUrl, '/');
@@ -106,9 +107,16 @@ class PackagesBuilder extends Builder
                 throw new \RuntimeException('Refusing to prune when %hash% is in dirname');
             }
             $pattern = '#^' . str_replace('%hash%', '([0-9a-zA-Z]{' . strlen($hash) . '})', preg_quote($basename, '#')) . '$#';
+            $paths[$dirname][] = array($pattern, $hash);
+        }
+        foreach ($paths as $dirname => $entries) {
             foreach (new \DirectoryIterator($dirname) as $file) {
-                if(preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
-                    unlink($file->getPathname());
+                foreach ($entries as $entry) {
+                    list($pattern, $hash) = $entry;
+                    if(preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
+                        unlink($file->getPathname());
+                        $this->output->writeln('<comment>Deleted ' . $file->getPathname() . '</comment>');
+                    }
                 }
             }
         }
@@ -126,26 +134,68 @@ class PackagesBuilder extends Builder
     private function dumpPackageIncludeJson(array $packages, $includesUrl, $hashAlgorithm = 'sha1')
     {
         $filename = str_replace('%hash%', 'prep', $includesUrl);
-        $path = $this->outputDir . '/' . ltrim($filename, '/');
+        $path = $tmpPath = $this->outputDir . '/' . ltrim($filename, '/');
 
         $repoJson = new JsonFile($path);
-        $repoJson->write(array('packages' => $packages));
+        $contents = $repoJson->encode(array('packages' => $packages)) . "\n";
 
-        $hash = hash_file($hashAlgorithm, $path);
+        $hash = hash($hashAlgorithm, $contents);
 
         if (strpos($includesUrl, '%hash%') !== false) {
             $this->writtenIncludeJsons[] = array($hash, $includesUrl);
             $filename = str_replace('%hash%', $hash, $includesUrl);
-            rename(
-                $path,
-                $path = $this->outputDir . '/' . ltrim($filename, '/')
-            );
+            if (file_exists($path = $this->outputDir . '/' . ltrim($filename, '/'))) {
+                // When the file exists, we don't need to override it as we assume,
+                // the contents satisfy the hash
+                $path = null;
+            }
         }
-        $this->output->writeln("<info>wrote packages to $path</info>");
+        if ($path) {
+            $this->writeToFile($path, $contents);
+            $this->output->writeln("<info>wrote packages to $path</info>");
+        }
 
         return array(
             $filename => array($hashAlgorithm => $hash)
         );
+    }
+
+    /**
+     * Write to a file
+     *
+     * @param string $path
+     * @param string $contents
+     */
+    private function writeToFile($path, $contents)
+    {
+        $dir = dirname($path);
+        if (!is_dir($dir)) {
+            if (file_exists($dir)) {
+                throw new \UnexpectedValueException(
+                    $dir.' exists and is not a directory.'
+                );
+            }
+            if (!@mkdir($dir, 0777, true)) {
+                throw new \UnexpectedValueException(
+                    $dir.' does not exist and could not be created.'
+                );
+            }
+        }
+
+        $retries = 3;
+        while ($retries--) {
+            try {
+                file_put_contents($path, $contents);
+                break;
+            } catch (\Exception $e) {
+                if ($retries) {
+                    usleep(500000);
+                    continue;
+                }
+
+                throw $e;
+            }
+        }
     }
 
     /**
