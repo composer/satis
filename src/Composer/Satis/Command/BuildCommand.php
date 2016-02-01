@@ -132,6 +132,16 @@ EOT
                 throw $e;
             }
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
+        } catch (ParsingException $e) {
+            if (!$skipErrors) {
+                throw $e;
+            }
+            $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
+        } catch (\UnexpectedValueException $e) {
+            if (!$skipErrors) {
+                throw $e;
+            }
+            $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
         }
 
         if ($repositoryUrl !== null && count($packagesFilter) > 0) {
