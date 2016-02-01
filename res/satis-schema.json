@@ -105,6 +105,10 @@
             "type": "boolean",
             "description": "If true, resolve and add all Dev dependencies of each required package."
         },
+        "include-filename": {
+            "type": "string",
+            "description": "Specify filename instead of default include/all${SHA1_HASH}.json"
+        },
         "output-dir": {
             "type": "string",
             "description": "The directory where the static Repository is built."

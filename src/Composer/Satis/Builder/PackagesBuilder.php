@@ -11,9 +11,9 @@
 
 namespace Composer\Satis\Builder;
 
-use Composer\Composer;
 use Composer\Json\JsonFile;
 use Composer\Package\Dumper\ArrayDumper;
+use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -23,11 +23,11 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class PackagesBuilder extends Builder implements BuilderInterface
 {
-    /** @var string prefix of included json files. */
-    private $filenamePrefix;
-
     /** @var string packages.json file name. */
     private $filename;
+
+    /** @var string included json filename template */
+    private $includeFileName;
 
     /**
      * Dedicated Packages Constructor.
@@ -41,8 +41,8 @@ class PackagesBuilder extends Builder implements BuilderInterface
     {
         parent::__construct($output, $outputDir, $config, $skipErrors);
 
-        $this->filenamePrefix = $this->outputDir.'/include/all';
         $this->filename = $this->outputDir.'/packages.json';
+        $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all${sha1}.json';
     }
 
     /**
@@ -52,13 +52,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
      */
     public function dump(array $packages)
     {
-        $packageFile = $this->dumpPackageIncludeJson($packages);
-        $packageFileHash = hash_file('sha1', $packageFile);
-
-        $includes = array(
-            'include/all$'.$packageFileHash.'.json' => array('sha1' => $packageFileHash),
-        );
-
+        $includes = $this->dumpPackageIncludeJson($packages);
         $this->dumpPackagesJson($includes);
     }
 
@@ -67,7 +61,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
      *
      * @param array $packages List of packages to dump
      *
-     * @return string $filenameWithHash Includes JSON file name
+     * @return array Definition of "includes" block for packages.json
      */
     private function dumpPackageIncludeJson(array $packages)
     {
@@ -76,14 +70,27 @@ class PackagesBuilder extends Builder implements BuilderInterface
         foreach ($packages as $package) {
             $repo['packages'][$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
-        $repoJson = new JsonFile($this->filenamePrefix);
-        $repoJson->write($repo);
-        $hash = hash_file('sha1', $this->filenamePrefix);
-        $filenameWithHash = $this->filenamePrefix.'$'.$hash.'.json';
-        rename($this->filenamePrefix, $filenameWithHash);
-        $this->output->writeln("<info>wrote packages json $filenameWithHash</info>");
 
-        return $filenameWithHash;
+        // dump to temporary file
+        $tempFilename = $this->outputDir.'/$include.json';
+        $repoJson = new JsonFile($tempFilename);
+        $repoJson->write($repo);
+
+        // rename file accordingly
+        $includeFileHash = hash_file('sha1', $tempFilename);
+        $includeFileName = str_replace(
+            '{sha1}', $includeFileHash, $this->includeFileName
+        );
+        $fs = new Filesystem();
+        $fs->ensureDirectoryExists(dirname($this->outputDir.'/'.$includeFileName));
+        $fs->rename($tempFilename, $this->outputDir.'/'.$includeFileName);
+        $this->output->writeln("<info>Wrote packages json $includeFileName</info>");
+
+        $includes = array(
+            $includeFileName => array('sha1' => $includeFileHash),
+        );
+
+        return $includes;
     }
 
     /**
