@@ -124,7 +124,20 @@ EOT
 
         try {
             $this->check($configFile);
-        } catch (\Exception $e) {
+        } catch (JsonValidationException $e) {
+            foreach ($e->getErrors() as $error) {
+                $output->writeln(sprintf('<error>%s</error>', $error));
+            }
+            if (!$skipErrors) {
+                throw $e;
+            }
+            $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
+        } catch (ParsingException $e) {
+            if (!$skipErrors) {
+                throw $e;
+            }
+            $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
+        } catch (\UnexpectedValueException $e) {
             if (!$skipErrors) {
                 throw $e;
             }
