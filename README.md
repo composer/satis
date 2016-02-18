@@ -15,8 +15,18 @@ Usage
 - Install satis: `php composer.phar create-project composer/satis --stability=dev --keep-vcs`
 - Build a repository: `php bin/satis build <configuration file> <build-dir>`
 
-Read the more detailed instructions in the 
+Read the more detailed instructions in the
 [documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
+
+Purge
+-----
+
+If you choose to archive packages in your server, you can have useless files.  
+With the `purge` command, you delete these files.
+
+    php bin/satis purge <composer.json> <build-dir>
+
+ > Note: be careful if you reference your archives in your lock file.
 
 Updating
 --------
