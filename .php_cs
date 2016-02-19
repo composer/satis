@@ -12,12 +12,11 @@ EOF;
 $finder = Symfony\CS\Finder::create()
     ->files()
     ->name('*.php')
-    ->exclude('Fixtures')
     ->in(__DIR__.'/src')
     ->in(__DIR__.'/tests')
 ;
 
-return Symfony\CS\Config::create()
+return Symfony\CS\Config::create('Satis', 'Satis style guide')
     ->setUsingCache(true)
     ->setRiskyAllowed(true)
     ->setRules(array(
