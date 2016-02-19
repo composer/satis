@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of composer/statis.
+ * This file is part of composer/satis.
  *
  * (c) Composer <https://github.com/composer>
  *
@@ -24,7 +24,7 @@ class Compiler
     /**
      * Compiles satis into a single phar file
      *
-     * @param  string $pharFile The full path to the file to create
+     * @param string $pharFile The full path to the file to create
      *
      * @throws \RuntimeException
      */
@@ -123,7 +123,7 @@ class Compiler
     /**
      * Removes whitespace from a PHP source string while preserving line numbers.
      *
-     * @param  string $source A PHP string
+     * @param string $source A PHP string
      *
      * @return string The PHP string with the whitespace removed
      */

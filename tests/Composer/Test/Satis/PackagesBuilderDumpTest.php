@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of composer/statis.
+ * This file is part of composer/satis.
  *
  * (c) Composer <https://github.com/composer>
  *
@@ -15,7 +15,6 @@ use Composer\Json\JsonFile;
 use Composer\Package\Package;
 use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamWrapper;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of composer/statis.
+ * This file is part of composer/satis.
  *
  * (c) Composer <https://github.com/composer>
  *
@@ -69,10 +69,10 @@ class PackageSelection
     /**
      * Base Constructor.
      *
-     * @param OutputInterface $output The output Interface
-     * @param string $outputDir The directory where to build
-     * @param array $config The parameters from ./satis.json
-     * @param bool $skipErrors Escapes Exceptions if true
+     * @param OutputInterface $output     The output Interface
+     * @param string          $outputDir  The directory where to build
+     * @param array           $config     The parameters from ./satis.json
+     * @param bool            $skipErrors Escapes Exceptions if true
      */
     public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {
@@ -141,7 +141,7 @@ class PackageSelection
      * Sets the list of packages to build.
      *
      * @param Composer $composer The Composer instance
-     * @param bool $verbose Output infos if true
+     * @param bool     $verbose  Output infos if true
      *
      * @throws \InvalidArgumentException
      *
@@ -328,9 +328,9 @@ class PackageSelection
      *
      * This method is called when 'require-all' is set to true.
      *
-     * @param array $repos List of all Repositories configured
+     * @param array  $repos            List of all Repositories configured
      * @param string $minimumStability The minimum stability each package must have to be selected
-     * @param bool $verbose Output infos if true
+     * @param bool   $verbose          Output infos if true
      *
      * @return Link[]
      */

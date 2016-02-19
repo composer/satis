@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of composer/statis.
+ * This file is part of composer/satis.
  *
  * (c) Composer <https://github.com/composer>
  *
@@ -30,8 +30,8 @@ class ArchiveBuilderHelper
     /**
      * Helper Constructor.
      *
-     * @param OutputInterface $output The output Interface.
-     * @param array $archiveConfig The 'archive' part of a configuration file.
+     * @param OutputInterface $output        The output Interface.
+     * @param array           $archiveConfig The 'archive' part of a configuration file.
      */
     public function __construct(OutputInterface $output, array $archiveConfig)
     {
@@ -45,7 +45,7 @@ class ArchiveBuilderHelper
     /**
      * Gets the directory where to dump archives.
      *
-     * @param  string $outputDir The directory where to build
+     * @param string $outputDir The directory where to build
      *
      * @return string $directory The directory where to dump archives
      */
@@ -63,7 +63,7 @@ class ArchiveBuilderHelper
     /**
      * Tells if a package has to be dumped or not.
      *
-     * @param  PackageInterface $package The package to be dumped
+     * @param PackageInterface $package The package to be dumped
      *
      * @return bool false if the package has to be dumped.
      */

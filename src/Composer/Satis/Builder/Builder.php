@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of composer/statis.
+ * This file is part of composer/satis.
  *
  * (c) Composer <https://github.com/composer>
  *
@@ -35,10 +35,10 @@ class Builder
     /**
      * Base Constructor.
      *
-     * @param OutputInterface $output The output Interface
-     * @param string $outputDir The directory where to build
-     * @param array $config The parameters from ./satis.json
-     * @param bool $skipErrors Skips Exceptions if true
+     * @param OutputInterface $output     The output Interface
+     * @param string          $outputDir  The directory where to build
+     * @param array           $config     The parameters from ./satis.json
+     * @param bool            $skipErrors Skips Exceptions if true
      */
     public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {

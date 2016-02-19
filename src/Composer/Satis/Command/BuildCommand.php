@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of composer/statis.
+ * This file is part of composer/satis.
  *
  * (c) Composer <https://github.com/composer>
  *
@@ -95,7 +95,7 @@ EOT
     }
 
     /**
-     * @param InputInterface $input The input instance
+     * @param InputInterface  $input  The input instance
      * @param OutputInterface $output The output instance
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -249,12 +249,12 @@ EOT
      * Validates the syntax and the schema of the current config json file
      * according to satis-schema.json rules.
      *
-     * @param  string $configFile      The json file to use
+     * @param string $configFile The json file to use
      *
      * @throws ParsingException        if the json file has an invalid syntax
      * @throws JsonValidationException if the json file doesn't match the schema
      *
-     * @return bool                    true on success
+     * @return bool true on success
      */
     private function check($configFile)
     {
