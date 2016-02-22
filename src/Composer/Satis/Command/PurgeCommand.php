@@ -97,7 +97,7 @@ EOT
         /**
          * Get vendor-package of archived files
          */
-        $regex = "/(.*)-(?:.*)-(?:.*)-(?:.*)/i";
+        $regex = "/^(.+)-(?:[^-]+)-(?:[^-]+)\.(?:.+)$/";
 
         foreach ($files as $file) {
             preg_match($regex, $file, $matches);
