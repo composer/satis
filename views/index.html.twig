@@ -44,7 +44,7 @@
                 <div id="package-list">
                 {% for name, package in packages %}
                     <div>
-                        <h3 id="{{ package.highest.name }}">{{ package.highest.name }}</h3>
+                        <h3 id="{{ package.highest.name }}">{{ package.highest.name }}<a href="#{{ package.highest.name }}"><small>¶</small></a></h3>
                         {% if package.abandoned %}
                             <p class="abandoned">
                                 Package {{ package.highest.name }} is abandoned, you should avoid using it.
