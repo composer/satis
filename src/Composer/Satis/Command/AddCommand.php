@@ -17,7 +17,7 @@ use Composer\Repository\VcsRepository;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
-use Composer\Command\Command;
+use Composer\Command\BaseCommand as Command;
 use Composer\Config;
 use Composer\Json\JsonFile;
 
