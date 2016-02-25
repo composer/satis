@@ -11,7 +11,7 @@
 
 namespace Composer\Satis\Command;
 
-use Composer\Command\Command;
+use Composer\Command\BaseCommand as Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;

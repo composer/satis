@@ -11,7 +11,7 @@
 
 namespace Composer\Satis\Command;
 
-use Composer\Command\Command;
+use Composer\Command\BaseCommand as Command;
 use Composer\Composer;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
