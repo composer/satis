@@ -11,13 +11,13 @@
 
 namespace Composer\Satis\Command;
 
-use Composer\Command\Command;
+use Composer\Command\BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Composer\Json\JsonFile;
 
-class PurgeCommand extends Command
+class PurgeCommand extends BaseCommand
 {
     protected function configure()
     {

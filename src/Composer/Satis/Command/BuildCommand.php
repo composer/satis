@@ -11,7 +11,7 @@
 
 namespace Composer\Satis\Command;
 
-use Composer\Command\Command;
+use Composer\Command\BaseCommand;
 use Composer\Composer;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
@@ -33,7 +33,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-class BuildCommand extends Command
+class BuildCommand extends BaseCommand
 {
     protected function configure()
     {
