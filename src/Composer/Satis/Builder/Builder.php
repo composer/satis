@@ -18,7 +18,7 @@ use Symfony\Component\Console\Output\OutputInterface;
  *
  * @author James Hautot <james@rezo.net>
  */
-class Builder
+abstract class Builder implements BuilderInterface
 {
     /** @var OutputInterface $output The output Interface. */
     protected $output;

@@ -20,7 +20,7 @@ use Composer\Util\Filesystem;
  *
  * @author James Hautot <james@rezo.net>
  */
-class ArchiveBuilder extends Builder implements BuilderInterface
+class ArchiveBuilder extends Builder
 {
     /** @var Composer A Composer instance. */
     private $composer;

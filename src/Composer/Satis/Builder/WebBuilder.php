@@ -20,7 +20,7 @@ use Composer\Package\RootPackageInterface;
  *
  * @author James Hautot <james@rezo.net>
  */
-class WebBuilder extends Builder implements BuilderInterface
+class WebBuilder extends Builder
 {
     /** @var RootPackageInterface Root package used to build the pages. */
     private $rootPackage;
