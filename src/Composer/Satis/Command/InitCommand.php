@@ -12,6 +12,7 @@
 namespace Composer\Satis\Command;
 
 use Symfony\Component\Console\Helper\DialogHelper;
+use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -52,6 +53,7 @@ EOT
      */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
+        /** @var FormatterHelper $formatter */
         $formatter = $this->getHelperSet()->get('formatter');
 
         $output->writeln(array(
@@ -77,6 +79,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
+        /** @var FormatterHelper $formatter */
         $formatter = $this->getHelperSet()->get('formatter');
 
         $configFile = $input->getArgument('file');

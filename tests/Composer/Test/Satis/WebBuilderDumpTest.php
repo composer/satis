@@ -16,6 +16,7 @@ use Composer\Package\Link;
 use Composer\Package\RootPackage;
 use Composer\Satis\Builder\WebBuilder;
 use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -24,10 +25,13 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var RootPackage */
     protected $rootPackage;
 
+    /** @var CompletePackage */
     protected $package;
 
+    /** @var vfsStreamDirectory */
     protected $root;
 
     protected function setUp()

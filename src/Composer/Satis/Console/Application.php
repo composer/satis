@@ -14,6 +14,7 @@ namespace Composer\Satis\Console;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
+use Composer\IO\IOInterface;
 use Composer\Satis\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;
@@ -26,7 +27,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Application extends BaseApplication
 {
+    /** @var IOInterface */
     protected $io;
+    /** @var Composer */
     protected $composer;
 
     public function __construct()
@@ -53,6 +56,10 @@ class Application extends BaseApplication
     }
 
     /**
+     * @param bool              $required Not used.
+     * @param array|string|null $config   either a configuration array or a filename to read from,
+     *                                    if null it will read from the default filename
+     *
      * @return Composer
      */
     public function getComposer($required = true, $config = null)

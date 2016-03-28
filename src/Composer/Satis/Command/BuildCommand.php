@@ -12,7 +12,6 @@
 namespace Composer\Satis\Command;
 
 use Composer\Command\BaseCommand;
-use Composer\Composer;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
 use Composer\Json\JsonFile;
@@ -20,6 +19,7 @@ use Composer\Json\JsonValidationException;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
+use Composer\Satis\Console\Application;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
@@ -97,6 +97,12 @@ EOT
     /**
      * @param InputInterface  $input  The input instance
      * @param OutputInterface $output The output instance
+     *
+     * @throws JsonValidationException
+     * @throws ParsingException
+     * @throws \Exception
+     *
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -161,7 +167,9 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside '.$input->getArgument('file'));
         }
 
-        $composer = $this->getApplication()->getComposer(true, $config);
+        /** @var $application Application */
+        $application = $this->getApplication();
+        $composer = $application->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
         if ($repositoryUrl !== null) {
@@ -198,6 +206,8 @@ EOT
             $web->setRootPackage($composer->getPackage());
             $web->dump($packages);
         }
+
+        return 0;
     }
 
     /**

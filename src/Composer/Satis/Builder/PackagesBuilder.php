@@ -46,9 +46,7 @@ class PackagesBuilder extends Builder implements BuilderInterface
     }
 
     /**
-     * Builds the JSON stuff of the repository.
-     *
-     * @param array $packages List of packages to dump
+     * {@inheritdoc}
      */
     public function dump(array $packages)
     {

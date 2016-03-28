@@ -15,6 +15,7 @@ use Composer\Json\JsonFile;
 use Composer\Package\Package;
 use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
+use org\bovigo\vfs\vfsStreamDirectory;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
@@ -22,8 +23,10 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var Package */
     protected $package;
 
+    /** @var vfsStreamDirectory */
     protected $root;
 
     protected function setUp()

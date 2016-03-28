@@ -26,9 +26,7 @@ class ArchiveBuilder extends Builder implements BuilderInterface
     private $composer;
 
     /**
-     * Builds the archives of the repository.
-     *
-     * @param array $packages List of packages to dump
+     * {@inheritdoc}
      */
     public function dump(array $packages)
     {
@@ -108,6 +106,8 @@ class ArchiveBuilder extends Builder implements BuilderInterface
      * Sets the Composer instance.
      *
      * @param Composer $composer A Composer instance
+     *
+     * @return $this
      */
     public function setComposer(Composer $composer)
     {

@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class WebBuilderTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var WebBuilder */
     protected $webBuilder;
 
     public function setUp()

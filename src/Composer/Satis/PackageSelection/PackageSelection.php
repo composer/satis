@@ -144,6 +144,7 @@ class PackageSelection
      * @param bool     $verbose  Output infos if true
      *
      * @throws \InvalidArgumentException
+     * @throws \Exception
      *
      * @return PackageInterface[]
      */
