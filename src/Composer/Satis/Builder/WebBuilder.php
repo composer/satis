@@ -28,17 +28,14 @@ class WebBuilder extends Builder
     /** @var PackageInterface[] List of calculated required packages. */
     private $dependencies;
 
+    /** @var \Twig_Environment */
+    private $twig;
+
     /**
      * {@inheritdoc}
      */
     public function dump(array $packages)
     {
-        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
-
-        $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
-        $loader = new \Twig_Loader_Filesystem($templateDir);
-        $twig = new \Twig_Environment($loader);
-
         $mappedPackages = $this->getMappedPackageList($packages);
 
         $name = $this->rootPackage->getPrettyName();
@@ -55,7 +52,7 @@ class WebBuilder extends Builder
 
         $this->output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render($twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig', array(
+        $content = $this->getTwigEnvironment()->render($this->getTwigTemplate(), array(
             'name' => $name,
             'url' => $this->rootPackage->getHomepage(),
             'description' => $this->rootPackage->getDescription(),
@@ -78,6 +75,52 @@ class WebBuilder extends Builder
         $this->rootPackage = $rootPackage;
 
         return $this;
+    }
+
+    /**
+     * Sets the twig environment.
+     *
+     * @param \Twig_Environment $twig
+     *
+     * @return $this
+     */
+    public function setTwigEnvironment(\Twig_Environment $twig)
+    {
+        $this->twig = $twig;
+
+        return $this;
+    }
+
+    /**
+     * Gets the twig environment.
+     *
+     * Creates default if needed.
+     * 
+     * @return \Twig_Environment
+     */
+    private function getTwigEnvironment()
+    {
+        if (null === $this->twig) {
+            $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+
+            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
+            $loader = new \Twig_Loader_Filesystem($templateDir);
+            $this->twig = new \Twig_Environment($loader);
+        }
+
+        return $this->twig;
+    }
+
+    /**
+     * Gets the twig template name.
+     *
+     * @return string
+     */
+    private function getTwigTemplate()
+    {
+        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+
+        return $twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig';
     }
 
     /**
