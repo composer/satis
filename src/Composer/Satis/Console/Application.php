@@ -43,8 +43,6 @@ class Application extends BaseApplication
      */
     public function doRun(InputInterface $input, OutputInterface $output)
     {
-        $this->registerCommands();
-
         $styles = Factory::createAdditionalStyles();
         foreach ($styles as $name => $style) {
             $output->getFormatter()->setStyle($name, $style);
@@ -77,13 +75,17 @@ class Application extends BaseApplication
     }
 
     /**
-     * Initializes all the composer commands
+     * {@inheritdoc}
      */
-    protected function registerCommands()
+    protected function getDefaultCommands()
     {
-        $this->add(new Command\InitCommand());
-        $this->add(new Command\AddCommand());
-        $this->add(new Command\BuildCommand());
-        $this->add(new Command\PurgeCommand());
+        $commands = array_merge(parent::getDefaultCommands(), array(
+            new Command\InitCommand(),
+            new Command\AddCommand(),
+            new Command\BuildCommand(),
+            new Command\PurgeCommand(),
+        ));
+
+        return $commands;
     }
 }
