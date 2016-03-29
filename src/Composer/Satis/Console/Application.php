@@ -35,7 +35,6 @@ class Application extends BaseApplication
     public function __construct()
     {
         parent::__construct('Satis', Satis::VERSION);
-        ErrorHandler::register();
     }
 
     /**
@@ -49,6 +48,7 @@ class Application extends BaseApplication
         }
 
         $this->io = new ConsoleIO($input, $output, $this->getHelperSet());
+        ErrorHandler::register($this->io);
 
         return parent::doRun($input, $output);
     }
