@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class WebBuilderTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var WebBuilder */
     protected $webBuilder;
 
     public function setUp()
@@ -49,6 +50,49 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
         );
 
         return $data;
+    }
+
+    public function testTwigEnvironment()
+    {
+        $twig = new \Twig_Environment(new \Twig_Loader_Array(array()));
+        $this->webBuilder->setTwigEnvironment($twig);
+
+        $reflection = new \ReflectionClass($this->webBuilder);
+        $method = $reflection->getMethod('getTwigEnvironment');
+        $method->setAccessible(true);
+
+        $this->assertSame($twig, $method->invoke($this->webBuilder));
+    }
+
+    public function testTwigEnvironmentDefault()
+    {
+        $reflection = new \ReflectionClass($this->webBuilder);
+        $method = $reflection->getMethod('getTwigEnvironment');
+        $method->setAccessible(true);
+
+        $this->assertInstanceOf('\Twig_Environment', $method->invoke($this->webBuilder));
+    }
+
+    public function testTwigTemplate()
+    {
+        $config = array(
+            'twig-template' => 'foo.twig',
+        );
+        $this->webBuilder = new WebBuilder(new NullOutput(), 'build', $config, false);
+        $reflection = new \ReflectionClass($this->webBuilder);
+        $method = $reflection->getMethod('getTwigTemplate');
+        $method->setAccessible(true);
+
+        $this->assertSame('foo.twig', $method->invoke($this->webBuilder));
+    }
+
+    public function testTwigTemplateDefault()
+    {
+        $reflection = new \ReflectionClass($this->webBuilder);
+        $method = $reflection->getMethod('getTwigTemplate');
+        $method->setAccessible(true);
+
+        $this->assertSame('index.html.twig', $method->invoke($this->webBuilder));
     }
 
     /**

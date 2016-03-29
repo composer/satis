@@ -110,5 +110,7 @@ EOT
         }
 
         $output->writeln("<info>Purge :: finished</info>");
+
+        return 0;
     }
 }

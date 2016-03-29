@@ -21,6 +21,7 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class ArchiveBuilderHelperTest extends \PHPUnit_Framework_TestCase
 {
+    /** @var NullOutput */
     protected $output;
 
     public function setUp()

@@ -11,7 +11,7 @@
 
 namespace Composer\Satis\Command;
 
-use Symfony\Component\Console\Helper\DialogHelper;
+use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -19,6 +19,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Composer\Command\BaseCommand;
 use Composer\Config;
 use Composer\Json\JsonFile;
+use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Question\Question;
 
 /**
  * @author Sergey Kolodyazhnyy <sergey.kolodyazhnyy@gmail.com>
@@ -52,7 +54,8 @@ EOT
      */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
-        $formatter = $this->getHelperSet()->get('formatter');
+        /** @var FormatterHelper $formatter */
+        $formatter = $this->getHelper('formatter');
 
         $output->writeln(array(
             '',
@@ -77,7 +80,8 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $formatter = $this->getHelperSet()->get('formatter');
+        /** @var FormatterHelper $formatter */
+        $formatter = $this->getHelper('formatter');
 
         $configFile = $input->getArgument('file');
 
@@ -125,60 +129,58 @@ EOT
      */
     protected function interact(InputInterface $input, OutputInterface $output)
     {
-        /** @var DialogHelper $dialog */
-        $dialog = $this->getHelperSet()->get('dialog');
-
-        $name = $input->getOption('name');
-        $name = $dialog->askAndValidate(
-            $output,
-            $this->getQuestion('Repository name', $name),
-            function ($value) use ($name) {
-                if (null === $value) {
-                    $value = $name;
-                }
-
-                if (!$value) {
-                    throw new \InvalidArgumentException("Repository name should not be empty");
-                }
-
-
-                return $value;
+        $this->prompt($input, $output, 'Repository name', 'name', function ($value) {
+            if (!$value) {
+                throw new \InvalidArgumentException('Repository name should not be empty');
             }
-        );
-        $input->setOption('name', $name);
 
-        $homepage = $input->getOption('homepage');
-        $homepage = $dialog->askAndValidate(
-            $output,
-            $this->getQuestion('Home page', $homepage),
-            function ($value) use ($homepage) {
-                if (null === $value) {
-                    $value = $homepage;
-                }
+            return $value;
+        });
 
-                if (!preg_match('/https?:\/\/.+/', $value)) {
-                    throw new \InvalidArgumentException(
-                        "Enter a valid URL it will be used for building your repository"
-                    );
-                }
-
-                return $value;
+        $this->prompt($input, $output, 'Home page', 'homepage', function ($value) {
+            if (!preg_match('/https?:\/\/.+/', $value)) {
+                throw new \InvalidArgumentException(
+                    'Enter a valid URL it will be used for building your repository'
+                );
             }
-        );
 
-        $input->setOption('homepage', $homepage);
+            return $value;
+        });
+    }
+
+    /**
+     * Prompt for an input option.
+     *
+     * @param InputInterface  $input
+     * @param OutputInterface $output
+     * @param string          $prompt
+     * @param string          $optionName For the default value and where the answer is set
+     * @param callable        $validator
+     */
+    protected function prompt(InputInterface $input, OutputInterface $output, $prompt, $optionName, $validator)
+    {
+        /** @var QuestionHelper $helper */
+        $helper = $this->getHelper('question');
+
+        $question = $this->getQuestion($prompt, $input->getOption($optionName));
+        $question->setValidator($validator);
+
+        $input->setOption($optionName, $helper->ask($input, $output, $question));
     }
 
     /**
      * Build a question
      *
-     * @param $question
-     * @param $default
-     * @return string
+     * @param string $prompt
+     * @param string $default
+     *
+     * @return Question
      */
-    protected function getQuestion($question, $default)
+    protected function getQuestion($prompt, $default)
     {
-        return ($default ? sprintf("%s (%s)", $question, $default) : $question) . ": ";
+        $prompt = ($default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
+
+        return new Question($prompt, $default);
     }
 
 }

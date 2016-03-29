@@ -14,6 +14,7 @@ namespace Composer\Satis\Console;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
+use Composer\IO\IOInterface;
 use Composer\Satis\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;
@@ -26,13 +27,14 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Application extends BaseApplication
 {
+    /** @var IOInterface */
     protected $io;
+    /** @var Composer */
     protected $composer;
 
     public function __construct()
     {
         parent::__construct('Satis', Satis::VERSION);
-        ErrorHandler::register();
     }
 
     /**
@@ -40,19 +42,22 @@ class Application extends BaseApplication
      */
     public function doRun(InputInterface $input, OutputInterface $output)
     {
-        $this->registerCommands();
-
         $styles = Factory::createAdditionalStyles();
         foreach ($styles as $name => $style) {
             $output->getFormatter()->setStyle($name, $style);
         }
 
         $this->io = new ConsoleIO($input, $output, $this->getHelperSet());
+        ErrorHandler::register($this->io);
 
         return parent::doRun($input, $output);
     }
 
     /**
+     * @param bool              $required Not used.
+     * @param array|string|null $config   either a configuration array or a filename to read from,
+     *                                    if null it will read from the default filename
+     *
      * @return Composer
      */
     public function getComposer($required = true, $config = null)
@@ -70,13 +75,17 @@ class Application extends BaseApplication
     }
 
     /**
-     * Initializes all the composer commands
+     * {@inheritdoc}
      */
-    protected function registerCommands()
+    protected function getDefaultCommands()
     {
-        $this->add(new Command\InitCommand());
-        $this->add(new Command\AddCommand());
-        $this->add(new Command\BuildCommand());
-        $this->add(new Command\PurgeCommand());
+        $commands = array_merge(parent::getDefaultCommands(), array(
+            new Command\InitCommand(),
+            new Command\AddCommand(),
+            new Command\BuildCommand(),
+            new Command\PurgeCommand(),
+        ));
+
+        return $commands;
     }
 }

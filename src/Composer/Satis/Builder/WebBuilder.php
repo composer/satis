@@ -11,34 +11,31 @@
 
 namespace Composer\Satis\Builder;
 
+use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
+use Composer\Package\RootPackageInterface;
 
 /**
  * Build the web pages.
  *
  * @author James Hautot <james@rezo.net>
  */
-class WebBuilder extends Builder implements BuilderInterface
+class WebBuilder extends Builder
 {
-    /** @var PackageInterface Main datas to build the pages. */
+    /** @var RootPackageInterface Root package used to build the pages. */
     private $rootPackage;
 
-    /** @var array List of calculated required packages. */
+    /** @var PackageInterface[] List of calculated required packages. */
     private $dependencies;
 
+    /** @var \Twig_Environment */
+    private $twig;
+
     /**
-     * Build the web pages.
-     *
-     * @param array $packages List of packages to dump
+     * {@inheritdoc}
      */
     public function dump(array $packages)
     {
-        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
-
-        $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
-        $loader = new \Twig_Loader_Filesystem($templateDir);
-        $twig = new \Twig_Environment($loader);
-
         $mappedPackages = $this->getMappedPackageList($packages);
 
         $name = $this->rootPackage->getPrettyName();
@@ -55,7 +52,7 @@ class WebBuilder extends Builder implements BuilderInterface
 
         $this->output->writeln('<info>Writing web view</info>');
 
-        $content = $twig->render($twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig', array(
+        $content = $this->getTwigEnvironment()->render($this->getTwigTemplate(), array(
             'name' => $name,
             'url' => $this->rootPackage->getHomepage(),
             'description' => $this->rootPackage->getDescription(),
@@ -67,11 +64,13 @@ class WebBuilder extends Builder implements BuilderInterface
     }
 
     /**
-     * Defines de main datas of the repository.
+     * Defines the root package of the repository.
      *
-     * @param PackageInterface $rootPackage [description]
+     * @param RootPackageInterface $rootPackage The root package
+     *
+     * @return $this
      */
-    public function setRootPackage(PackageInterface $rootPackage)
+    public function setRootPackage(RootPackageInterface $rootPackage)
     {
         $this->rootPackage = $rootPackage;
 
@@ -79,9 +78,57 @@ class WebBuilder extends Builder implements BuilderInterface
     }
 
     /**
+     * Sets the twig environment.
+     *
+     * @param \Twig_Environment $twig
+     *
+     * @return $this
+     */
+    public function setTwigEnvironment(\Twig_Environment $twig)
+    {
+        $this->twig = $twig;
+
+        return $this;
+    }
+
+    /**
+     * Gets the twig environment.
+     *
+     * Creates default if needed.
+     * 
+     * @return \Twig_Environment
+     */
+    private function getTwigEnvironment()
+    {
+        if (null === $this->twig) {
+            $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+
+            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
+            $loader = new \Twig_Loader_Filesystem($templateDir);
+            $this->twig = new \Twig_Environment($loader);
+        }
+
+        return $this->twig;
+    }
+
+    /**
+     * Gets the twig template name.
+     *
+     * @return string
+     */
+    private function getTwigTemplate()
+    {
+        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+
+        return $twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig';
+    }
+
+    /**
      * Defines the required packages.
      *
-     * @param array $packages List of packages to dump
+     * @param PackageInterface[] $packages List of packages to dump
+     *
+     * @return $this
      */
     private function setDependencies(array $packages)
     {
@@ -100,7 +147,7 @@ class WebBuilder extends Builder implements BuilderInterface
     /**
      * Gets a list of packages grouped by name with a list of versions.
      *
-     * @param array $packages List of packages to dump
+     * @param PackageInterface[] $packages List of packages to dump
      *
      * @return array Grouped list of packages with versions
      */
@@ -114,8 +161,8 @@ class WebBuilder extends Builder implements BuilderInterface
 
             $mappedPackages[$name] = array(
                 'highest' => $highest,
-                'abandoned' => $highest->isAbandoned(),
-                'replacement' => $highest->getReplacementPackage(),
+                'abandoned' => $highest instanceof CompletePackageInterface ? $highest->isAbandoned() : false,
+                'replacement' => $highest instanceof CompletePackageInterface ? $highest->getReplacementPackage() : null,
                 'versions' => $this->getDescSortedVersions($packages),
             );
         }
@@ -126,7 +173,7 @@ class WebBuilder extends Builder implements BuilderInterface
     /**
      * Gets a list of packages grouped by name.
      *
-     * @param array $packages List of packages to dump
+     * @param PackageInterface[] $packages List of packages to dump
      *
      * @return array List of packages grouped by name
      */
@@ -143,12 +190,13 @@ class WebBuilder extends Builder implements BuilderInterface
     /**
      * Gets the highest version of packages.
      *
-     * @param array $packages List of packages to dump
+     * @param PackageInterface[] $packages List of packages to dump
      *
-     * @return string The highest version of a package
+     * @return PackageInterface The package with the highest version
      */
     private function getHighestVersion(array $packages)
     {
+        /** @var $highestVersion PackageInterface|null */
         $highestVersion = null;
         foreach ($packages as $package) {
             if (null === $highestVersion || version_compare($package->getVersion(), $highestVersion->getVersion(), '>=')) {
@@ -162,13 +210,13 @@ class WebBuilder extends Builder implements BuilderInterface
     /**
      * Sorts by version the list of packages.
      *
-     * @param array $packages List of packages to dump
+     * @param PackageInterface[] $packages List of packages to dump
      *
-     * @return array Sorted list of packages by version
+     * @return PackageInterface[] Sorted list of packages by version
      */
     private function getDescSortedVersions(array $packages)
     {
-        usort($packages, function ($a, $b) {
+        usort($packages, function (PackageInterface $a, PackageInterface $b) {
             return version_compare($b->getVersion(), $a->getVersion());
         });
 

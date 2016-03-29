@@ -99,7 +99,7 @@ class Compiler
         unset($phar);
     }
 
-    private function addFile($phar, $file, $strip = true)
+    private function addFile(\Phar $phar, \SplFileInfo $file, $strip = true)
     {
         $path = str_replace(dirname(dirname(dirname(__DIR__))).DIRECTORY_SEPARATOR, '', $file->getRealPath());
 
@@ -113,7 +113,7 @@ class Compiler
         $phar->addFromString($path, $content);
     }
 
-    private function addSatisBin($phar)
+    private function addSatisBin(\Phar $phar)
     {
         $content = file_get_contents(__DIR__.'/../../../bin/satis');
         $content = preg_replace('{^#!/usr/bin/env php\s*}', '', $content);

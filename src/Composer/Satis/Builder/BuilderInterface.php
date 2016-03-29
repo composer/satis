@@ -11,6 +11,8 @@
 
 namespace Composer\Satis\Builder;
 
+use Composer\Package\PackageInterface;
+
 /**
  * Builder interface.
  *
@@ -19,9 +21,9 @@ namespace Composer\Satis\Builder;
 interface BuilderInterface
 {
     /**
-     * Write the build result in a fylesystem.
+     * Dumps the given packages.
      *
-     * @param array $packages List of packages to dump
+     * @param PackageInterface[] $packages List of packages to dump
      */
     public function dump(array $packages);
 }
