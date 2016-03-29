@@ -54,7 +54,7 @@ EOT
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         /** @var FormatterHelper $formatter */
-        $formatter = $this->getHelperSet()->get('formatter');
+        $formatter = $this->getHelper('formatter');
 
         $output->writeln(array(
             '',
@@ -80,7 +80,7 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var FormatterHelper $formatter */
-        $formatter = $this->getHelperSet()->get('formatter');
+        $formatter = $this->getHelper('formatter');
 
         $configFile = $input->getArgument('file');
 
@@ -129,7 +129,7 @@ EOT
     protected function interact(InputInterface $input, OutputInterface $output)
     {
         /** @var DialogHelper $dialog */
-        $dialog = $this->getHelperSet()->get('dialog');
+        $dialog = $this->getHelper('dialog');
 
         $name = $input->getOption('name');
         $name = $dialog->askAndValidate(

@@ -53,7 +53,7 @@ EOT
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         /** @var FormatterHelper $formatter */
-        $formatter = $this->getHelperSet()->get('formatter');
+        $formatter = $this->getHelper('formatter');
 
         $configFile = $input->getArgument('file');
         $repositoryUrl = $input->getArgument('url');
