@@ -95,7 +95,7 @@
                         "format": "uri"
                     },
                     "branches-path" : {
-                        "type": ["string","array"],
+                        "type": ["string","array","boolean"],
                         "description": "Single or array of relative paths to the Repository's Branches directories.",
                         "items": {
                             "type": "string",
@@ -107,7 +107,7 @@
                         "description": "Relative path to the Repository's Trunk directory."
                     },
                     "tags-path" : {
-                        "type": ["string","array"],
+                        "type": ["string","array","boolean"],
                         "description": "Single or array of relative paths to the Repository's Tags directories.",
                         "items": {
                             "type": "string",
