@@ -78,7 +78,44 @@
         "repositories": {
             "type": ["object", "array"],
             "description": "A set of additional repositories where packages can be found.",
-            "additionalProperties": true
+            "additionalProperties": true,
+            "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["type","url"],
+                "properties": {
+                    "type" : {
+                        "type": "string",
+                        "description": "Version control system type",
+                        "enum": ["vcs","svn","git","hg"]
+                    },
+                    "url" : {
+                        "type": "string",
+                        "description": "URL for the Repository.",
+                        "format": "uri"
+                    },
+                    "branches-path" : {
+                        "type": ["string","array"],
+                        "description": "Single or array of relative paths to the Repository's Branches directories.",
+                        "items": {
+                            "type": "string",
+                            "additionalProperties": false
+                        }
+                    },
+                    "trunk-path" : {
+                        "type": "string",
+                        "description": "Relative path to the Repository's Trunk directory."
+                    },
+                    "tags-path" : {
+                        "type": ["string","array"],
+                        "description": "Single or array of relative paths to the Repository's Tags directories.",
+                        "items": {
+                            "type": "string",
+                            "additionalProperties": false
+                        }
+                    }
+                }
+            }
         },
         "minimum-stability": {
             "type": ["string"],
