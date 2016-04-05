@@ -5,4 +5,5 @@
 /vendor
 phpunit.xml
 composer.phar
+composer.lock
 satis.phar
