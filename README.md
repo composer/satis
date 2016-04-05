@@ -44,7 +44,7 @@ Fork the project, create a feature branch, and send us a pull request.
 Requirements
 ------------
 
-PHP 5.3+
+PHP 5.5+
 
 Authors
 -------
