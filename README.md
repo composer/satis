@@ -11,7 +11,7 @@ to their version constraints) packages into a Composer Repository file.
 Usage
 -----
 
-- Download [Composer](https://getcomposer.org/download/): `curl -sS https://getcomposer.org/installer | php`
+- Download [Composer](https://getcomposer.org/download/): `curl -sS https://getcomposer.org/composer.phar -o composer.phar`
 - Install satis: `php composer.phar create-project composer/satis --stability=dev --keep-vcs`
 - Build a repository: `php bin/satis build <configuration file> <build-dir>`
 
