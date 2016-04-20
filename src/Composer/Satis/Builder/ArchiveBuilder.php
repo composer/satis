@@ -74,8 +74,6 @@ class ArchiveBuilder extends Builder
                 }
             }
 
-            $this->composer->setDownloadManager($this->composer->getDownloadManager());
-
             $progressBar = new ProgressBar($this->output, $packageCount);
             $progressBar->setFormat(
                 ' %current%/%max% [%bar%] %percent:3s%% - '
