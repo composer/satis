@@ -47,6 +47,7 @@ class BuildCommand extends BaseCommand
                 new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
+                new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
             ))
             ->setHelp(<<<EOT
 The <info>build</info> command reads the given json file
@@ -183,6 +184,7 @@ EOT
         if (isset($config['archive']['directory'])) {
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
             $downloads->setComposer($composer);
+            $downloads->setInput($input);
             $downloads->dump($packages);
         }
 

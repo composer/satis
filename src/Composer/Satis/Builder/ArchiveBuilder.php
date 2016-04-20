@@ -14,6 +14,9 @@ namespace Composer\Satis\Builder;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\Util\Filesystem;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Builds the archives of the repository.
@@ -24,6 +27,9 @@ class ArchiveBuilder extends Builder
 {
     /** @var Composer A Composer instance. */
     private $composer;
+
+    /** @var InputInterface */
+    private $input;
 
     /**
      * {@inheritdoc}
@@ -53,15 +59,55 @@ class ArchiveBuilder extends Builder
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
+
+        $progressBar = null;
+        $hasStarted = false;
+        $verbosity = $this->output->getVerbosity();
+        $isStats = $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
+
+        if ($isStats) {
+            $packageCount = 0;
+
+            foreach ($packages as $package) {
+                if (!$helper->isSkippable($package)) {
+                    ++$packageCount;
+                }
+            }
+
+            $this->composer->setDownloadManager($this->composer->getDownloadManager());
+
+            $progressBar = new ProgressBar($this->output, $packageCount);
+            $progressBar->setFormat(
+                ' %current%/%max% [%bar%] %percent:3s%% - '
+                . "Installing %packageName% (%packageVersion%)"
+            );
+        }
+
         /* @var \Composer\Package\CompletePackage $package */
         foreach ($packages as $package) {
             if ($helper->isSkippable($package)) {
                 continue;
             }
 
-            $this->output->writeln(sprintf("<info>Dumping '%s'.</info>", $package->getName()));
+            if ($isStats) {
+                $progressBar->setMessage($package->getName(), 'packageName');
+                $progressBar->setMessage($package->getPrettyVersion(), 'packageVersion');
+
+                if (!$hasStarted) {
+                    $progressBar->start();
+                    $hasStarted = true;
+                } else {
+                    $progressBar->display();
+                }
+            } else {
+                $this->output->writeln(sprintf("<info>Dumping '%s'.</info>", $package->getName()));
+            }
 
             try {
+                if ($isStats) {
+                    $this->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
+                }
+
                 if ('pear-library' === $package->getType()) {
                     // PEAR packages are archives already
                     $filesystem = new Filesystem();
@@ -72,7 +118,9 @@ class ArchiveBuilder extends Builder
                     if (!file_exists($path)) {
                         $downloadDir = sys_get_temp_dir().'/composer_archiver/'.$packageName;
                         $filesystem->ensureDirectoryExists($downloadDir);
+
                         $downloadManager->download($package, $downloadDir, false);
+
                         $filesystem->ensureDirectoryExists($directory);
                         $filesystem->rename($downloadDir.'/'.pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
                         $filesystem->removeDirectory($downloadDir);
@@ -93,12 +141,29 @@ class ArchiveBuilder extends Builder
                 }
 
                 $package->setDistReference($package->getSourceReference());
+
+                if ($isStats) {
+                    $this->output->setVerbosity($verbosity);
+                }
             } catch (\Exception $exception) {
+                if ($isStats) {
+                    $this->output->setVerbosity($verbosity);
+                }
+
                 if (!$this->skipErrors) {
                     throw $exception;
                 }
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
+
+            if ($isStats) {
+                $progressBar->advance();
+            }
+        }
+
+        if ($isStats) {
+            $progressBar->clear();
+            $this->output->writeln('');
         }
     }
 
@@ -112,6 +177,18 @@ class ArchiveBuilder extends Builder
     public function setComposer(Composer $composer)
     {
         $this->composer = $composer;
+
+        return $this;
+    }
+
+    /**
+     * @param InputInterface $input
+     *
+     * @return $this;
+     */
+    public function setInput(InputInterface $input)
+    {
+        $this->input = $input;
 
         return $this;
     }
