@@ -117,6 +117,10 @@
             "type": "boolean",
             "description": "If true, build a static web page."
         },
+        "providers": {
+            "type": "boolean",
+            "description": "If true, dump package providers."
+        },
         "twig-template": {
             "type": "string",
             "description": "Path to a template for the static web page."

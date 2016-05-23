@@ -66,6 +66,9 @@ class PackageSelection
     /** @var array A list of packages marked as abandoned */
     private $abandoned = array();
 
+    /** @var  string The homepage - needed to get the relative paths of the providers */
+    private $homepage;
+
     /**
      * Base Constructor.
      *
@@ -95,6 +98,7 @@ class PackageSelection
 
         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
         $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
+        $this->homepage = isset($config['homepage']) ? $config['homepage'] : null;
     }
 
     /**
@@ -248,10 +252,22 @@ class PackageSelection
 
         if ($repoJson->exists()) {
             $loader = new ArrayLoader();
-            $jsonIncludes = $repoJson->read();
-            $jsonIncludes = isset($jsonIncludes['includes']) && is_array($jsonIncludes['includes'])
-                ? $jsonIncludes['includes']
+            $packagesJson = $repoJson->read();
+            $jsonIncludes = isset($packagesJson['includes']) && is_array($packagesJson['includes'])
+                ? $packagesJson['includes']
                 : array();
+
+            if (isset($packagesJson['providers']) && is_array($packagesJson['providers']) && isset($packagesJson['providers-url'])) {
+                $baseUrl = $this->homepage ? parse_url(rtrim($this->homepage, '/'), PHP_URL_PATH) . '/' : null;
+                $baseUrlLength = strlen($baseUrl);
+                foreach ($packagesJson['providers'] as $packageName => $provider) {
+                    $file = str_replace(array('%package%', '%hash%'), array($packageName, $provider['sha256']), $packagesJson['providers-url']);
+                    if ($baseUrl && substr($file, 0, $baseUrlLength) === $baseUrl) {
+                        $file = substr($file, $baseUrlLength);
+                    }
+                    $jsonIncludes[$file] = $provider;
+                }
+            }
 
             foreach ($jsonIncludes as $includeFile => $includeConfig) {
                 $includeJson = new JsonFile($dirName.'/'.$includeFile);
