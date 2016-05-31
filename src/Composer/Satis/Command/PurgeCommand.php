@@ -78,13 +78,27 @@ EOT
         $file = file_get_contents(key($files));
         $json = json_decode($file, true);
 
+        $prefix = $config['archive']['directory'] . '/';
+        if (isset($config['archive']['prefix-url'])) {
+            $prefix = $config['archive']['prefix-url'] . '/' . $prefix;
+        }
+        $length = strlen($prefix);
+
         $needed = null;
-        foreach ($json['packages'] as $key => $value) {
-            $needed[] = str_replace("/", "-", $key);
+        foreach ($json['packages'] as $package) {
+            foreach ($package as $version) {
+                if (!isset($version['dist']['url'])) {
+                    continue;
+                }
+                $url = $version['dist']['url'];
+                if (substr($url, 0, $length) === $prefix) {
+                    $needed[] = substr($url, $length);
+                }
+            }
         }
 
         /**
-         * Packages in output-dir
+         * Regular files in output-dir
          */
         $files = scandir($outputDir."/".$config['archive']['directory'], 1);
 
@@ -94,19 +108,20 @@ EOT
             return 1;
         }
 
+        $unreferenced = array_diff($files, $needed);
+
         /**
-         * Get vendor-package of archived files
+         * Removed unreferenced files
          */
-        $regex = "/^(.+)-(?:[^-]+)-(?:[^-]+)\.(?:.+)$/";
-
-        foreach ($files as $file) {
-            preg_match($regex, $file, $matches);
-
-            if (isset($matches[1]) && !in_array($matches[1], $needed)) {
-                $output->writeln("<info>".$matches[1]." :: deleted</info>");
-
-                unlink($outputDir."/".$config['archive']['directory']."/".$file);
+        foreach ($unreferenced as $file) {
+            $path = $outputDir."/".$config['archive']['directory']."/".$file;
+            if (!is_file($path)) {
+                continue;
             }
+
+            $output->writeln("<info>".$file." :: deleted</info>");
+
+            unlink($path);
         }
 
         $output->writeln("<info>Purge :: finished</info>");
