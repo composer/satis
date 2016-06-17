@@ -84,7 +84,7 @@ EOT
         }
         $length = strlen($prefix);
 
-        $needed = null;
+        $needed = array();
         foreach ($json['packages'] as $package) {
             foreach ($package as $version) {
                 if (!isset($version['dist']['url'])) {
