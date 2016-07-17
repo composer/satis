@@ -28,3 +28,6 @@ input#search { font-size: 20px; margin: 5px 0; padding: 4px 5px; width: 100%; bo
 #lastupdate { text-align: right; }
 #lastupdate time { font-weight: bold; }
 .abandoned { border: 1px solid #800; background: #fee; text-align: center; padding: 5px; margin: 20px 0; -webkit-border-radius: 3px; -moz-border-radius: 3px; border-radius: 3px; }
+.package-title .anchor { display: inline-block; padding-right: 2px; margin-left: -18px; }
+.package-title .anchor .octicon-link { vertical-align: middle; visibility: hidden; }
+.package-title:hover .anchor .octicon-link { visibility: visible; }
