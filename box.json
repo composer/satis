@@ -25,6 +25,9 @@
     },{
         "name": "composer-schema.json",
         "in": "vendor/composer/composer"
+    },{
+        "name": "cacert.pem",
+        "in": "vendor/composer/ca-bundle"
     }],
     "compression" : "GZ",
     "compactors": [
