@@ -24,7 +24,7 @@ Purge
 If you choose to archive packages in your server, you can have useless files.  
 With the `purge` command, you delete these files.
 
-    php bin/satis purge <composer.json> <build-dir>
+    php bin/satis purge <satis.json> <build-dir>
 
  > Note: be careful if you reference your archives in your lock file.
 
