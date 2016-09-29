@@ -44,7 +44,7 @@ class PackagesBuilder extends Builder
         parent::__construct($output, $outputDir, $config, $skipErrors);
 
         $this->filename = $this->outputDir.'/packages.json';
-        $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all${sha1}.json';
+        $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all$%hash%.json';
     }
 
     /**
@@ -82,7 +82,7 @@ class PackagesBuilder extends Builder
                 $repo['providers'][$packageName] = current($includes);
             }
         } else {
-            $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, 'include/all$%hash%.json');
+            $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, $this->includeFileName);
         }
 
         $this->dumpPackagesJson($repo);
