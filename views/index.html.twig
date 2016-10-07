@@ -1,183 +1,118 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow" />
-    <title>{{ name }} Composer Repository</title>
+
+    <title>{{ name }} Composer repository</title>
+
     <style type="text/css">
-    {% include 'styles.css' %}
+        {% include 'assets/bootstrap.min.css' %}
     </style>
 </head>
+
 <body>
 
-    <div id="doc" class="yui-t7">
-        <div id="hd">
-            <h1>
-                {% if name %}
-                    {{ name }}
-                {% else %}
-                    The Composer Repository
-                {% endif %}
-            </h1>
-            {% if description %}
-                <p>{{ description|raw }}</p>
-            {% endif %}
-            <div id="lastupdate">
-                Last updated: <time datetime="{{ "now"|date(constant('\DateTime::ISO8601')) }}">{{ "now"|date(constant('\DateTime::RSS')) }}</time>
+<nav class="navbar navbar-default">
+    <div class="container">
+        <form class="navbar-form navbar-right">
+            <div class="form-group">
+                <label for="search">Filter:</label>
+                <input type="text" id="search" class="form-control" autocomplete="off" autofocus />
             </div>
-        </div>
-        <div id="bd">
-            <div class="yui-g">
-                Adding the repository to <em>composer.json</em>:
-                <pre><code>{
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+
+    <div class="page-header">
+        <h1>
+            {% if name %}{{ name }}{% else %}Composer repository{% endif %}
+        </h1>
+
+        <small id="lastupdate">
+            Last updated: <time datetime="{{ "now"|date(constant('\DateTime::ISO8601')) }}">{{ "now"|date(constant('\DateTime::RSS')) }}</time>
+        </small>
+
+        {% if description %}<p>{{ description|raw }}</p>{% endif %}
+    </div>
+
+    <p>Add this Satis repository to your <kbd>composer.json</kbd>:</p>
+        <pre><code>{
     "repositories": [
-        {
-            "type": "composer",
-            "url": "{{ url }}"
-        }
+        { "type": "composer", "url": "{{ url }}" }
     ]
 }</code></pre>
 
-                Filter by package name:
-                <input type="text" id="search" autocomplete="off" autofocus />
-
-                <div id="package-list">
-                {% for name, package in packages %}
-                    <div>
-                        <h3 id="{{ package.highest.name }}" class="package-title"><a href="#{{ package.highest.name }}" class="anchor"><svg class="octicon-link" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>{{ package.highest.name }}</h3>
-                        {% if package.abandoned %}
-                            <p class="abandoned">
-                                Package {{ package.highest.name }} is abandoned, you should avoid using it.
-                                {% if package.replacement %}
-                                    Use {{ package.replacement }} instead.
-                                {% else %}
-                                    No replacement was suggested.
-                                {% endif %}
-                            </p>
-                        {% endif %}
-                        {% if package.highest.description %}
-                            <p>{{ package.highest.description }}</p>
-                        {% endif %}
-                        <table>
-                            {% if package.highest.homepage %}
-                                <tr>
-                                    <th>Homepage</th>
-                                    <td><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></td>
-                                </tr>
-                            {% endif %}
-                            {% if package.highest.license %}
-                                <tr>
-                                    <th>License</th>
-                                    <td>{{ package.highest.license|join(', ') }}</td>
-                                </tr>
-                            {% endif %}
-                            {% if package.highest.authors %}
-                                <tr>
-                                    <th>Authors</th>
-                                    <td>
-                                        {% for author in package.highest.authors %}
-                                            {%- if author.homepage -%}
-                                                <a href="{{ author.homepage }}">{{ author.name }}</a>
-                                            {%- else -%}
-                                                {{ author.name }}
-                                            {%- endif -%}
-                                            {%- if not loop.last -%}, {% endif -%}
-                                        {% endfor %}
-                                    </td>
-                                </tr>
-                            {% endif %}
-                            {% if package.highest.support %}
-                            <tr>
-                                <th>Support</th>
-                                <td>
-                                    <ul>
-                                    {% for support_type, support_url in package.highest.support %}
-                                        <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
-                                    {% endfor %}
-                                    </ul>
-                                </td>
-                            </tr>
-                            {% endif %}
-                            <tr>
-                                <th>Releases</th>
-                                <td>
-                                    {% for version in package.versions %}
-                                        {%- if version.distType -%}
-                                            <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
-                                        {%- else -%}
-                                            <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
-                                        {%- endif -%}
-                                        {%- if not loop.last -%}, {% endif -%}
-                                    {% endfor %}
-                                </td>
-                            </tr>
-                            <tr>
-                                <th>Required by</th>
-                                <td>
-                                    {% set package_dependencies = attribute(dependencies, name) %}
-                                    {% if package_dependencies|length %}
-                                        <ul>
-                                            {% for dependency in package_dependencies %}
-                                                <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
-                                            {% endfor %}
-                                        </ul>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                {% endfor %}
-                </div>
-            </div>
-        </div>
-        <div id="ft">
-            <p><small>This Composer Repository is proudly powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }} - Last updated:  {{ "now"|date(constant('\DateTime::ISO8601')) }}</small></p>
-        </div>
+    <div id="package-list">
+        {% for name, package in packages %}
+            {% include 'package.html.twig' %}
+        {% endfor %}
     </div>
 
-    <script>
-    {% include 'jquery-2.0.0.js' %}
-    {% include 'moment-2.4.0.js' %}
-    $(function(){
-        var packages = $('h3');
-        var timer;
-        $('input#search').keyup(function(){
-            clearTimeout(timer);
-            var ms = 350; // milliseconds
-            var needle = $(this).val().toLowerCase(), show;
-            timer = setTimeout(function() {
-                $('#package-list').hide();
-                packages.each(function(){
-                    show = $(this).text().toLowerCase().indexOf(needle) != -1;
-                    $(this).parent().toggle(show);
-                });
-                $('#package-list').show();
-            }, ms);
-        }).focus();
-        $('input#search').change(function(){
-            window.location.hash = "!/" + $(this).val().toLowerCase();
-        });
-        $(window).on("hashchange", function() {
-            var $input = $('input#search');
-            if (window.location.hash.indexOf("#!/") == 0) {
-                $input.val(window.location.hash.replace(/#!\//,"").toLowerCase());
-                $input.trigger("keyup");
-            } else {
-                var $anchor = $("h3[id='"+window.location.hash.replace(/^#/,"")+"']");
-                if ($anchor.length != $anchor.filter(":visible").length) {
-                    $input.val("").trigger("keyup");
-                    $anchor.get(0).scrollIntoView();
-                }
-            }
-        });
-        $(window).trigger("hashchange");
-        var $lastUpdate = $('#lastupdate time');
-        function updateDate() {
-            $lastUpdate.text(moment('{{ "now"|date(constant('\DateTime::ISO8601')) }}').fromNow());
-        }
-        setInterval(updateDate, 5000);
-        updateDate();
+    <div id="ft">
+        <p><small>This Composer repository is powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }} - Last updated:  {{ "now"|date(constant('\DateTime::ISO8601')) }}</small></p>
+    </div>
+
+</div>
+
+<script>
+
+{% include 'assets/jquery.slim.min.js' %}
+
+{% include 'assets/bootstrap.min.js' %}
+
+{% include 'assets/moment.min.js' %}
+
+$(function(){
+    var packages = $('h3');
+    var timer;
+    var $search = $('input#search');
+    var $list = $('#package-list');
+
+    $search.keyup(function() {
+        clearTimeout(timer);
+        var milliseconds = 350;
+        var needle = $(this).val().toLowerCase(), show;
+        timer = setTimeout(function() {
+            $list.hide();
+            packages.each(function(){
+                show = $(this).text().toLowerCase().indexOf(needle) != -1;
+                $(this).parent().parent().toggle(show);
+            });
+            $list.show();
+        }, milliseconds);
+    }).focus();
+
+    $search.change(function(){
+        window.location.hash = "!/" + $(this).val().toLowerCase();
     });
-    </script>
+
+    $(window).on("hashchange", function() {
+        if (window.location.hash.indexOf("#!/") == 0) {
+            $search.val(window.location.hash.replace(/#!\//,"").toLowerCase());
+            $search.trigger("keyup");
+        } else {
+            var $anchor = $("h3[id='"+window.location.hash.replace(/^#/,"")+"']");
+            if ($anchor.length != $anchor.filter(":visible").length) {
+                $search.val("").trigger("keyup");
+                $anchor.get(0).scrollIntoView();
+            }
+        }
+    });
+
+    $(window).trigger("hashchange");
+    var $lastUpdate = $('#lastupdate').find('time');
+    function updateDate() {
+        $lastUpdate.text(moment('{{ "now"|date(constant('\DateTime::ISO8601')) }}').fromNow());
+    }
+    setInterval(updateDate, 5000);
+    updateDate();
+});
+</script>
 </body>
 </html>
