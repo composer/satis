@@ -60,8 +60,8 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/<title>dummy root package Composer Repository<\/title>/', $html);
-        $this->assertRegExp('/<h3 id="vendor\/name" class="package-title"><a href="#vendor\/name" class="anchor"><svg class="octicon-link" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"><\/path><\/svg><\/a>vendor\/name<\/h3>/', $html);
+        $this->assertRegExp('/<title>dummy root package Composer repository<\/title>/', $html);
+        $this->assertRegExp('{<h3 id="[^"]+" class="package-title">\s*<a href="#vendor/name" class="anchor">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</h3>}si', $html);
         $this->assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
     }
 
@@ -74,7 +74,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/<title>A Composer Repository<\/title>/', $html);
+        $this->assertRegExp('/<title>A Composer repository<\/title>/', $html);
     }
 
     public function testDependencies()
@@ -119,7 +119,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/Package vendor\/name is abandoned, you should avoid using it/', $html);
+        $this->assertRegExp('/Package is abandoned, you should avoid using it/', $html);
         $this->assertRegExp($expected, $html);
     }
 }

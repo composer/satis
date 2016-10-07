@@ -1,16 +1,36 @@
-FROM php:5.6
+FROM php:7-alpine
 
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apk --no-cache add curl git subversion openssh openssl mercurial tini
 
-RUN apt-get update \
-    && apt-get install -y git zlib1g-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install zip \
-    && echo "date.timezone = UTC" > /usr/local/etc/php/php.ini
+RUN echo "memory_limit=-1" > $PHP_INI_DIR/conf.d/memory-limit.ini \
+    && echo "date.timezone=${PHP_TIMEZONE:-UTC}" > $PHP_INI_DIR/conf.d/date_timezone.ini
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-    && composer create-project composer/satis --stability=dev --no-dev
+ENV COMPOSER_HOME /composer
+ENV PATH /composer/vendor/bin:$PATH
+ENV COMPOSER_ALLOW_SUPERUSER 1
+
+RUN curl --silent --output /tmp/composer-setup.php https://getcomposer.org/installer \
+    && curl --silent --output /tmp/composer-setup.sig https://composer.github.io/installer.sig \
+    && php -r " \
+        \$hash = hash('SHA384', file_get_contents('/tmp/composer-setup.php')); \
+        \$signature = trim(file_get_contents('/tmp/composer-setup.sig')); \
+        if (!hash_equals(\$signature, \$hash)) { \
+            unlink('/tmp/composer-setup.php'); \
+            echo 'Integrity check failed, installer is either corrupt or worse.' . PHP_EOL; \
+            exit(1); \
+        }"
+
+RUN php /tmp/composer-setup.php --quiet --ansi --install-dir=/usr/bin --filename=composer \
+    && rm /tmp/composer-setup.php \
+    && composer --ansi --version
 
 WORKDIR /build
-ENTRYPOINT ["/satis/bin/satis"]
+WORKDIR /satis
+
+RUN composer --ansi --quiet create-project composer/satis:dev-master .
+
+VOLUME ["/composer", "/build"]
+
+CMD ["--ansi", "-vvv", "build", "/build/satis.json", "/build/output"]
+
+ENTRYPOINT ["/sbin/tini", "/satis/bin/satis"]
