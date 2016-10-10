@@ -11,18 +11,16 @@ to their version constraints) packages into a Composer Repository file.
 Usage
 -----
 
-- Download [Composer](https://getcomposer.org/download/): `curl -sS https://getcomposer.org/composer.phar -o composer.phar`
-- Install satis: `php composer.phar create-project composer/satis --stability=dev --keep-vcs`
+- Install satis: `composer create-project composer/satis:dev-master --keep-vcs`
 - Build a repository: `php bin/satis build <configuration file> <build-dir>`
 
-Read the more detailed instructions in the
-[documentation](http://getcomposer.org/doc/articles/handling-private-packages-with-satis.md).
+Read the more detailed instructions in the [documentation][].
 
 Purge
 -----
 
-If you choose to archive packages in your server, you can have useless files.  
-With the `purge` command, you delete these files.
+If you choose to archive packages as part of your build, over time you can be
+left with useless files. With the `purge` command, you can delete these files.
 
     php bin/satis purge <satis.json> <build-dir>
 
@@ -31,12 +29,13 @@ With the `purge` command, you delete these files.
 Updating
 --------
 
-Updating is as simple as running `git pull && php composer.phar install` in the satis directory.
+Updating is as simple as running `git pull && composer update` in the
+satis directory.
 
 Contributing
 ------------
 
-Please note that this project is released with a [Contributor Code of Conduct](http://contributor-covenant.org/version/1/2/0/).
+Please note that this project is released with a [Contributor Code of Conduct][].
 By participating in this project you agree to abide by its terms.
 
 Fork the project, create a feature branch, and send us a pull request.
@@ -52,16 +51,25 @@ Authors
 Jordi Boggiano - <j.boggiano@seld.be> - <http://twitter.com/seldaek> - <http://seld.be><br />
 Nils Adermann - <naderman@naderman.de> - <http://twitter.com/naderman> - <http://www.naderman.de><br />
 
-See also the list of [contributors](https://github.com/composer/satis/contributors) who participated in this project.
+See also the list of [contributors][] who participated in this project.
 
 Community Tools
 ---------------
-- [satis-go](https://github.com/benschw/satis-go) - A simple web server for managing Satis configuration and hosting the generated Composer repository.
-- [satisfy](https://github.com/ludofleury/satisfy) - Symfony based composer repository manager with a simple web UI.
-- [satis-control-panel](https://github.com/realshadow/satis-control-panel) - Simple web UI for managing your Satis Repository with optional CI integration.
-- [composer-satis-builder](https://github.com/AOEpeople/composer-satis-builder) - Simple tool for updating the Satis configuration (satis.json) "require" key on the basis of the project composer.json.
+- [satis-go][] - A simple web server for managing Satis configuration and hosting the generated Composer repository.
+- [satisfy][] - Symfony based composer repository manager with a simple web UI.
+- [satis-control-panel][] - Simple web UI for managing your Satis Repository with optional CI integration.
+- [composer-satis-builder][] - Simple tool for updating the Satis configuration (satis.json) "require" key on the basis of the project composer.json.
 
 License
 -------
 
 Satis is licensed under the MIT License - see the LICENSE file for details
+
+
+[documentation]: https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md
+[Contributor Code of Conduct]: http://contributor-covenant.org/version/1/4/
+[contributors]: https://github.com/composer/satis/contributors
+[satisfy-go]: https://github.com/benschw/satis-go
+[satisfy]: https://github.com/ludofleury/satisfy
+[satis-control-panel]: https://github.com/realshadow/satis-control-panel
+[composer-satis-builder]: https://github.com/AOEpeople/composer-satis-builder
