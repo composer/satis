@@ -16,6 +16,34 @@ Usage
 
 Read the more detailed instructions in the [documentation][].
 
+Docker
+------
+
+Build and tag the image:
+
+``` sh
+docker build -t composer/satis:latest .
+```
+
+Run the image:
+ 
+``` sh
+docker run --rm -it -v /build:/build composer/satis
+```
+
+ > Note: by default it will look for a `satis.json` inside the `/build`
+    directory and output the templates inside `/build/output`.
+
+ > Note: you can use your host's Composer cache by additionally mounting the
+    Composer home directory using `-v $COMPOSER_HOME:/composer`.
+
+If you want to run the image without implicitly running Satis, you have to
+override the entrypoint specified in the `Dockerfile`:
+
+``` sh
+docker run --rm -it --entrypoint /bin/bash composer/satis
+```
+
 Purge
 -----
 
@@ -69,7 +97,7 @@ Satis is licensed under the MIT License - see the LICENSE file for details
 [documentation]: https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md
 [Contributor Code of Conduct]: http://contributor-covenant.org/version/1/4/
 [contributors]: https://github.com/composer/satis/contributors
-[satisfy-go]: https://github.com/benschw/satis-go
+[satis-go]: https://github.com/benschw/satis-go
 [satisfy]: https://github.com/ludofleury/satisfy
 [satis-control-panel]: https://github.com/realshadow/satis-control-panel
 [composer-satis-builder]: https://github.com/AOEpeople/composer-satis-builder

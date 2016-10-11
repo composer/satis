@@ -1,16 +1,42 @@
-FROM php:5.6
+FROM php:7-alpine
 
-ENV DEBIAN_FRONTEND=noninteractive
+RUN apk --no-cache add curl git subversion openssh openssl mercurial tini
 
-RUN apt-get update \
-    && apt-get install -y git zlib1g-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install zip \
-    && echo "date.timezone = UTC" > /usr/local/etc/php/php.ini
+RUN echo "memory_limit=-1" > $PHP_INI_DIR/conf.d/memory-limit.ini \
+ && echo "date.timezone=${PHP_TIMEZONE:-UTC}" > $PHP_INI_DIR/conf.d/date_timezone.ini
 
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
-    && composer create-project composer/satis --stability=dev --no-dev
+ENV COMPOSER_HOME /composer
+ENV PATH /composer/vendor/bin:$PATH
+ENV COMPOSER_ALLOW_SUPERUSER 1
+RUN curl -s -f -L -o /tmp/composer-setup.php https://getcomposer.org/installer \
+ && curl -s -f -L -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
+ && php -r " \
+    \$hash = hash('SHA384', file_get_contents('/tmp/composer-setup.php')); \
+    \$signature = trim(file_get_contents('/tmp/composer-setup.sig')); \
+    if (!hash_equals(\$signature, \$hash)) { \
+        unlink('/tmp/composer-setup.php'); \
+        echo 'Integrity check failed, installer is either corrupt or worse.' . PHP_EOL; \
+        exit(1); \
+    }" \
+ && php /tmp/composer-setup.php --no-ansi --install-dir=/usr/bin --filename=composer \
+ && rm /tmp/composer-setup.php \
+ && composer --no-interaction --no-ansi --version
 
-WORKDIR /build
-ENTRYPOINT ["/satis/bin/satis"]
+WORKDIR /satis
+
+ADD ["composer.json", "composer.lock", "/satis/"]
+
+RUN composer install --no-interaction --no-ansi --no-autoloader --no-scripts --no-plugins --no-dev
+
+ADD /bin /satis/bin/
+ADD /res /satis/res/
+ADD /views /satis/views/
+ADD /src /satis/src/
+
+RUN composer dump-autoload --no-interaction --no-ansi --optimize --no-dev
+
+VOLUME ["/composer", "/build"]
+
+CMD ["--ansi", "-vvv", "build", "/build/satis.json", "/build/output"]
+
+ENTRYPOINT ["/sbin/tini", "--", "/satis/bin/satis"]
