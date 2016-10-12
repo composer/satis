@@ -28,7 +28,8 @@ docker run --rm -it -v /build:/build composer/satis
 ```
 
  > Note: by default it will look for a configuration file named `satis.json`
-    inside the `/build` directory and output the templates inside `/build/output`.
+    inside the `/build` directory and dump the generated output files in
+    `/build/output`.
 
 Run the image (with Composer cache from host):
 
@@ -75,18 +76,18 @@ Fork the project, create a feature branch, and send us a pull request.
 
 ## Authors
 
-Jordi Boggiano - <j.boggiano@seld.be> - <http://twitter.com/seldaek> - <http://seld.be><br />
-Nils Adermann - <naderman@naderman.de> - <http://twitter.com/naderman> - <http://www.naderman.de><br />
-
-See also the list of [contributors][] who participate(d) in this project.
+See the list of [contributors][] who participate(d) in this project.
 
 
 ## Community Tools
 
-- [satis-go][] - A simple web server for managing Satis configuration and hosting the generated Composer repository.
+- [satis-go][] - A simple web server for managing Satis configuration and
+    hosting the generated Composer repository.
 - [satisfy][] - Symfony based composer repository manager with a simple web UI.
-- [satis-control-panel][] - Simple web UI for managing your Satis Repository with optional CI integration.
-- [composer-satis-builder][] - Simple tool for updating the Satis configuration (satis.json) "require" key on the basis of the project composer.json.
+- [satis-control-panel][] - Simple web UI for managing your Satis Repository
+    with optional CI integration.
+- [composer-satis-builder][] - Simple tool for updating the Satis configuration
+    (satis.json) "require" key on the basis of the project composer.json.
 
 
 ## License
