@@ -1,5 +1,7 @@
 FROM php:7-alpine
 
+MAINTAINER https://github.com/composer/satis
+
 RUN apk --no-cache add curl git subversion openssh openssl mercurial tini
 
 RUN echo "memory_limit=-1" > $PHP_INI_DIR/conf.d/memory-limit.ini \
