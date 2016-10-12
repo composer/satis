@@ -24,14 +24,14 @@ RUN curl -s -f -L -o /tmp/composer-setup.php https://getcomposer.org/installer \
 
 WORKDIR /satis
 
-ADD ["composer.json", "composer.lock", "/satis/"]
+COPY ["composer.json", "composer.lock", "/satis/"]
 
 RUN composer install --no-interaction --no-ansi --no-autoloader --no-scripts --no-plugins --no-dev
 
-ADD /bin /satis/bin/
-ADD /res /satis/res/
-ADD /views /satis/views/
-ADD /src /satis/src/
+COPY /bin /satis/bin/
+COPY /res /satis/res/
+COPY /views /satis/views/
+COPY /src /satis/src/
 
 RUN composer dump-autoload --no-interaction --no-ansi --optimize --no-dev
 
