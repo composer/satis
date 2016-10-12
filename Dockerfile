@@ -4,11 +4,11 @@ MAINTAINER https://github.com/composer/satis
 
 RUN apk --no-cache add curl git subversion openssh openssl mercurial tini
 
-RUN echo "memory_limit=-1" > $PHP_INI_DIR/conf.d/memory-limit.ini \
- && echo "date.timezone=${PHP_TIMEZONE:-UTC}" > $PHP_INI_DIR/conf.d/date_timezone.ini
+RUN echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini" \
+ && echo "date.timezone=${PHP_TIMEZONE:-UTC}" > "$PHP_INI_DIR/conf.d/date_timezone.ini"
 
 ENV COMPOSER_HOME /composer
-ENV PATH /composer/vendor/bin:$PATH
+ENV PATH "/composer/vendor/bin:$PATH"
 ENV COMPOSER_ALLOW_SUPERUSER 1
 RUN curl -s -f -L -o /tmp/composer-setup.php https://getcomposer.org/installer \
  && curl -s -f -L -o /tmp/composer-setup.sig https://composer.github.io/installer.sig \
