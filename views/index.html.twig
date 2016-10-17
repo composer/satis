@@ -34,8 +34,8 @@
             {% if name %}{{ name }}{% else %}Composer repository{% endif %}
         </h1>
 
-        <small id="lastupdate">
-            Last updated: <time datetime="{{ "now"|date(constant('\DateTime::ISO8601')) }}">{{ "now"|date(constant('\DateTime::RSS')) }}</time>
+        <small>
+            Last updated: <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
         </small>
 
         {% if description %}<p>{{ description|raw }}</p>{% endif %}
@@ -53,13 +53,11 @@
     </div>
 
     <div id="package-list">
-        {% for name, package in packages %}
-            {% include 'package.html.twig' %}
-        {% endfor %}
+        {% for name, package in packages %}{% include 'package.html.twig' %}{% endfor %}
     </div>
 
     <div id="ft">
-        <p><small>This Composer repository is powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }} - Last updated:  {{ "now"|date(constant('\DateTime::RFC3339')) }}</small></p>
+        <p class="text-center"><small>This Composer repository is powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }}</small></p>
     </div>
 
 </div>
@@ -67,55 +65,45 @@
 <script>
 
 {% include 'assets/jquery.slim.min.js' %}
-
 {% include 'assets/bootstrap.min.js' %}
-
 {% include 'assets/moment.min.js' %}
 
-$(function(){
-    var packages = $('h3');
+function momentize(elements) {
+    elements.each(function () {
+        var element = $(this);
+        element.text(moment(element.attr('datetime')).fromNow());
+    });
+}
+
+$(function () {
+    var input = $('input#search');
+    var list = $('div#package-list');
+    var packages = list.find('h3');
     var timer;
-    var $search = $('input#search');
-    var $list = $('#package-list');
 
-    $search.keyup(function() {
+    input.keyup(function () {
         clearTimeout(timer);
-        var milliseconds = 350;
-        var needle = $(this).val().toLowerCase(), show;
-        timer = setTimeout(function() {
-            $list.hide();
-            packages.each(function(){
-                show = $(this).text().toLowerCase().indexOf(needle) != -1;
-                $(this).parent().parent().toggle(show);
+        var needle = $(this).val().toLowerCase();
+        timer = setTimeout(function () {
+            list.hide();
+            packages.each(function () {
+                $(this).closest('div.panel').toggle(
+                    $(this).text().toLowerCase().indexOf(needle) !== -1
+                );
             });
-            $list.show();
-        }, milliseconds);
-    }).focus();
-
-    $search.change(function(){
-        window.location.hash = "!/" + $(this).val().toLowerCase();
+            list.show();
+        }, 350);
     });
 
-    $(window).on("hashchange", function() {
-        if (window.location.hash.indexOf("#!/") == 0) {
-            $search.val(window.location.hash.replace(/#!\//,"").toLowerCase());
-            $search.trigger("keyup");
-        } else {
-            var $anchor = $("h3[id='"+window.location.hash.replace(/^#/,"")+"']");
-            if ($anchor.length != $anchor.filter(":visible").length) {
-                $search.val("").trigger("keyup");
-                $anchor.get(0).scrollIntoView();
-            }
+    $(window).keyup(function (event) {
+        if (event.keyCode === 27) { // "ESC" keyCode
+            input.val('').trigger('keyup');
         }
     });
 
-    $(window).trigger("hashchange");
-    var $lastUpdate = $('#lastupdate').find('time');
-    function updateDate() {
-        $lastUpdate.text(moment('{{ "now"|date(constant('\DateTime::RFC3339')) }}').fromNow());
-    }
-    setInterval(updateDate, 5000);
-    updateDate();
+    var timeElements = $('time');
+    momentize(timeElements);
+    setInterval(function () { momentize(timeElements); }, 5000);
 });
 </script>
 </body>

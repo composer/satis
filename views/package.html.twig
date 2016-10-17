@@ -30,79 +30,76 @@
         <p class="lead">{{ package.highest.description }}</p>
         {% endif %}
 
-        <table class="table table-striped">
+        {% if package.highest.homepage %}
+        <div class="row">
+            <div class="col-xs-2 text-right"><strong>Homepage</strong></div>
+            <div class="col-xs-10"><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></div>
+        </div>
+        {% endif %}
 
-            {% if package.highest.homepage %}
-            <tr>
-                <th>Homepage</th>
-                <td><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></td>
-            </tr>
-            {% endif %}
+        {% if package.highest.license %}
+        <div class="row">
+            <div class="col-xs-2 text-right"><strong>License</strong></div>
+            <div class="col-xs-10">{{ package.highest.license|join(', ') }}</div>
+        </div>
+        {% endif %}
 
-            {% if package.highest.license %}
-            <tr>
-                <th>License</th>
-                <td>{{ package.highest.license|join(', ') }}</td>
-            </tr>
-            {% endif %}
+        {% if package.highest.authors %}
+        <div class="row">
+            <div class="col-xs-2 text-right"><strong>Authors</strong></div>
+            <div class="col-xs-10">
+                {% for author in package.highest.authors %}
+                {%- if author.homepage -%}
+                <a href="{{ author.homepage }}">{{ author.name }}</a>
+                {%- else -%}
+                {{ author.name }}
+                {%- endif -%}
+                {%- if not loop.last -%}, {% endif -%}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
 
-            {% if package.highest.authors %}
-            <tr>
-                <th>Authors</th>
-                <td>
-                    {% for author in package.highest.authors %}
-                    {%- if author.homepage -%}
-                    <a href="{{ author.homepage }}">{{ author.name }}</a>
-                    {%- else -%}
-                    {{ author.name }}
-                    {%- endif -%}
-                    {%- if not loop.last -%}, {% endif -%}
+        {% if package.highest.support %}
+        <div class="row">
+            <div class="col-xs-2 text-right"><strong>Support</strong></div>
+            <div class="col-xs-10">
+                <ul>
+                    {% for support_type, support_url in package.highest.support %}
+                    <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
                     {% endfor %}
-                </td>
-            </tr>
-            {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
 
-            {% if package.highest.support %}
-            <tr>
-                <th>Support</th>
-                <td>
-                    <ul>
-                        {% for support_type, support_url in package.highest.support %}
-                        <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </td>
-            </tr>
-            {% endif %}
+        <div class="row">
+            <div class="col-xs-2 text-right"><strong>Releases</strong></div>
+            <div class="col-xs-10">
+                {% for version in package.versions %}
+                {%- if version.distType -%}
+                <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
+                {%- else -%}
+                <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
+                {%- endif -%}
+                {%- if not loop.last -%}, {% endif -%}
+                {% endfor %}
+            </div>
+        </div>
 
-            <tr>
-                <th>Releases</th>
-                <td>
-                    {% for version in package.versions %}
-                    {%- if version.distType -%}
-                    <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
-                    {%- else -%}
-                    <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
-                    {%- endif -%}
-                    {%- if not loop.last -%}, {% endif -%}
+        {% set package_dependencies = attribute(dependencies, name) %}
+        {% if package_dependencies|length %}
+        <div class="row">
+            <div class="col-xs-2 text-right"><strong>Required by</strong></div>
+            <div class="col-xs-10">
+                <ul>
+                    {% for dependency in package_dependencies %}
+                    <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
                     {% endfor %}
-                </td>
-            </tr>
-
-            {% set package_dependencies = attribute(dependencies, name) %}
-            {% if package_dependencies|length %}
-            <tr>
-                <th>Required by</th>
-                <td>
-                    <ul>
-                        {% for dependency in package_dependencies %}
-                        <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </td>
-            </tr>
-            {% endif %}
-        </table>
+                </ul>
+            </div>
+        </div>
+        {% endif %}
 
     </div>
 
