@@ -3,19 +3,19 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/4.6/phpunit.xsd"
     backupGlobals="false"
-    bootstrap="tests/bootstrap.php"
+    bootstrap="vendor/autoload.php"
     colors="true"
 >
 
     <testsuites>
         <testsuite name="Satis Test Suite">
-            <directory>./tests/Composer/</directory>
+            <directory>tests</directory>
         </testsuite>
     </testsuites>
 
     <filter>
         <whitelist>
-            <directory>./src/Composer/</directory>
+            <directory>src</directory>
         </whitelist>
     </filter>
 

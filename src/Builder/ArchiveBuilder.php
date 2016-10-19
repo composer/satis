@@ -37,25 +37,17 @@ class ArchiveBuilder extends Builder
     public function dump(array $packages)
     {
         $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
-
-        $directory = $helper->getDirectory($this->outputDir);
-
-        $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $directory));
-
+        $basedir = $helper->getDirectory($this->outputDir);
+        $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $basedir));
         $format = isset($this->config['archive']['format']) ? $this->config['archive']['format'] : 'zip';
         $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
-
         $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
-
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
-
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
         $downloadManager = $this->composer->getDownloadManager();
-
         /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
-
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
@@ -63,9 +55,9 @@ class ArchiveBuilder extends Builder
         $progressBar = null;
         $hasStarted = false;
         $verbosity = $this->output->getVerbosity();
-        $isStats = $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
+        $renderProgress = $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
 
-        if ($isStats) {
+        if ($renderProgress) {
             $packageCount = 0;
 
             foreach ($packages as $package) {
@@ -76,8 +68,7 @@ class ArchiveBuilder extends Builder
 
             $progressBar = new ProgressBar($this->output, $packageCount);
             $progressBar->setFormat(
-                ' %current%/%max% [%bar%] %percent:3s%% - '
-                . "Installing %packageName% (%packageVersion%)"
+                ' %current%/%max% [%bar%] %percent:3s%% - Installing %packageName% (%packageVersion%)'
             );
         }
 
@@ -87,7 +78,7 @@ class ArchiveBuilder extends Builder
                 continue;
             }
 
-            if ($isStats) {
+            if ($renderProgress) {
                 $progressBar->setMessage($package->getName(), 'packageName');
                 $progressBar->setMessage($package->getPrettyVersion(), 'packageVersion');
 
@@ -102,7 +93,7 @@ class ArchiveBuilder extends Builder
             }
 
             try {
-                if ($isStats) {
+                if ($renderProgress) {
                     $this->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
                 }
 
@@ -110,25 +101,29 @@ class ArchiveBuilder extends Builder
                     // PEAR packages are archives already
                     $filesystem = new Filesystem();
                     $packageName = $archiveManager->getPackageFilename($package);
-                    $path =
-                        realpath($directory).'/'.$packageName.'.'.
-                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION);
+                    $path = sprintf(
+                        '%s/%s.%s',
+                        realpath($basedir),
+                        $packageName,
+                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION))
+                    ;
+
                     if (!file_exists($path)) {
                         $downloadDir = sys_get_temp_dir().'/composer_archiver/'.$packageName;
                         $filesystem->ensureDirectoryExists($downloadDir);
-
                         $downloadManager->download($package, $downloadDir, false);
-
-                        $filesystem->ensureDirectoryExists($directory);
+                        $filesystem->ensureDirectoryExists($basedir);
                         $filesystem->rename($downloadDir.'/'.pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
                         $filesystem->removeDirectory($downloadDir);
                     }
+
                     // Set archive format to `file` to tell composer to download it as is
                     $archiveFormat = 'file';
                 } else {
-                    $path = $archiveManager->archive($package, $format, $directory);
+                    $path = $archiveManager->archive($package, $format, $basedir);
                     $archiveFormat = $format;
                 }
+
                 $archive = basename($path);
                 $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $archive);
                 $package->setDistType($archiveFormat);
@@ -140,11 +135,11 @@ class ArchiveBuilder extends Builder
 
                 $package->setDistReference($package->getSourceReference());
 
-                if ($isStats) {
+                if ($renderProgress) {
                     $this->output->setVerbosity($verbosity);
                 }
             } catch (\Exception $exception) {
-                if ($isStats) {
+                if ($renderProgress) {
                     $this->output->setVerbosity($verbosity);
                 }
 
@@ -154,12 +149,12 @@ class ArchiveBuilder extends Builder
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
 
-            if ($isStats) {
+            if ($renderProgress) {
                 $progressBar->advance();
             }
         }
 
-        if ($isStats) {
+        if ($renderProgress) {
             $progressBar->clear();
             $this->output->writeln('');
         }

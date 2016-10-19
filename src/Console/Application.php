@@ -15,7 +15,7 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
 use Composer\IO\IOInterface;
-use Composer\Satis\Command;
+use Composer\Satis\Console\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;
 use Symfony\Component\Console\Application as BaseApplication;
@@ -29,6 +29,7 @@ class Application extends BaseApplication
 {
     /** @var IOInterface */
     protected $io;
+
     /** @var Composer */
     protected $composer;
 

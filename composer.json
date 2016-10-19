@@ -25,10 +25,10 @@
         "symfony/console": "^2.1 || ^3.0.4"
     },
     "autoload": {
-        "psr-0": { "Composer\\Satis": "src/" }
+        "psr-4": { "Composer\\Satis\\": "src" }
     },
     "autoload-dev": {
-        "psr-0": { "Composer\\Test\\Satis": "tests/" }
+        "psr-4": { "Composer\\Satis\\": "tests" }
     },
     "require-dev": {
         "phpunit/phpunit": "^4.5 || ^5.0.5",

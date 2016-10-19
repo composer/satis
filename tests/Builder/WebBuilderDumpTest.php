@@ -90,6 +90,9 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
         $this->assertRegExp('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
 
+    /**
+     * @return array
+     */
     public function dataAbandoned()
     {
         $data = array();
@@ -109,6 +112,8 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider dataAbandoned
+     * @param bool|string $abandoned
+     * @param string $expected
      */
     public function testAbandoned($abandoned, $expected)
     {

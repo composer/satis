@@ -9,7 +9,7 @@
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Composer\Satis\Command;
+namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
 use Composer\Config;
@@ -281,7 +281,7 @@ EOT
 
             $data = json_decode($content);
 
-            $schemaFile = __DIR__.'/../../../../res/satis-schema.json';
+            $schemaFile = __DIR__ . '/../../../res/satis-schema.json';
             $schema = json_decode(file_get_contents($schemaFile));
             $validator = new Validator();
             $validator->check($data, $schema);

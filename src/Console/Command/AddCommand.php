@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Composer\Satis\Command;
+namespace Composer\Satis\Console\Command;
 
 use Composer\Factory;
 use Composer\IO\NullIO;
