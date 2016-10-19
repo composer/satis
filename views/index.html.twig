@@ -11,6 +11,7 @@
 
     <style type="text/css">
         {% include 'assets/bootstrap.min.css' %}
+        {% include 'assets/satis.css' %}
     </style>
 </head>
 
@@ -43,9 +44,10 @@
 
     <p>Add this Satis repository to your <kbd>composer.json</kbd>:</p>
         <pre><code>{
-    "repositories": [
-        { "type": "composer", "url": "{{ url }}" }
-    ]
+  "repositories": [{
+    "type": "composer",
+    "url": "{{ url }}"
+  }]
 }</code></pre>
 
     <div class="page-header">
