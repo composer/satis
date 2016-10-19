@@ -32,21 +32,21 @@
 
         {% if package.highest.homepage %}
         <div class="row">
-            <div class="col-xs-2 text-right"><strong>Homepage</strong></div>
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Homepage</strong></div>
             <div class="col-xs-12 col-sm-10"><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></div>
         </div>
         {% endif %}
 
         {% if package.highest.license %}
         <div class="row">
-            <div class="col-xs-2 text-right"><strong>License</strong></div>
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>License</strong></div>
             <div class="col-xs-12 col-sm-10">{{ package.highest.license|join(', ') }}</div>
         </div>
         {% endif %}
 
         {% if package.highest.authors %}
         <div class="row">
-            <div class="col-xs-2 text-right"><strong>Authors</strong></div>
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Authors</strong></div>
             <div class="col-xs-12 col-sm-10">
                 {% for author in package.highest.authors %}
                 {%- if author.homepage -%}
@@ -62,7 +62,7 @@
 
         {% if package.highest.support %}
         <div class="row">
-            <div class="col-xs-2 text-right"><strong>Support</strong></div>
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Support</strong></div>
             <div class="col-xs-12 col-sm-10">
                 <ul>
                     {% for support_type, support_url in package.highest.support %}
@@ -74,7 +74,7 @@
         {% endif %}
 
         <div class="row">
-            <div class="col-xs-2 text-right"><strong>Releases</strong></div>
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Releases</strong></div>
             <div class="col-xs-12 col-sm-10">
                 {% for version in package.versions %}
                 {%- if version.distType -%}
@@ -90,7 +90,7 @@
         {% set package_dependencies = attribute(dependencies, name) %}
         {% if package_dependencies|length %}
         <div class="row">
-            <div class="col-xs-2 text-right"><strong>Required by</strong></div>
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Required by</strong></div>
             <div class="col-xs-12 col-sm-10">
                 <ul>
                     {% for dependency in package_dependencies %}
