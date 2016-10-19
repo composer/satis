@@ -164,6 +164,9 @@ class PackagesBuilder extends Builder
      *
      * @param string $path
      * @param string $contents
+     *
+     * @throws \UnexpectedValueException
+     * @throws \Exception
      */
     private function writeToFile($path, $contents)
     {

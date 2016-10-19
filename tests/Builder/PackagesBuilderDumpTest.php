@@ -9,11 +9,10 @@
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Composer\Test\Satis;
+namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
 use Composer\Package\Package;
-use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use Symfony\Component\Console\Output\NullOutput;

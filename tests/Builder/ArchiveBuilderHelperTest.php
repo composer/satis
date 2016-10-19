@@ -9,11 +9,10 @@
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Composer\Test\Satis;
+namespace Composer\Satis\Builder;
 
 use Composer\Package\Link;
 use Composer\Package\Package;
-use Composer\Satis\Builder\ArchiveBuilderHelper;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**

@@ -9,13 +9,12 @@
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Composer\Test\Satis;
+namespace Composer\Satis\PackageSelection;
 
 use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Repository\ArrayRepository;
-use Composer\Satis\PackageSelection\PackageSelection;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
@@ -23,6 +22,9 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     * @return array
+     */
     public function dataGetPackages()
     {
         $emptyRepo = new ArrayRepository();
@@ -79,6 +81,9 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider dataGetPackages
+     * @param array $expected
+     * @param array $filter
+     * @param ArrayRepository $repository
      */
     public function testGetPackages($expected, $filter, $repository)
     {
@@ -94,6 +99,9 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, array($repository)));
     }
 
+    /**
+     * @return array
+     */
     public function dataGetRequired()
     {
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
@@ -137,6 +145,10 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider dataGetRequired
+     * @param array $expected
+     * @param Package $package
+     * @param bool $requireDependencies
+     * @param bool $requireDevDependencies
      */
     public function testGetRequired($expected, $package, $requireDependencies, $requireDevDependencies)
     {
@@ -157,6 +169,9 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, array($package)));
     }
 
+    /**
+     * @return array
+     */
     public function dataSetSelectedAsAbandoned()
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
@@ -187,6 +202,8 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider dataSetSelectedAsAbandoned
+     * @param array $expected
+     * @param array $config
      */
     public function testSetSelectedAsAbandoned($expected, $config)
     {

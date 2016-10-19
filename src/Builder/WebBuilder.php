@@ -95,7 +95,7 @@ class WebBuilder extends Builder
      * Gets the twig environment.
      *
      * Creates default if needed.
-     * 
+     *
      * @return \Twig_Environment
      */
     private function getTwigEnvironment()
@@ -103,7 +103,7 @@ class WebBuilder extends Builder
         if (null === $this->twig) {
             $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
 
-            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../../../views';
+            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../views';
             $loader = new \Twig_Loader_Filesystem($templateDir);
             $this->twig = new \Twig_Environment($loader);
         }

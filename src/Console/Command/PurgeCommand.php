@@ -9,7 +9,7 @@
  * the LICENSE file that was distributed with this source code.
  */
 
-namespace Composer\Satis\Command;
+namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
 use Symfony\Component\Console\Input\InputInterface;
