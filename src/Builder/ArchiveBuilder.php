@@ -97,13 +97,16 @@ class ArchiveBuilder extends Builder
                     $this->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
                 }
 
+                $intermediatePath = preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
+                $packageName = $archiveManager->getPackageFilename($package);
+
                 if ('pear-library' === $package->getType()) {
                     // PEAR packages are archives already
                     $filesystem = new Filesystem();
-                    $packageName = $archiveManager->getPackageFilename($package);
                     $path = sprintf(
-                        '%s/%s.%s',
+                        '%s/%s/%s.%s',
                         realpath($basedir),
+                        $intermediatePath,
                         $packageName,
                         pathinfo($package->getDistUrl(), PATHINFO_EXTENSION))
                     ;
@@ -112,7 +115,7 @@ class ArchiveBuilder extends Builder
                         $downloadDir = sys_get_temp_dir().'/composer_archiver/'.$packageName;
                         $filesystem->ensureDirectoryExists($downloadDir);
                         $downloadManager->download($package, $downloadDir, false);
-                        $filesystem->ensureDirectoryExists($basedir);
+                        $filesystem->ensureDirectoryExists(dirname($path));
                         $filesystem->rename($downloadDir.'/'.pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
                         $filesystem->removeDirectory($downloadDir);
                     }
@@ -120,12 +123,12 @@ class ArchiveBuilder extends Builder
                     // Set archive format to `file` to tell composer to download it as is
                     $archiveFormat = 'file';
                 } else {
-                    $path = $archiveManager->archive($package, $format, $basedir);
+                    $path = $archiveManager->archive($package, $format, sprintf('%s/%s', $basedir, $intermediatePath));
                     $archiveFormat = $format;
                 }
 
                 $archive = basename($path);
-                $distUrl = sprintf('%s/%s/%s', $endpoint, $this->config['archive']['directory'], $archive);
+                $distUrl = sprintf('%s/%s/%s/%s', $endpoint, $this->config['archive']['directory'], $intermediatePath, $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
 
@@ -155,7 +158,8 @@ class ArchiveBuilder extends Builder
         }
 
         if ($renderProgress) {
-            $progressBar->clear();
+            $progressBar->finish();
+
             $this->output->writeln('');
         }
     }
