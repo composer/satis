@@ -16,6 +16,8 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 use Composer\Json\JsonFile;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 
 class PurgeCommand extends BaseCommand
 {
@@ -78,53 +80,85 @@ EOT
         $file = file_get_contents(key($files));
         $json = json_decode($file, true);
 
-        $prefix = $config['archive']['directory'] . '/';
+        $prefix = $config['archive']['directory'];
         if (isset($config['archive']['prefix-url'])) {
-            $prefix = $config['archive']['prefix-url'] . '/' . $prefix;
+            $prefix = sprintf('%s/%s/', $config['archive']['prefix-url'], $prefix);
+        } else {
+            $prefix = sprintf('%s/%s/', $config['homepage'], $prefix);
         }
-        $length = strlen($prefix);
 
+        $length = strlen($prefix);
         $needed = array();
         foreach ($json['packages'] as $package) {
             foreach ($package as $version) {
                 if (!isset($version['dist']['url'])) {
                     continue;
                 }
+
                 $url = $version['dist']['url'];
+
                 if (substr($url, 0, $length) === $prefix) {
                     $needed[] = substr($url, $length);
                 }
             }
         }
 
-        /**
-         * Regular files in output-dir
-         */
-        $files = scandir($outputDir."/".$config['archive']['directory'], 1);
+        $distDirectory = sprintf('%s/%s', $outputDir, $config['archive']['directory']);
 
-        if (empty($files)) {
-            $output->writeln('<info>No archived files</info>');
+        $finder = new Finder();
+        $finder
+            ->files()
+            ->in($distDirectory)
+        ;
 
-            return 1;
+        if (!$finder->count()) {
+            $output->writeln('<warning>No archives found.</warning>');
+
+            return 0;
         }
 
-        $unreferenced = array_diff($files, $needed);
-
-        /**
-         * Removed unreferenced files
-         */
-        foreach ($unreferenced as $file) {
-            $path = $outputDir."/".$config['archive']['directory']."/".$file;
-            if (!is_file($path)) {
-                continue;
+        /** @var SplFileInfo[] $unreferenced */
+        $unreferenced = [];
+        foreach ($finder as $file) {
+            if (!in_array($file->getRelativePathname(), $needed)) {
+                $unreferenced[] = $file;
             }
-
-            $output->writeln("<info>".$file." :: deleted</info>");
-
-            unlink($path);
         }
 
-        $output->writeln("<info>Purge :: finished</info>");
+        if (empty($unreferenced)) {
+            $output->writeln('<warning>No unreferenced archives found.</warning>');
+
+            return 0;
+        }
+
+        foreach ($unreferenced as $file) {
+            unlink($file->getPathname());
+
+            $output->writeln(sprintf(
+                '<info>Removed archive</info>: <comment>%s</comment>',
+                $file->getRelativePathname()
+            ));
+        }
+
+        $finder = new Finder();
+        $finder
+            ->directories()
+            ->ignoreDotFiles(true)
+            ->ignoreUnreadableDirs(true)
+            ->in($distDirectory)
+        ;
+
+        foreach ($finder->getIterator() as $directory) {
+            if (!(new Finder())->in($directory->getPathname())->files()->count()) {
+                rmdir($directory->getPathname());
+                $output->writeln(sprintf(
+                    '<info>Removed empty directory</info>: <comment>%s</comment>',
+                    $directory->getPathname()
+                ));
+            }
+        }
+
+        $output->writeln('<info>Done.</info>');
 
         return 0;
     }
