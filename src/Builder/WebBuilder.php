@@ -52,15 +52,15 @@ class WebBuilder extends Builder
 
         $this->output->writeln('<info>Writing web view</info>');
 
-        $content = $this->getTwigEnvironment()->render($this->getTwigTemplate(), array(
+        $content = $this->getTwigEnvironment()->render($this->getTwigTemplate(), [
             'name' => $name,
             'url' => $this->rootPackage->getHomepage(),
             'description' => $this->rootPackage->getDescription(),
             'packages' => $mappedPackages,
             'dependencies' => $this->dependencies,
-        ));
+        ]);
 
-        file_put_contents($this->outputDir.'/index.html', $content);
+        file_put_contents($this->outputDir . '/index.html', $content);
     }
 
     /**
@@ -103,7 +103,7 @@ class WebBuilder extends Builder
         if (null === $this->twig) {
             $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
 
-            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__.'/../../views';
+            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new \Twig_Loader_Filesystem($templateDir);
             $this->twig = new \Twig_Environment($loader);
         }
@@ -132,7 +132,7 @@ class WebBuilder extends Builder
      */
     private function setDependencies(array $packages)
     {
-        $dependencies = array();
+        $dependencies = [];
         foreach ($packages as $package) {
             foreach ($package->getRequires() as $link) {
                 $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
@@ -155,16 +155,16 @@ class WebBuilder extends Builder
     {
         $groupedPackages = $this->groupPackagesByName($packages);
 
-        $mappedPackages = array();
+        $mappedPackages = [];
         foreach ($groupedPackages as $name => $packages) {
             $highest = $this->getHighestVersion($packages);
 
-            $mappedPackages[$name] = array(
+            $mappedPackages[$name] = [
                 'highest' => $highest,
                 'abandoned' => $highest instanceof CompletePackageInterface ? $highest->isAbandoned() : false,
                 'replacement' => $highest instanceof CompletePackageInterface ? $highest->getReplacementPackage() : null,
                 'versions' => $this->getDescSortedVersions($packages),
-            );
+            ];
         }
 
         return $mappedPackages;
@@ -179,7 +179,7 @@ class WebBuilder extends Builder
      */
     private function groupPackagesByName(array $packages)
     {
-        $groupedPackages = array();
+        $groupedPackages = [];
         foreach ($packages as $package) {
             $groupedPackages[$package->getName()][] = $package;
         }

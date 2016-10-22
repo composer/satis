@@ -30,16 +30,16 @@ class ArchiveBuilderHelper
     /**
      * Helper Constructor.
      *
-     * @param OutputInterface $output        The output Interface.
-     * @param array           $archiveConfig The 'archive' part of a configuration file.
+     * @param OutputInterface $output        The output Interface
+     * @param array           $archiveConfig The 'archive' part of a configuration file
      */
     public function __construct(OutputInterface $output, array $archiveConfig)
     {
         $this->output = $output;
         $this->archiveConfig = $archiveConfig;
         $this->archiveConfig['skip-dev'] = isset($archiveConfig['skip-dev']) ? (bool) $archiveConfig['skip-dev'] : false;
-        $this->archiveConfig['whitelist'] = isset($archiveConfig['whitelist']) ? (array) $archiveConfig['whitelist'] : array();
-        $this->archiveConfig['blacklist'] = isset($archiveConfig['blacklist']) ? (array) $archiveConfig['blacklist'] : array();
+        $this->archiveConfig['whitelist'] = isset($archiveConfig['whitelist']) ? (array) $archiveConfig['whitelist'] : [];
+        $this->archiveConfig['blacklist'] = isset($archiveConfig['blacklist']) ? (array) $archiveConfig['blacklist'] : [];
     }
 
     /**
@@ -65,7 +65,7 @@ class ArchiveBuilderHelper
      *
      * @param PackageInterface $package The package to be dumped
      *
-     * @return bool false if the package has to be dumped.
+     * @return bool false if the package has to be dumped
      */
     public function isSkippable(PackageInterface $package)
     {

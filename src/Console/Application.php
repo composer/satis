@@ -39,7 +39,7 @@ class Application extends BaseApplication
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function doRun(InputInterface $input, OutputInterface $output)
     {
@@ -55,7 +55,7 @@ class Application extends BaseApplication
     }
 
     /**
-     * @param bool              $required Not used.
+     * @param bool              $required Not used
      * @param array|string|null $config   either a configuration array or a filename to read from,
      *                                    if null it will read from the default filename
      *
@@ -80,12 +80,12 @@ class Application extends BaseApplication
      */
     protected function getDefaultCommands()
     {
-        $commands = array_merge(parent::getDefaultCommands(), array(
+        $commands = array_merge(parent::getDefaultCommands(), [
             new Command\InitCommand(),
             new Command\AddCommand(),
             new Command\BuildCommand(),
             new Command\PurgeCommand(),
-        ));
+        ]);
 
         return $commands;
     }

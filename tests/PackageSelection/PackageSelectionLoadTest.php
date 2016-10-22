@@ -38,11 +38,11 @@ class PackageSelectionLoadTest extends \PHPUnit_Framework_TestCase
 
         $this->root = $this->setFileSystem();
 
-        $this->selection = new PackageSelection(new NullOutput(), vfsStream::url('build'), array(
-            'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
-            'require' => array('vendor/name' => '*'),
-        ), false);
-        $this->selection->setPackagesFilter(array('vendor/name'));
+        $this->selection = new PackageSelection(new NullOutput(), vfsStream::url('build'), [
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false);
+        $this->selection->setPackagesFilter(['vendor/name']);
     }
 
     protected function setFileSystem()
@@ -51,18 +51,18 @@ class PackageSelectionLoadTest extends \PHPUnit_Framework_TestCase
         $root = vfsStream::newDirectory('build');
         vfsStreamWrapper::setRoot($root);
 
-        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
-            'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
-            'require' => array('vendor/name' => '*'),
-        ), false);
-        $packagesBuilder->dump(array($this->package));
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false);
+        $packagesBuilder->dump([$this->package]);
 
         return $root;
     }
 
     public function testNoJsonFile()
     {
-        /**
+        /*
          * no json filename means empty $packages
          */
         $this->root->removeChild('packages.json');
@@ -71,7 +71,7 @@ class PackageSelectionLoadTest extends \PHPUnit_Framework_TestCase
 
     public function testNoIncludeFile()
     {
-        /**
+        /*
          * include file not found means output + empty $packages
          */
         $this->root->removeChild('include');
@@ -80,16 +80,16 @@ class PackageSelectionLoadTest extends \PHPUnit_Framework_TestCase
 
     public function testNoPackagesFilter()
     {
-        /**
+        /*
          * no filterPackages means all $packages
          */
-        $this->selection->setPackagesFilter(array());
+        $this->selection->setPackagesFilter([]);
         $this->assertNotEmpty($this->selection->load());
     }
 
     public function testPackageInFilter()
     {
-        /**
+        /*
          * json filename + filterPackages :
          *   package in json + in filter => not selected (because it'll replaced/updated)
          */
@@ -98,11 +98,11 @@ class PackageSelectionLoadTest extends \PHPUnit_Framework_TestCase
 
     public function testPackageNotInFilter()
     {
-        /**
+        /*
          * json filename + filterPackages :
          *   package in json + not in filter => selected (to be merged as is)
          */
-        $this->selection->setPackagesFilter(array('othervendor/othername'));
+        $this->selection->setPackagesFilter(['othervendor/othername']);
         $this->assertNotEmpty($this->selection->load());
     }
 }

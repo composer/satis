@@ -38,56 +38,57 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $vendorRepo2->addPackage($package2);
         $vendorRepo2->addPackage($package3);
 
-        $data = array();
+        $data = [];
 
-        $data['empty repository'] = array(
-            array(),
-            array(),
+        $data['empty repository'] = [
+            [],
+            [],
             $emptyRepo,
-        );
+        ];
 
-        $data['empty repository with filter'] = array(
-            array(),
-            array('vendor/name'),
+        $data['empty repository with filter'] = [
+            [],
+            ['vendor/name'],
             $emptyRepo,
-        );
+        ];
 
-        $data['repository with one package'] = array(
-            array($package),
-            array(),
+        $data['repository with one package'] = [
+            [$package],
+            [],
             $vendorRepo,
-        );
+        ];
 
-        $data['repository with one package and filter'] = array(
-            array(),
-            array('othervendor/othername'),
+        $data['repository with one package and filter'] = [
+            [],
+            ['othervendor/othername'],
             $vendorRepo,
-        );
+        ];
 
-        $data['repository with two packages'] = array(
-            array($package2, $package3),
-            array(),
+        $data['repository with two packages'] = [
+            [$package2, $package3],
+            [],
             $vendorRepo2,
-        );
+        ];
 
-        $data['repository with two packages and filter'] = array(
-            array($package2),
-            array('vendor2/name'),
+        $data['repository with two packages and filter'] = [
+            [$package2],
+            ['vendor2/name'],
             $vendorRepo2,
-        );
+        ];
 
         return $data;
     }
 
     /**
      * @dataProvider dataGetPackages
+     *
      * @param array $expected
      * @param array $filter
      * @param ArrayRepository $repository
      */
     public function testGetPackages($expected, $filter, $repository)
     {
-        $builder = new PackageSelection(new NullOutput(), 'build', array(), false);
+        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
         if (!empty($filter)) {
             $builder->setPackagesFilter($filter);
         }
@@ -96,7 +97,7 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $method = $reflection->getMethod('getPackages');
         $method->setAccessible(true);
 
-        $this->assertSame($expected, $method->invokeArgs($builder, array($repository)));
+        $this->assertSame($expected, $method->invokeArgs($builder, [$repository]));
     }
 
     /**
@@ -107,44 +108,45 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
         $link = new Link('test', 'name');
         $devLink = new Link('devTest', 'name');
-        $package->setRequires(array($link));
-        $package->setDevRequires(array($devLink));
+        $package->setRequires([$link]);
+        $package->setDevRequires([$devLink]);
 
-        $data = array();
+        $data = [];
 
-        $data['both require false'] = array(
-          array(),
+        $data['both require false'] = [
+          [],
           $package,
           false,
           false,
-        );
+        ];
 
-        $data['require true'] = array(
-          array($link),
+        $data['require true'] = [
+          [$link],
           $package,
           true,
           false,
-        );
+        ];
 
-        $data['requireDev true'] = array(
-          array($devLink),
+        $data['requireDev true'] = [
+          [$devLink],
           $package,
           false,
           true,
-        );
+        ];
 
-        $data['both require true'] = array(
-          array($link, $devLink),
+        $data['both require true'] = [
+          [$link, $devLink],
           $package,
           true,
           true,
-        );
+        ];
 
         return $data;
     }
 
     /**
      * @dataProvider dataGetRequired
+     *
      * @param array $expected
      * @param Package $package
      * @param bool $requireDependencies
@@ -152,7 +154,7 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
      */
     public function testGetRequired($expected, $package, $requireDependencies, $requireDevDependencies)
     {
-        $builder = new PackageSelection(new NullOutput(), 'build', array(), false);
+        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
 
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('getRequired');
@@ -166,7 +168,7 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $property->setAccessible(true);
         $property->setValue($builder, $requireDevDependencies);
 
-        $this->assertSame($expected, $method->invokeArgs($builder, array($package)));
+        $this->assertSame($expected, $method->invokeArgs($builder, [$package]));
     }
 
     /**
@@ -180,28 +182,29 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
         $packageAbandoned2 = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
         $packageAbandoned2->setAbandoned('othervendor/othername');
 
-        $data = array();
+        $data = [];
 
-        $data['Nothing Abandonned'] = array(
-            array($package->getUniqueName() => $package),
-            array(),
-        );
+        $data['Nothing Abandonned'] = [
+            [$package->getUniqueName() => $package],
+            [],
+        ];
 
-        $data['Package Abandonned without Replacement'] = array(
-            array($package->getUniqueName() => $packageAbandoned1),
-            array('vendor/name' => true),
-        );
+        $data['Package Abandonned without Replacement'] = [
+            [$package->getUniqueName() => $packageAbandoned1],
+            ['vendor/name' => true],
+        ];
 
-        $data['Package Abandonned with Replacement'] = array(
-            array($package->getUniqueName() => $packageAbandoned2),
-            array('vendor/name' => 'othervendor/othername'),
-        );
+        $data['Package Abandonned with Replacement'] = [
+            [$package->getUniqueName() => $packageAbandoned2],
+            ['vendor/name' => 'othervendor/othername'],
+        ];
 
         return $data;
     }
 
     /**
      * @dataProvider dataSetSelectedAsAbandoned
+     *
      * @param array $expected
      * @param array $config
      */
@@ -209,9 +212,9 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
-        $builder = new PackageSelection(new NullOutput(), 'build', array(
+        $builder = new PackageSelection(new NullOutput(), 'build', [
             'abandoned' => $config,
-        ), false);
+        ], false);
 
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('setSelectedAsAbandoned');
@@ -219,9 +222,9 @@ class PackageSelectionTest extends \PHPUnit_Framework_TestCase
 
         $property = $reflection->getProperty('selected');
         $property->setAccessible(true);
-        $property->setValue($builder, array($package->getUniqueName() => $package));
+        $property->setValue($builder, [$package->getUniqueName() => $package]);
 
-        $method->invokeArgs($builder, array());
+        $method->invokeArgs($builder, []);
 
         $this->assertEquals($expected, $property->getValue($builder));
     }

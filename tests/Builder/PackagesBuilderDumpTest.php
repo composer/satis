@@ -37,21 +37,22 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     protected static function createPackages($majorVersionNumber, $asArray = false)
     {
-        $version = $majorVersionNumber.'.0';
-        $versionNormalized = $majorVersionNumber.'.0.0.0';
+        $version = $majorVersionNumber . '.0';
+        $versionNormalized = $majorVersionNumber . '.0.0.0';
         if ($asArray) {
-            return array(
-                "vendor/name" => array(
-                    $version => array(
-                        "name" => "vendor/name",
-                        "version" => $version,
-                        "version_normalized" => $versionNormalized,
-                        "type" => "library",
-                    ),
-                ),
-            );
+            return [
+                'vendor/name' => [
+                    $version => [
+                        'name' => 'vendor/name',
+                        'version' => $version,
+                        'version_normalized' => $versionNormalized,
+                        'type' => 'library',
+                    ],
+                ],
+            ];
         }
-        return array(new Package('vendor/name', $versionNormalized, $version));
+
+        return [new Package('vendor/name', $versionNormalized, $version)];
     }
 
     /**
@@ -59,14 +60,14 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
      */
     public function testNominalCase($providers = false)
     {
-        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
             'providers' => $providers,
-            'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
-            'require' => array('vendor/name' => '*'),
-        ), false);
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false);
         $lastIncludedJsonFile = null;
 
-        foreach (array(1, 2, 2) as $i) {
+        foreach ([1, 2, 2] as $i) {
             $packages = self::createPackages($i);
             $arrayPackages = self::createPackages($i, true);
 
@@ -79,13 +80,13 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
                 $packageName = key($arrayPackages);
                 $arrayPackages[$packageName][$i . '.0']['uid'] = 1;
                 $hash = current($packagesJson['providers'][$packageName]);
-                $includeJson = str_replace(array('%package%', '%hash%'), array($packageName, $hash), $packagesJson['providers-url']);
+                $includeJson = str_replace(['%package%', '%hash%'], [$packageName, $hash], $packagesJson['providers-url']);
             } else {
                 $includes = array_keys($packagesJson['includes']);
                 $includeJson = end($includes);
             }
 
-            $includeJsonFile = 'build/'.$includeJson;
+            $includeJsonFile = 'build/' . $includeJson;
             $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
 
             $packagesIncludeJson = JsonFile::parseJson($this->root->getChild($includeJsonFile)->getContent());
@@ -106,21 +107,21 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     public function testProvidersUrl()
     {
-        $urlToBaseUrlMap = array(
+        $urlToBaseUrlMap = [
             null,
             'http://localhost:1234/' => '/',
             'http://localhost:1234' => '/',
             'http://localhost:1234/sub-dir' => '/sub-dir/',
-            'http://localhost:1234/sub-dir/' => '/sub-dir/'
-        );
+            'http://localhost:1234/sub-dir/' => '/sub-dir/',
+        ];
         $providersUrlWithoutBase = null;
         foreach ($urlToBaseUrlMap as $url => $basePath) {
-            $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
+            $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
                 'providers' => true,
                 'homepage' => $url,
-                'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
-                'require' => array('vendor/name' => '*'),
-            ), false);
+                'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+                'require' => ['vendor/name' => '*'],
+            ], false);
             $packagesBuilder->dump(self::createPackages(1));
             $packagesJson = JsonFile::parseJson($this->root->getChild('build/packages.json')->getContent());
             if (!$basePath) {
@@ -133,11 +134,11 @@ class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     public function testNotifyBatch()
     {
-        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), array(
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
             'notify-batch' => 'http://localhost:54715/notify',
-            'repositories' => array(array('type' => 'composer', 'url' => 'http://localhost:54715')),
-            'require' => array('vendor/name' => '*'),
-        ), false);
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false);
 
         $packagesBuilder->dump(self::createPackages(1));
 

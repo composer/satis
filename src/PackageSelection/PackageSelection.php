@@ -55,18 +55,18 @@ class PackageSelection
     private $minimumStability;
 
     /** @var array The active package filter to merge. */
-    private $packagesFilter = array();
+    private $packagesFilter = [];
 
     /** @var string The active repository filter to merge. */
     private $repositoryFilter;
 
     /** @var array The selected packages from config */
-    private $selected = array();
+    private $selected = [];
 
     /** @var array A list of packages marked as abandoned */
-    private $abandoned = array();
+    private $abandoned = [];
 
-    /** @var  string The homepage - needed to get the relative paths of the providers */
+    /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
     /**
@@ -81,7 +81,7 @@ class PackageSelection
     {
         $this->output = $output;
         $this->skipErrors = (bool) $skipErrors;
-        $this->filename = $outputDir.'/packages.json';
+        $this->filename = $outputDir . '/packages.json';
         $this->fetchOptions($config);
     }
 
@@ -97,7 +97,7 @@ class PackageSelection
         }
 
         $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
-        $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : array();
+        $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : [];
         $this->homepage = isset($config['homepage']) ? $config['homepage'] : null;
     }
 
@@ -126,7 +126,7 @@ class PackageSelection
      *
      * @param array $packagesFilter The active package filter to merge
      */
-    public function setPackagesFilter(array $packagesFilter = array())
+    public function setPackagesFilter(array $packagesFilter = [])
     {
         $this->packagesFilter = $packagesFilter;
     }
@@ -187,7 +187,7 @@ class PackageSelection
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
 
         // process links if any
-        $depsLinks = array();
+        $depsLinks = [];
 
         $i = 0;
         while (isset($links[$i])) {
@@ -205,7 +205,7 @@ class PackageSelection
                 // add matching package if not yet selected
                 if (!isset($this->selected[$package->getUniqueName()])) {
                     if ($verbose) {
-                        $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                        $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                     }
                     $this->selected[$package->getUniqueName()] = $package;
 
@@ -215,7 +215,7 @@ class PackageSelection
                         foreach ($required as $dependencyLink) {
                             $target = $dependencyLink->getTarget();
                             if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
-                                $linkId = $target.' '.$dependencyLink->getConstraint();
+                                $linkId = $target . ' ' . $dependencyLink->getConstraint();
                                 // prevent loading multiple times the same link
                                 if (!isset($depsLinks[$linkId])) {
                                     $links[] = $dependencyLink;
@@ -228,7 +228,7 @@ class PackageSelection
             }
 
             if (!$matches) {
-                $this->output->writeln('<error>The '.$name.' '.$link->getPrettyConstraint().' requirement did not match any package</error>');
+                $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
             }
         }
 
@@ -246,7 +246,7 @@ class PackageSelection
      */
     public function load()
     {
-        $packages = array();
+        $packages = [];
         $repoJson = new JsonFile($this->filename);
         $dirName = dirname($this->filename);
 
@@ -255,13 +255,13 @@ class PackageSelection
             $packagesJson = $repoJson->read();
             $jsonIncludes = isset($packagesJson['includes']) && is_array($packagesJson['includes'])
                 ? $packagesJson['includes']
-                : array();
+                : [];
 
             if (isset($packagesJson['providers']) && is_array($packagesJson['providers']) && isset($packagesJson['providers-url'])) {
                 $baseUrl = $this->homepage ? parse_url(rtrim($this->homepage, '/'), PHP_URL_PATH) . '/' : null;
                 $baseUrlLength = strlen($baseUrl);
                 foreach ($packagesJson['providers'] as $packageName => $provider) {
-                    $file = str_replace(array('%package%', '%hash%'), array($packageName, $provider['sha256']), $packagesJson['providers-url']);
+                    $file = str_replace(['%package%', '%hash%'], [$packageName, $provider['sha256']], $packagesJson['providers-url']);
                     if ($baseUrl && substr($file, 0, $baseUrlLength) === $baseUrl) {
                         $file = substr($file, $baseUrlLength);
                     }
@@ -270,7 +270,7 @@ class PackageSelection
             }
 
             foreach ($jsonIncludes as $includeFile => $includeConfig) {
-                $includeJson = new JsonFile($dirName.'/'.$includeFile);
+                $includeJson = new JsonFile($dirName . '/' . $includeFile);
 
                 if (!$includeJson->exists()) {
                     $this->output->writeln(sprintf(
@@ -285,7 +285,7 @@ class PackageSelection
                 $jsonPackages = $includeJson->read();
                 $jsonPackages = isset($jsonPackages['packages']) && is_array($jsonPackages['packages'])
                     ? $jsonPackages['packages']
-                    : array();
+                    : [];
 
                 foreach ($jsonPackages as $jsonPackage) {
                     if (is_array($jsonPackage)) {
@@ -353,13 +353,13 @@ class PackageSelection
      */
     private function getAllLinks($repos, $minimumStability, $verbose)
     {
-        $links = array();
+        $links = [];
 
         foreach ($repos as $repo) {
             // collect links for composer repos with providers
             if ($repo instanceof ComposerRepository && $repo->hasProviders()) {
                 foreach ($repo->getProviderNames() as $name) {
-                    $links[] = new Link('__root__', $name, new MultiConstraint(array()), 'requires', '*');
+                    $links[] = new Link('__root__', $name, new MultiConstraint([]), 'requires', '*');
                 }
             } else {
                 $packages = $this->getPackages($repo);
@@ -372,7 +372,7 @@ class PackageSelection
 
                     if (BasePackage::$stabilities[$package->getStability()] > BasePackage::$stabilities[$minimumStability]) {
                         if ($verbose) {
-                            $this->output->writeln('Skipped '.$package->getPrettyName().' ('.$package->getStability().')');
+                            $this->output->writeln('Skipped ' . $package->getPrettyName() . ' (' . $package->getStability() . ')');
                         }
                         continue;
                     }
@@ -380,7 +380,7 @@ class PackageSelection
                     // add matching package if not yet selected
                     if (!isset($this->selected[$package->getUniqueName()])) {
                         if ($verbose) {
-                            $this->output->writeln('Selected '.$package->getPrettyName().' ('.$package->getPrettyVersion().')');
+                            $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                         }
                         $this->selected[$package->getUniqueName()] = $package;
                     }
@@ -400,7 +400,7 @@ class PackageSelection
      */
     private function getPackages(RepositoryInterface $repo)
     {
-        $packages = array();
+        $packages = [];
 
         if ($this->hasFilterForPackages()) {
             // apply package filter if defined
@@ -424,7 +424,7 @@ class PackageSelection
      */
     private function getRequired(PackageInterface $package)
     {
-        $required = array();
+        $required = [];
 
         if ($this->requireDependencies) {
             $required = $package->getRequires();
