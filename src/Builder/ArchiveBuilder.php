@@ -112,11 +112,11 @@ class ArchiveBuilder extends Builder
                     ;
 
                     if (!file_exists($path)) {
-                        $downloadDir = sys_get_temp_dir().'/composer_archiver/'.$packageName;
+                        $downloadDir = sys_get_temp_dir() . '/composer_archiver/' . $packageName;
                         $filesystem->ensureDirectoryExists($downloadDir);
                         $downloadManager->download($package, $downloadDir, false);
                         $filesystem->ensureDirectoryExists(dirname($path));
-                        $filesystem->rename($downloadDir.'/'.pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
+                        $filesystem->rename($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
                         $filesystem->removeDirectory($downloadDir);
                     }
 

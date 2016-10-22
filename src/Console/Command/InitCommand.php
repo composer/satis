@@ -1,25 +1,25 @@
 <?php
 
 /*
- * This file is part of Satis.
+ * This file is part of composer/satis.
  *
- * (c) Sergey Kolodyazhnyy <sergey.kolodyazhnyy@gmail.com>
+ * (c) Composer <https://github.com/composer>
  *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * For the full copyright and license information, please view
+ * the LICENSE file that was distributed with this source code.
  */
 
 namespace Composer\Satis\Console\Command;
 
-use Symfony\Component\Console\Helper\FormatterHelper;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Input\InputArgument;
 use Composer\Command\BaseCommand;
 use Composer\Config;
 use Composer\Json\JsonFile;
+use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 
 /**
@@ -27,18 +27,17 @@ use Symfony\Component\Console\Question\Question;
  */
 class InitCommand extends BaseCommand
 {
-
     protected function configure()
     {
         $this
             ->setName('init')
             ->setDescription('Initialize Satis configuration file')
-            ->setDefinition(array(
+            ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'JSON file to use', './satis.json'),
                 new InputOption('name', null, InputOption::VALUE_REQUIRED, 'Repository name'),
-                new InputOption('homepage', null, InputOption::VALUE_REQUIRED, 'Home page')
-            ))
-            ->setHelp(<<<EOT
+                new InputOption('homepage', null, InputOption::VALUE_REQUIRED, 'Home page'),
+            ])
+            ->setHelp(<<<'EOT'
 The <info>init</info> generates configuration file (satis.json is used by default).
 You will need to run <comment>build</comment> command to build repository.
 EOT
@@ -57,25 +56,25 @@ EOT
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
 
-        $output->writeln(array(
+        $output->writeln([
             '',
             $formatter->formatBlock('Welcome to the Satis config generator', 'bg=blue;fg=white', true),
-            ''
-        ));
+            '',
+        ]);
 
-        $output->writeln(array(
+        $output->writeln([
             '',
             'This command will guide you through creating your Satis config.',
             '',
-        ));
+        ]);
     }
-
 
     /**
      * Generate configuration file
      *
      * @param InputInterface  $input  The input instance
      * @param OutputInterface $output The output instance
+     *
      * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -86,37 +85,39 @@ EOT
         $configFile = $input->getArgument('file');
 
         if (preg_match('{^https?://}i', $configFile)) {
-            $output->writeln('<error>Unable to write to remote file '.$configFile.'</error>');
+            $output->writeln('<error>Unable to write to remote file ' . $configFile . '</error>');
+
             return 2;
         }
 
         $file = new JsonFile($configFile);
         if ($file->exists()) {
             $output->writeln('<error>Configuration file already exists</error>');
+
             return 1;
         }
 
-        $config = array(
-            'name'         => $input->getOption('name'),
-            'homepage'     => $input->getOption('homepage'),
-            'repositories' => array(),
-            'require-all'  => true
-        );
+        $config = [
+            'name' => $input->getOption('name'),
+            'homepage' => $input->getOption('homepage'),
+            'repositories' => [],
+            'require-all' => true,
+        ];
 
         $file->write($config);
 
-        $output->writeln(array(
+        $output->writeln([
             '',
             $formatter->formatBlock('Your configuration file successfully created!', 'bg=blue;fg=white', true),
-            ''
-        ));
+            '',
+        ]);
 
-        $output->writeln(array(
+        $output->writeln([
             '',
             'You are ready to add your package repositories',
             'Use <comment>satis add repository-url</comment> to add them.',
             '',
-        ));
+        ]);
 
         return 0;
     }
@@ -182,5 +183,4 @@ EOT
 
         return new Question($prompt, $default);
     }
-
 }

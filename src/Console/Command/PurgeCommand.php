@@ -12,6 +12,8 @@
 namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
+use Composer\Json\JsonFile;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputArgument;
@@ -25,12 +27,12 @@ class PurgeCommand extends BaseCommand
     {
         $this->setName('purge')
             ->setDescription('Purge packages')
-            ->setDefinition(array(
+            ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
-            ))
+            ])
             ->setHelp(
-<<<EOT
+<<<'EOT'
 The <info>purge</info> command deletes useless archive files, depending
 on given json file (satis.json is used by default) and the
 lastest json file in the include directory of the given output-dir.
@@ -47,17 +49,17 @@ EOT
         $configFile = $input->getArgument('file');
         $file = new JsonFile($configFile);
         if (!$file->exists()) {
-            $output->writeln('<error>File not found: '.$configFile.'</error>');
+            $output->writeln('<error>File not found: ' . $configFile . '</error>');
 
             return 1;
         }
         $config = $file->read();
 
-        /**
+        /*
          * Check whether archive is defined
          */
         if (!isset($config['archive']) || !isset($config['archive']['directory'])) {
-            $output->writeln('<error>You must define "archive" parameter in your '.$configFile.'</error>');
+            $output->writeln('<error>You must define "archive" parameter in your ' . $configFile . '</error>');
 
             return 1;
         }
@@ -66,7 +68,7 @@ EOT
             throw new \InvalidArgumentException('The output dir must be specified as second argument');
         }
 
-        $files = glob($outputDir."/include/*.json");
+        $files = glob($outputDir . '/include/*.json');
 
         if (empty($files)) {
             $output->writeln('<info>No log file</info>');
@@ -74,7 +76,7 @@ EOT
             return 1;
         }
 
-        $files = array_combine($files, array_map("filemtime", $files));
+        $files = array_combine($files, array_map('filemtime', $files));
         arsort($files);
 
         $file = file_get_contents(key($files));
@@ -88,7 +90,7 @@ EOT
         }
 
         $length = strlen($prefix);
-        $needed = array();
+        $needed = [];
         foreach ($json['packages'] as $package) {
             foreach ($package as $version) {
                 if (!isset($version['dist']['url'])) {

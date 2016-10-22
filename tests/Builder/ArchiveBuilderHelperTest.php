@@ -30,19 +30,19 @@ class ArchiveBuilderHelperTest extends \PHPUnit_Framework_TestCase
 
     public function dataDirectories()
     {
-        $data = array();
+        $data = [];
 
-        $data['absolute-directory configured'] = array(
+        $data['absolute-directory configured'] = [
             '/home/satis/build/dist',
             '.',
-            array('absolute-directory' => '/home/satis/build/dist'),
-        );
+            ['absolute-directory' => '/home/satis/build/dist'],
+        ];
 
-        $data['absolute-directory not configured'] = array(
+        $data['absolute-directory not configured'] = [
             'build/dist',
             'build',
-            array('directory' => 'dist'),
-        );
+            ['directory' => 'dist'],
+        ];
 
         return $data;
     }
@@ -63,57 +63,57 @@ class ArchiveBuilderHelperTest extends \PHPUnit_Framework_TestCase
         $package1 = new Package('vendor/name', '1.0.0.0', '1.0');
         $package2 = new Package('vendor/name', 'dev-master', 'dev-master');
         $package3 = new Package('othervendor/othername', '1.0.0.0', '1.0');
-        $package3->setProvides(array(new Link('', 'vendor/name')));
+        $package3->setProvides([new Link('', 'vendor/name')]);
 
-        $data = array();
+        $data = [];
 
-        $data['metapackage'] = array(
+        $data['metapackage'] = [
             true,
             $metapackage,
-            array(),
-        );
+            [],
+        ];
 
-        $data['skipDev is true, but package is not'] = array(
+        $data['skipDev is true, but package is not'] = [
             false,
             $package1,
-            array('skip-dev' => 1),
-        );
+            ['skip-dev' => 1],
+        ];
 
-        $data['skipDev is true, package isDev'] = array(
+        $data['skipDev is true, package isDev'] = [
             true,
             $package2,
-            array('skip-dev' => 1),
-        );
+            ['skip-dev' => 1],
+        ];
 
-        $data['package in whitelist'] = array(
+        $data['package in whitelist'] = [
             false,
             $package1,
-            array('whitelist' => array('vendor/name')),
-        );
+            ['whitelist' => ['vendor/name']],
+        ];
 
-        $data['package not in whitelist'] = array(
+        $data['package not in whitelist'] = [
             true,
             $package1,
-            array('whitelist' => array('othervendor/othername')),
-        );
+            ['whitelist' => ['othervendor/othername']],
+        ];
 
-        $data['package in blacklist'] = array(
+        $data['package in blacklist'] = [
             true,
             $package1,
-            array('blacklist' => array('vendor/name')),
-        );
+            ['blacklist' => ['vendor/name']],
+        ];
 
-        $data['package not in blacklist'] = array(
+        $data['package not in blacklist'] = [
             false,
             $package1,
-            array('blacklist' => array('othervendor/othername')),
-        );
+            ['blacklist' => ['othervendor/othername']],
+        ];
 
-        $data['package provides a virtual package in blacklist'] = array(
+        $data['package provides a virtual package in blacklist'] = [
             true,
             $package3,
-            array('blacklist' => array('vendor/name')),
-        );
+            ['blacklist' => ['vendor/name']],
+        ];
 
         return $data;
     }

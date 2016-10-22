@@ -1,5 +1,6 @@
 /build/
 /vendor/
+/.php_cs.cache
 /composer.phar
 /phpunit.xml
 /satis.phar

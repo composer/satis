@@ -10,26 +10,15 @@
     ],
     "finder": [{
         "name": "*.php",
-        "in": "vendor",
-        "exclude": [
-            "phpunit",
-            "mikey179",
-            "phpdocumentor",
-            "sebastian",
-            "phpspec",
-            "doctrine",
-            "test",
-            "tests",
-            "Tests"
-        ]
-    },{
+        "in": "vendor"
+    }, {
         "name": "composer-schema.json",
         "in": "vendor/composer/composer"
-    },{
+    }, {
         "name": "cacert.pem",
         "in": "vendor/composer/ca-bundle"
     }],
-    "compression" : "GZ",
+    "compression": "GZ",
     "compactors": [
         "Herrera\\Box\\Compactor\\Json",
         "Herrera\\Box\\Compactor\\Php"

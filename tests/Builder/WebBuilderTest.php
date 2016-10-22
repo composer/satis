@@ -25,36 +25,36 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        $this->webBuilder = new WebBuilder(new NullOutput(), 'build', array(), false);
+        $this->webBuilder = new WebBuilder(new NullOutput(), 'build', [], false);
     }
 
     public function dataGetDescSortedVersions()
     {
-        $data = array();
+        $data = [];
 
-        $data['test1 stable versions'] = array(
-            array(
+        $data['test1 stable versions'] = [
+            [
                 new Package('vendor/name', '2.0.1.0', '2.0.1'),
                 new Package('vendor/name', '2.0.0.0', '2.0'),
                 new Package('vendor/name', '1.1.0.0', '1.1'),
                 new Package('vendor/name', '1.0.0.0', '1.0'),
-            ),
-            array(
-                array(
+            ],
+            [
+                [
                     new Package('vendor/name', '1.0.0.0', '1.0'),
                     new Package('vendor/name', '2.0.0.0', '2.0'),
                     new Package('vendor/name', '1.1.0.0', '1.1'),
                     new Package('vendor/name', '2.0.1.0', '2.0.1'),
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
 
         return $data;
     }
 
     public function testTwigEnvironment()
     {
-        $twig = new \Twig_Environment(new \Twig_Loader_Array(array()));
+        $twig = new \Twig_Environment(new \Twig_Loader_Array([]));
         $this->webBuilder->setTwigEnvironment($twig);
 
         $reflection = new \ReflectionClass($this->webBuilder);
@@ -75,9 +75,9 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testTwigTemplate()
     {
-        $config = array(
+        $config = [
             'twig-template' => 'foo.twig',
-        );
+        ];
         $this->webBuilder = new WebBuilder(new NullOutput(), 'build', $config, false);
         $reflection = new \ReflectionClass($this->webBuilder);
         $method = $reflection->getMethod('getTwigTemplate');
@@ -109,19 +109,19 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function dataGetHighestVersion()
     {
-        $data = array();
+        $data = [];
 
-        $data['test1 stable versions'] = array(
+        $data['test1 stable versions'] = [
             new Package('vendor/name', '2.0.1.0', '2.0.1'),
-            array(
-                array(
+            [
+                [
                     new Package('vendor/name', '1.0.0.0', '1.0'),
                     new Package('vendor/name', '2.0.0.0', '2.0'),
                     new Package('vendor/name', '1.1.0.0', '1.1'),
                     new Package('vendor/name', '2.0.1.0', '2.0.1'),
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
 
         return $data;
     }
@@ -140,28 +140,28 @@ class WebBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function dataGroupPackagesByName()
     {
-        $data = array();
+        $data = [];
 
-        $data['test1 stable versions'] = array(
-            array(
-                'vendor/name' => array(
+        $data['test1 stable versions'] = [
+            [
+                'vendor/name' => [
                     new Package('vendor/name', '1.0.0.0', '1.0'),
                     new Package('vendor/name', '2.0.0.0', '2.0'),
-                ),
-                'othervendor/othername' => array(
+                ],
+                'othervendor/othername' => [
                     new Package('othervendor/othername', '1.1.0.0', '1.1'),
                     new Package('othervendor/othername', '2.0.1.0', '2.0.1'),
-                ),
-            ),
-            array(
-                array(
+                ],
+            ],
+            [
+                [
                     new Package('vendor/name', '1.0.0.0', '1.0'),
                     new Package('othervendor/othername', '1.1.0.0', '1.1'),
                     new Package('vendor/name', '2.0.0.0', '2.0'),
                     new Package('othervendor/othername', '2.0.1.0', '2.0.1'),
-                ),
-            ),
-        );
+                ],
+            ],
+        ];
 
         return $data;
     }

@@ -36,7 +36,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $this->rootPackage = new RootPackage("dummy root package", 0, 0);
+        $this->rootPackage = new RootPackage('dummy root package', 0, 0);
 
         $this->package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
@@ -54,9 +54,9 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     public function testNominalCase()
     {
-        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), array(), false);
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
-        $webBuilder->dump(array($this->package));
+        $webBuilder->dump([$this->package]);
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
@@ -67,10 +67,10 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
 
     public function testRepositoryWithNoName()
     {
-        $this->rootPackage = new RootPackage("__root__", 0, 0);
-        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), array(), false);
+        $this->rootPackage = new RootPackage('__root__', 0, 0);
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
-        $webBuilder->dump(array($this->package));
+        $webBuilder->dump([$this->package]);
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
@@ -80,10 +80,10 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
     public function testDependencies()
     {
         $link = new Link('dummytest', 'vendor/name');
-        $this->package->setRequires(array($link));
-        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), array(), false);
+        $this->package->setRequires([$link]);
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
-        $webBuilder->dump(array($this->package));
+        $webBuilder->dump([$this->package]);
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
@@ -95,32 +95,33 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
      */
     public function dataAbandoned()
     {
-        $data = array();
+        $data = [];
 
-        $data['Abandoned not replaced'] = array(
+        $data['Abandoned not replaced'] = [
             true,
             '/No replacement was suggested/',
-        );
+        ];
 
-        $data['Abandoned and replaced'] = array(
+        $data['Abandoned and replaced'] = [
             'othervendor/othername',
             '/Use othervendor\/othername instead/',
-        );
+        ];
 
         return $data;
     }
 
     /**
      * @dataProvider dataAbandoned
+     *
      * @param bool|string $abandoned
      * @param string $expected
      */
     public function testAbandoned($abandoned, $expected)
     {
-        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), array(), false);
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
         $this->package->setAbandoned($abandoned);
-        $webBuilder->dump(array($this->package));
+        $webBuilder->dump([$this->package]);
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
