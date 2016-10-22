@@ -10,19 +10,7 @@
     ],
     "finder": [{
         "name": "*.php",
-        "in": "vendor",
-        "exclude": [
-            "doctrine",
-            "mikey179",
-            "phpdocumentor",
-            "phpspec",
-            "phpunit",
-            "sebastian",
-            "webmozart",
-            "test",
-            "tests",
-            "Tests"
-        ]
+        "in": "vendor"
     }, {
         "name": "composer-schema.json",
         "in": "vendor/composer/composer"
