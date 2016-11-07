@@ -70,12 +70,18 @@ class PackagesBuilder extends Builder
             }
             $repo['providers'] = [];
             $i = 1;
+            // Give each version a unique ID
             foreach ($packagesByName as $packageName => $versionPackages) {
-                foreach ($versionPackages as $version => &$versionPackage) {
-                    $versionPackage['uid'] = $i++;
+                foreach ($versionPackages as $version => $versionPackage) {
+                    $packagesByName[$packageName][$version]['uid'] = $i++;
                 }
+            }
+            // Dump the packages along with packages they're replaced by
+            foreach ($packagesByName as $packageName => $versionPackages) {
+                $dumpPackages = $this->findReplacements($packagesByName, $packageName);
+                $dumpPackages[$packageName] = $versionPackages;
                 $includes = $this->dumpPackageIncludeJson(
-                    [$packageName => $versionPackages],
+                    $dumpPackages,
                     str_replace('%package%', $packageName, $providersUrl),
                     'sha256'
                 );
@@ -88,6 +94,28 @@ class PackagesBuilder extends Builder
         $this->dumpPackagesJson($repo);
 
         $this->pruneIncludeDirectories();
+    }
+
+    /**
+     * Find packages replacing the $replaced packages
+     *
+     * @param array $packages
+     * @param string $replaced
+     *
+     * @return array
+     */
+    private function findReplacements($packages, $replaced)
+    {
+        $replacements = array();
+        foreach ($packages as $packageName => $packageConfig) {
+            foreach ($packageConfig as $versionConfig) {
+                if (!empty($versionConfig['replace']) && array_key_exists($replaced, $versionConfig['replace'])) {
+                    $replacements[$packageName] = $packageConfig;
+                    break;
+                }
+            }
+        }
+        return $replacements;
     }
 
     /**
