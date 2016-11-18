@@ -106,7 +106,7 @@ class PackagesBuilder extends Builder
      */
     private function findReplacements($packages, $replaced)
     {
-        $replacements = array();
+        $replacements = [];
         foreach ($packages as $packageName => $packageConfig) {
             foreach ($packageConfig as $versionConfig) {
                 if (!empty($versionConfig['replace']) && array_key_exists($replaced, $versionConfig['replace'])) {
@@ -115,6 +115,7 @@ class PackagesBuilder extends Builder
                 }
             }
         }
+
         return $replacements;
     }
 
