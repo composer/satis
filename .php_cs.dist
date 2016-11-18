@@ -9,7 +9,7 @@ For the full copyright and license information, please view
 the LICENSE file that was distributed with this source code.
 EOF;
 
-$finder = PhpCsFixer\Finder::create()
+$finder = (new PhpCsFixer\Finder())
     ->files()
     ->name('*.php')
     ->in(__DIR__.'/src')
@@ -17,8 +17,7 @@ $finder = PhpCsFixer\Finder::create()
     ->in(__DIR__.'/views')
 ;
 
-return PhpCsFixer\Config::create('Satis', 'Satis style guide')
-    ->setUsingCache(true)
+return (new PhpCsFixer\Config('satis'))
     ->setRiskyAllowed(true)
     ->setRules([
         // default
@@ -39,5 +38,5 @@ return PhpCsFixer\Config::create('Satis', 'Satis style guide')
         'short_array_syntax' => true,
         'simplified_null_return' => false,
     ])
-    ->finder($finder)
+    ->setFinder($finder)
 ;
