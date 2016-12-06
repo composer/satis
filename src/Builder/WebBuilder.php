@@ -27,6 +27,9 @@ class WebBuilder extends Builder
 
     /** @var PackageInterface[] List of calculated required packages. */
     private $dependencies;
+    
+    /** @var PackageInterface[] List of packages that an package relies on */
+    private $requirements;
 
     /** @var \Twig_Environment */
     private $twig;
@@ -58,6 +61,7 @@ class WebBuilder extends Builder
             'description' => $this->rootPackage->getDescription(),
             'packages' => $mappedPackages,
             'dependencies' => $this->dependencies,
+            'requirements' => $this->requirements,
         ]);
 
         file_put_contents($this->outputDir . '/index.html', $content);
@@ -133,13 +137,16 @@ class WebBuilder extends Builder
     private function setDependencies(array $packages)
     {
         $dependencies = [];
+        $requirements = [];
         foreach ($packages as $package) {
             foreach ($package->getRequires() as $link) {
                 $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
+                $requirements[$link->getSource()][$link->getTarget()] = $link->getTarget();
             }
         }
 
         $this->dependencies = $dependencies;
+        $this->requirements = $requirements;
 
         return $this;
     }
