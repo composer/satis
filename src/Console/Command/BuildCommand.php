@@ -158,7 +158,7 @@ EOT
         }
 
         // disable packagist by default
-        unset(Config::$defaultRepositories['packagist']);
+        unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
         if (!$outputDir = $input->getArgument('output-dir')) {
             $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
