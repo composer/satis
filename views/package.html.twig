@@ -29,6 +29,13 @@
         {% if package.highest.description %}
         <p class="lead">{{ package.highest.description }}</p>
         {% endif %}
+        
+        {% if package.highest.keywords %}
+        <div class="row">
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Keywords</strong></div>
+            <div class="col-xs-12 col-sm-10">{{ package.highest.keywords|join(', ') }}</div>
+        </div>
+        {% endif %}
 
         {% if package.highest.homepage %}
         <div class="row">
