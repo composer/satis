@@ -56,6 +56,7 @@ class WebBuilder extends Builder
             'name' => $name,
             'url' => $this->rootPackage->getHomepage(),
             'description' => $this->rootPackage->getDescription(),
+            'keywords' => $this->rootPackage->getKeywords(),
             'packages' => $mappedPackages,
             'dependencies' => $this->dependencies,
         ]);
