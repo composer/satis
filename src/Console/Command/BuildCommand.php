@@ -90,7 +90,7 @@ The json config file accepts the following keys:
   be called every time a user installs a package, see
   https://getcomposer.org/doc/05-repositories.md#notify-batch
 - <info>"include-filename"</info> Specify filename instead of default include/all${SHA1_HASH}.json
-- <info>"archive"</info>info> archive configuration, see https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#downloads
+- <info>"archive"</info> archive configuration, see https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#downloads
 
 EOT
             );
