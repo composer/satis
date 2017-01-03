@@ -50,6 +50,10 @@
                     "type": "boolean",
                     "description": "If true, will not create downloads for branches."
                 },
+                "ignore-vcs": {
+                    "type": "boolean",
+                    "description": "If false, will not ignore VCS directories. Defaults to true."
+                },
                 "whitelist": {
                     "type": "array",
                     "description": "List of whitelisted packages.",

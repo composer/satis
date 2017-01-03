@@ -13,6 +13,7 @@ namespace Composer\Satis\Builder;
 
 use Composer\Composer;
 use Composer\Factory;
+use Composer\Package\Archiver\ArchiveManager;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -40,6 +41,7 @@ class ArchiveBuilder extends Builder
         $basedir = $helper->getDirectory($this->outputDir);
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $basedir));
         $format = isset($this->config['archive']['format']) ? $this->config['archive']['format'] : 'zip';
+        $ignoreVcs = isset($this->config['archive']['ignore-vcs']) ? (bool) $this->config['archive']['ignore-vcs'] : ArchiveManager::IGNORE_VCS_DEFAULT;
         $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
         $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
         $composerConfig = $this->composer->getConfig();
@@ -96,6 +98,8 @@ class ArchiveBuilder extends Builder
                 if ($renderProgress) {
                     $this->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
                 }
+
+                $package->setIgnoreVcs($ignoreVcs);
 
                 $intermediatePath = preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
                 $packageName = $archiveManager->getPackageFilename($package);
