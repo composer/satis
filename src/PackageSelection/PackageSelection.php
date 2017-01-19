@@ -160,6 +160,7 @@ class PackageSelection
         $repos = $composer->getRepositoryManager()->getRepositories();
         $pool = new Pool($this->minimumStability);
 
+
         if ($this->hasRepositoryFilter()) {
             $repos = $this->filterRepositories($repos);
         }
@@ -185,6 +186,13 @@ class PackageSelection
         }
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
+
+        $linksLoaded = [];
+        foreach ($links as $link) {
+            if (!isset($linksLoaded[$link->getTarget()])) {
+                $linksLoaded[$link->getTarget()] = $link;
+            }
+        }
 
         // process links if any
         $depsLinks = [];
@@ -216,6 +224,19 @@ class PackageSelection
                             $target = $dependencyLink->getTarget();
                             if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
                                 $linkId = $target . ' ' . $dependencyLink->getConstraint();
+
+                                //prevent loading old version not required
+                                if (isset($linksLoaded[$target])) {
+                                    if ($linksLoaded[$target]->getConstraint()->matches($dependencyLink->getConstraint())) {
+                                        $depsLinks[$linkId] = true;
+                                    } elseif ($dependencyLink->getConstraint()->matches($linksLoaded[$target]->getConstraint())) {
+                                        $linksLoaded = $dependencyLink;
+                                        $depsLinks[$linkId] = true;
+                                    }
+                                } else {
+                                    $linksLoaded[$target] = $dependencyLink;
+                                }
+
                                 // prevent loading multiple times the same link
                                 if (!isset($depsLinks[$linkId])) {
                                     $links[] = $dependencyLink;
