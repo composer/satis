@@ -76,13 +76,13 @@ class PackageSelection
     /**
      * Base Constructor.
      *
-     * @param OutputInterface $output            The output Interface
-     * @param string          $outputDir         The directory where to build
-     * @param array           $config            The parameters from ./satis.json
-     * @param bool            $skipErrors        Escapes Exceptions if true
+     * @param OutputInterface $output                The output Interface
+     * @param string          $outputDir             The directory where to build
+     * @param array           $config                The parameters from ./satis.json
+     * @param bool            $skipErrors            Escapes Exceptions if true
      * @param bool            $bestCandidateStrategy Best candidate strategy
      */
-    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors,$bestCandidateStrategy)
+    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors, $bestCandidateStrategy = false)
     {
         $this->output = $output;
         $this->skipErrors = (bool) $skipErrors;
