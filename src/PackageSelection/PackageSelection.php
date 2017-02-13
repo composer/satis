@@ -211,7 +211,7 @@ class PackageSelection
                 }
             }
             /** @var Link[] $links */
-            $links = array_merge($links);
+            $links = array_values($links);
         }
 
         // process links if any
