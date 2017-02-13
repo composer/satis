@@ -47,6 +47,7 @@ class BuildCommand extends BaseCommand
                 new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
+                new InputOption('best-candidate-strategy', null, InputOption::VALUE_NONE, 'Download only the best candidate version'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
             ])
             ->setHelp(<<<'EOT'
@@ -113,6 +114,7 @@ EOT
         $packagesFilter = $input->getArgument('packages');
         $repositoryUrl = $input->getOption('repository-url');
         $skipErrors = (bool) $input->getOption('skip-errors');
+        $bestCandidateStrategy = (bool) $input->getOption('best-candidate-strategy');
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
@@ -172,7 +174,7 @@ EOT
         /** @var $application Application */
         $application = $this->getApplication();
         $composer = $application->getComposer(true, $config);
-        $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
+        $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors, $bestCandidateStrategy);
 
         if ($repositoryUrl !== null) {
             $packageSelection->setRepositoryFilter($repositoryUrl);

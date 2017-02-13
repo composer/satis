@@ -19,6 +19,7 @@ use Composer\Package\BasePackage;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
+use Composer\Package\Version\VersionSelector;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
@@ -69,20 +70,25 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
+    /** @var bool Best candidate strategy */
+    private $bestCandidateStrategy;
+
     /**
      * Base Constructor.
      *
-     * @param OutputInterface $output     The output Interface
-     * @param string          $outputDir  The directory where to build
-     * @param array           $config     The parameters from ./satis.json
-     * @param bool            $skipErrors Escapes Exceptions if true
+     * @param OutputInterface $output            The output Interface
+     * @param string          $outputDir         The directory where to build
+     * @param array           $config            The parameters from ./satis.json
+     * @param bool            $skipErrors        Escapes Exceptions if true
+     * @param bool            $bestCandidateStrategy Best candidate strategy
      */
-    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
+    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors,$bestCandidateStrategy)
     {
         $this->output = $output;
         $this->skipErrors = (bool) $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->fetchOptions($config);
+        $this->bestCandidateStrategy = $bestCandidateStrategy;
     }
 
     private function fetchOptions($config)
@@ -187,11 +193,25 @@ class PackageSelection
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
 
-        $linksLoaded = [];
-        foreach ($links as $link) {
-            if (!isset($linksLoaded[$link->getTarget()])) {
-                $linksLoaded[$link->getTarget()] = $link;
+        if ($this->bestCandidateStrategy) {
+            // split the links with OR in order to manage them alone
+            foreach ($links as $key => $link) {
+                $constraint = $link->getConstraint();
+                if ($constraint instanceof MultiConstraint && !$constraint->isConjunctive()) {
+                    foreach ($constraint->getConstraints() as $newConstraint) {
+                        $links[] = new Link(
+                            $link->getSource(),
+                            $link->getTarget(),
+                            $newConstraint,
+                            $link->getDescription(),
+                            $newConstraint->getPrettyString()
+                        );
+                    }
+                    unset($links[$key]);
+                }
             }
+            /** @var Link[] $links */
+            $links = array_merge($links);
         }
 
         // process links if any
@@ -202,7 +222,8 @@ class PackageSelection
             $link = $links[$i];
             ++$i;
             $name = $link->getTarget();
-            $matches = $pool->whatProvides($name, $link->getConstraint(), true);
+
+            $matches = $this->findMatches($pool, $name, $link);
 
             foreach ($matches as $index => $package) {
                 // skip aliases
@@ -224,18 +245,6 @@ class PackageSelection
                             $target = $dependencyLink->getTarget();
                             if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
                                 $linkId = $target . ' ' . $dependencyLink->getConstraint();
-
-                                //prevent loading old version not required
-                                if (isset($linksLoaded[$target])) {
-                                    if ($linksLoaded[$target]->getConstraint()->matches($dependencyLink->getConstraint())) {
-                                        $depsLinks[$linkId] = true;
-                                    } elseif ($dependencyLink->getConstraint()->matches($linksLoaded[$target]->getConstraint())) {
-                                        $linksLoaded = $dependencyLink;
-                                        $depsLinks[$linkId] = true;
-                                    }
-                                } else {
-                                    $linksLoaded[$target] = $dependencyLink;
-                                }
 
                                 // prevent loading multiple times the same link
                                 if (!isset($depsLinks[$linkId])) {
@@ -481,5 +490,27 @@ class PackageSelection
 
             return true;
         });
+    }
+
+    /**
+     * @param Pool $pool
+     * @param $name
+     * @param Link $link
+     * @return array|\Composer\Package\PackageInterface[]
+     */
+    private function findMatches(Pool $pool, $name, Link $link)
+    {
+        try {
+            if (!$this->bestCandidateStrategy) {
+                return $pool->whatProvides($name, $link->getConstraint(), true);
+            } else {
+                $selector = new VersionSelector($pool);
+                if ($best = $selector->findBestCandidate($name, str_replace(['[', ']'], ['', ''], $link->getConstraint()->getPrettyString()))) {
+                    return [$best];
+                }
+            }
+        } catch (\Exception $e) {
+        }
+        return [];
     }
 }
