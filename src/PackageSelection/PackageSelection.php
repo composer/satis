@@ -49,6 +49,9 @@ class PackageSelection
     /** @var bool Add required dependencies if true. */
     private $requireDependencies;
 
+    /** @var bool Add the dependency's best candidate if true */
+    private $requireBestDependencies;
+
     /** @var bool required dev-dependencies if true. */
     private $requireDevDependencies;
 
@@ -70,31 +73,27 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
-    /** @var bool Best candidate strategy */
-    private $bestCandidateStrategy;
-
     /**
      * Base Constructor.
      *
-     * @param OutputInterface $output                The output Interface
-     * @param string          $outputDir             The directory where to build
-     * @param array           $config                The parameters from ./satis.json
-     * @param bool            $skipErrors            Escapes Exceptions if true
-     * @param bool            $bestCandidateStrategy Best candidate strategy
+     * @param OutputInterface $output     The output Interface
+     * @param string          $outputDir  The directory where to build
+     * @param array           $config     The parameters from ./satis.json
+     * @param bool            $skipErrors Escapes Exceptions if true
      */
-    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors, $bestCandidateStrategy = false)
+    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
     {
         $this->output = $output;
         $this->skipErrors = (bool) $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->fetchOptions($config);
-        $this->bestCandidateStrategy = $bestCandidateStrategy;
     }
 
     private function fetchOptions($config)
     {
         $this->requireAll = isset($config['require-all']) && true === $config['require-all'];
         $this->requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
+        $this->requireBestDependencies =  isset($config['require-best-dependencies']) && true === $config['require-best-dependencies'];
         $this->requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
 
         if (!$this->requireAll && !isset($config['require'])) {
@@ -193,7 +192,7 @@ class PackageSelection
 
         $links = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
 
-        if ($this->bestCandidateStrategy) {
+        if ($this->requireBestDependencies) {
             // split the links with OR in order to manage them alone
             foreach ($links as $key => $link) {
                 $constraint = $link->getConstraint();
@@ -501,7 +500,7 @@ class PackageSelection
     private function findMatches(Pool $pool, $name, Link $link)
     {
         try {
-            if (!$this->bestCandidateStrategy) {
+            if (!$this->requireBestDependencies) {
                 return $pool->whatProvides($name, $link->getConstraint(), true);
             } else {
                 $selector = new VersionSelector($pool);
