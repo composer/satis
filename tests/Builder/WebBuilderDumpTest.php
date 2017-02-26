@@ -61,7 +61,7 @@ class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
         $html = $this->root->getChild('build/index.html')->getContent();
 
         $this->assertRegExp('/<title>dummy root package Composer repository<\/title>/', $html);
-        $this->assertRegExp('{<h3 id="[^"]+" class="package-title">\s*<a href="#vendor/name" class="anchor">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</h3>}si', $html);
+        $this->assertRegExp('{<h3 id="[^"]+" class="panel-title package-title">\s*<a href="#vendor/name" class="anchor">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</h3>}si', $html);
         $this->assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
     }
 
