@@ -95,12 +95,25 @@
         </div>
 
         {% set package_dependencies = attribute(dependencies, name) %}
+        {% set package_requirements = attribute(requirements, name) %}
         {% if package_dependencies|length %}
         <div class="row">
             <div class="col-xs-2 text-xs-left text-sm-right"><strong>Required by</strong></div>
             <div class="col-xs-12 col-sm-10">
                 <ul>
                     {% for dependency in package_dependencies %}
+                    <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        {% if package_requirements|length %}
+        <div class="row">
+            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Requires</strong></div>
+            <div class="col-xs-12 col-sm-10">
+                <ul>
+                    {% for dependency in package_requirements %}
                     <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
                     {% endfor %}
                 </ul>
