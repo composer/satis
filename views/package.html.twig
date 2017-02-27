@@ -1,5 +1,4 @@
 <div class="panel {% if package.abandoned %}panel-danger{% else %}panel-info{% endif %}">
-
     <div class="panel-heading">
         <h3 id="{{ package.highest.name }}" class="panel-title package-title">
             <a href="#{{ package.highest.name }}" class="anchor">
@@ -25,9 +24,8 @@
     </div>
 
     <div class="panel-body">
-
         {% if package.highest.description %}
-        <p class="lead">{{ package.highest.description }}</p>
+        <p>{{ package.highest.description }}</p>
         {% endif %}
 
         {% if package.highest.keywords %}
@@ -107,7 +105,5 @@
             </div>
         </div>
         {% endif %}
-
     </div>
-
 </div>
