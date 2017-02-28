@@ -17,42 +17,50 @@
 
 <body>
 
-<nav class="navbar navbar-default">
-    <div class="container">
-        <form class="navbar-form navbar-right">
-            <div class="form-group">
-                <label for="search">Filter:</label>
-                <input type="text" id="search" class="form-control" autocomplete="off" autofocus />
-            </div>
-        </form>
-    </div>
-</nav>
-
 <div class="container">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/">
+                    {% if name %}{{ name }}{% else %}Composer repository{% endif %}
+                    {% if description %}<small>{{ description|raw }}</small>{% endif %}
+                </a>
+            </div>
 
-    <div class="page-header">
-        <h1>
-            {% if name %}{{ name }}{% else %}Composer repository{% endif %}
-        </h1>
+            <div class="collapse navbar-collapse in">
+                <p class="navbar-text navbar-right">
+                    <small class="text-muted">
+                        Last updated: <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
+                    </small>
+                </p>
+            </div>
+        </div>
+    </nav>
 
-        <small>
-            Last updated: <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
-        </small>
-
-        {% if description %}<p>{{ description|raw }}</p>{% endif %}
-    </div>
-
-    <p>Add this Satis repository to your <kbd>composer.json</kbd>:</p>
-        <pre><code>{
+    <pre><code>{
   "repositories": [{
     "type": "composer",
     "url": "{{ url }}"
   }]
 }</code></pre>
+    <p class="text-right">
+        <em>Add this Satis repository to your <kbd>composer.json</kbd></em>
+    </p>
 
     <div class="page-header">
         <h1>Packages</h1>
     </div>
+
+    <form>
+        <div class="form-group">
+            <input type="text"
+                id="search"
+                class="form-control"
+                placeholder="Filter packages"
+                autocomplete="off"
+                autofocus>
+        </div>
+    </form>
 
     <div id="package-list">
         {% for name, package in packages %}{% include 'package.html.twig' %}{% endfor %}
@@ -61,11 +69,9 @@
     <div id="ft">
         <p class="text-center"><small>This Composer repository is powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }}</small></p>
     </div>
-
 </div>
 
-<script>
-
+<script type="text/javascript">
 {% include 'assets/jquery.slim.min.js' %}
 {% include 'assets/bootstrap.min.js' %}
 {% include 'assets/moment.min.js' %}
