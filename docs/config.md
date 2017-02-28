@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /config
+permalink: config
 title: Config
 ---
 

@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /contributing
+permalink: contributing
 title: Contributing
 ---
 
