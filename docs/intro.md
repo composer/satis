@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /satis
+permalink: /satis/intro
 title: Introduction
 ---
 
