@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: config
+permalink: /satis/config
 title: Config
 ---
 
