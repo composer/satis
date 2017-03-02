@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /satis/config
+permalink: config
 title: Config
 ---
 
@@ -42,7 +42,7 @@ title: Config
   "output-html": "/path/html",
   "twig-template": "/path/template.twig",
   "config": {
-    
+
   },
   "notify-batch": "https://example.com/endpoint"
 }

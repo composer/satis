@@ -1,9 +1,7 @@
 ---
 layout: default
-permalink: /satis/using
+permalink: using
 title: Using
 ---
 
 ## Using
-
-

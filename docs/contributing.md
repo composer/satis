@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /satis/contributing
+permalink: contributing
 title: Contributing
 ---
 

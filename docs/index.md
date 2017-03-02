@@ -1,6 +1,6 @@
 ---
 layout: default
-permalink: /satis
+permalink: /
 title: Introduction
 ---
 
@@ -16,7 +16,7 @@ You can get it from GitHub:
 
     git clone https://github.com/composer/satis
     composer install
- 
+
 You can install it via CLI:
 
     composer create-project composer/satis --stability=dev --keep-vcs
