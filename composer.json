@@ -24,7 +24,7 @@
     "require": {
         "php": "^5.6 || ^7.0",
         "composer/composer": "^1.0",
-        "twig/twig": "^1.7",
+        "twig/twig": "^1.7 || ^2.0",
         "symfony/console": "^2.1 || ^3.0.4"
     },
     "autoload": {
