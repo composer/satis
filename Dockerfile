@@ -41,4 +41,4 @@ VOLUME ["/composer", "/build"]
 
 CMD ["--ansi", "-vvv", "build", "/build/satis.json", "/build/output"]
 
-ENTRYPOINT ["/sbin/tini", "--", "/satis/bin/satis"]
+ENTRYPOINT ["/satis/bin/docker-entrypoint.sh"]
