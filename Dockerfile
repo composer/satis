@@ -2,10 +2,10 @@ FROM php:7-alpine
 
 MAINTAINER https://github.com/composer/satis
 
-RUN apk --no-cache add curl git subversion openssh openssl mercurial tini zlib-dev && \
-    docker-php-ext-install zip
+RUN apk --no-cache add curl git subversion openssh openssl mercurial tini zlib-dev
 
-RUN echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini" \
+RUN docker-php-ext-install zip \
+ && echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini" \
  && echo "date.timezone=${PHP_TIMEZONE:-UTC}" > "$PHP_INI_DIR/conf.d/date_timezone.ini"
 
 ENV COMPOSER_HOME /composer
