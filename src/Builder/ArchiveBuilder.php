@@ -132,11 +132,7 @@ class ArchiveBuilder extends Builder
                 $distUrl = sprintf('%s/%s/%s/%s', $endpoint, $this->config['archive']['directory'], $intermediatePath, $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
-
-                if ($includeArchiveChecksum) {
-                    $package->setDistSha1Checksum(hash_file('sha1', $path));
-                }
-
+                $package->setDistSha1Checksum($includeArchiveChecksum ? hash_file('sha1', $path) : null);
                 $package->setDistReference($package->getSourceReference());
 
                 if ($renderProgress) {
