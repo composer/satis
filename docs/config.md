@@ -38,9 +38,9 @@ title: Config
   "require-dependencies": true,
   "require-dev-dependencies": true,
   "providers": false,
-  "output-dir": "/path/json",
-  "output-html": "/path/html",
-  "twig-template": "/path/template.twig",
+  "output-dir": "output",
+  "output-html": true,
+  "twig-template": "views/index.html.twig",
   "config": {
 
   },
