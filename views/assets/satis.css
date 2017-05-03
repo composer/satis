@@ -1,3 +1,5 @@
+body { padding-top: 20px; }
+
 .text-xs-left { text-align: left; }
 .text-xs-right { text-align: right; }
 .text-xs-center { text-align: center; }
