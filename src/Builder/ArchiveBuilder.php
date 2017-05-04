@@ -43,6 +43,7 @@ class ArchiveBuilder extends Builder
         $format = isset($this->config['archive']['format']) ? $this->config['archive']['format'] : 'zip';
         $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
         $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
+        $ignoreFilters = isset($this->config['archive']['ignore-filters']) ? (bool) $this->config['archive']['ignore-filters'] : false;
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
@@ -124,7 +125,7 @@ class ArchiveBuilder extends Builder
                     // Set archive format to `file` to tell composer to download it as is
                     $archiveFormat = 'file';
                 } else {
-                    $path = $archiveManager->archive($package, $format, sprintf('%s/%s', $basedir, $intermediatePath));
+                    $path = $archiveManager->archive($package, $format, sprintf('%s/%s', $basedir, $intermediatePath), null, $ignoreFilters);
                     $archiveFormat = $format;
                 }
 
