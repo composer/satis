@@ -20,14 +20,14 @@ isCommand() {
 
 # check if the first argument passed in looks like a flag
 if [ "$(printf %c "$1")" = '-' ]; then
-  set -- /sbin/tini -- /satis/bin/satis "$@"
+  set -- /satis/bin/satis "$@"
 # check if the first argument passed in is satis
 elif [ "$1" = 'satis' ]; then
   shift
-  set -- /sbin/tini -- /satis/bin/satis "$@"
+  set -- /satis/bin/satis "$@"
 # check if the first argument passed in matches a known command
 elif isCommand "$1"; then
-  set -- /sbin/tini -- /satis/bin/satis "$@"
+  set -- /satis/bin/satis "$@"
 fi
 
 exec "$@"
