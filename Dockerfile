@@ -2,7 +2,7 @@ FROM php:7-alpine
 
 MAINTAINER https://github.com/composer/satis
 
-RUN apk --no-cache add curl git subversion mercurial tini zlib-dev
+RUN apk --no-cache add curl git subversion mercurial openssh openssl tini zlib-dev
 
 RUN docker-php-ext-install zip \
  && echo "memory_limit=-1" > "$PHP_INI_DIR/conf.d/memory-limit.ini" \
