@@ -87,31 +87,55 @@ $(function () {
     var input = $('input#search');
     var list = $('div#package-list');
     var packages = list.find('h3');
-    var timer;
+    var timeElements = $('time');
+    var inputTimeout;
+
+    var updateTimeElements = function () {
+        momentize(timeElements);
+    };
+
+    var readHash = function () {
+        var hash = window.decodeURIComponent(window.location.hash.substr(1));
+        if (hash.length > 0) {
+            input.val(hash);
+            filterPackages();
+        }
+    };
+
+    var updateHash = function () {
+        window.location.hash = window.encodeURIComponent(input.val());
+    };
+
+    var filterPackages = function () {
+        var needle = input.val().toLowerCase();
+
+        list.hide();
+
+        packages.each(function () {
+            $(this).closest('div.panel').toggle(
+                $(this).text().toLowerCase().indexOf(needle) !== -1
+            );
+        });
+
+        list.show();
+    };
 
     input.keyup(function () {
-        clearTimeout(timer);
-        var needle = $(this).val().toLowerCase();
-        timer = setTimeout(function () {
-            list.hide();
-            packages.each(function () {
-                $(this).closest('div.panel').toggle(
-                    $(this).text().toLowerCase().indexOf(needle) !== -1
-                );
-            });
-            list.show();
-        }, 350);
+        updateHash();
+        window.clearTimeout(inputTimeout);
+        inputTimeout = window.setTimeout(filterPackages, 350);
     });
 
     $(window).keyup(function (event) {
         if (event.keyCode === 27) { // "ESC" keyCode
-            input.val('').trigger('keyup');
+            input.val('');
+            filterPackages();
         }
     });
 
-    var timeElements = $('time');
-    momentize(timeElements);
-    setInterval(function () { momentize(timeElements); }, 5000);
+    readHash();
+    updateTimeElements();
+    window.setInterval(updateTimeElements, 5000);
 });
 </script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
