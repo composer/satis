@@ -295,6 +295,12 @@ class PackageSelection
                                     continue;
                                 }
                                 $package = $loader->load($jsonVersion);
+
+                                // skip aliases
+                                if ($package instanceof AliasPackage) {
+                                    $package = $package->getAliasOf();
+                                }
+
                                 $packages[$package->getUniqueName()] = $package;
                             }
                         }
