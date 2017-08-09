@@ -69,6 +69,10 @@
                     "description": "Location of the downloads.",
                     "format": "uri"
                 },
+                "providers-prefix": {
+                    "type": "string",
+                    "description": "Prefix for the provider URI template"
+                },
                 "checksum": {
                     "type": "boolean",
                     "description": "If false, will not provide the sha1 checksum for the dist files."

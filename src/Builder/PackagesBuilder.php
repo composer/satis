@@ -26,7 +26,10 @@ class PackagesBuilder extends Builder
     /** @var string packages.json file name. */
     private $filename;
 
-    /** @var string included json filename template */
+	/** @var string prefix for providers URL. */
+	private $providersPrefix = null;
+
+	/** @var string included json filename template */
     private $includeFileName;
 
     private $writtenIncludeJsons = [];
@@ -44,7 +47,8 @@ class PackagesBuilder extends Builder
         parent::__construct($output, $outputDir, $config, $skipErrors);
 
         $this->filename = $this->outputDir . '/packages.json';
-        $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all$%hash%.json';
+	    $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all$%hash%.json';
+	    $this->providersPrefix = isset($config['archive']['providers-prefix']) ? trim( $config['archive']['providers-prefix'], '/' ) . '/' : '';
     }
 
     /**
@@ -62,7 +66,7 @@ class PackagesBuilder extends Builder
 
         $repo = ['packages' => []];
         if (isset($this->config['providers']) && $this->config['providers']) {
-            $providersUrl = 'p/%package%$%hash%.json';
+            $providersUrl = $this->providersPrefix . 'p/%package%$%hash%.json';
             if (!empty($this->config['homepage'])) {
                 $repo['providers-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $providersUrl;
             } else {
