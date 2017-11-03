@@ -14,13 +14,14 @@ namespace Composer\Satis\Builder;
 use Composer\Json\JsonFile;
 use Composer\Package\Package;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStreamDirectory;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>
  */
-class PackagesBuilderDumpTest extends \PHPUnit_Framework_TestCase
+class PackagesBuilderDumpTest extends TestCase
 {
     /** @var vfsStreamDirectory */
     protected $package;
