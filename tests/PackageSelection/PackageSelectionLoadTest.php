@@ -15,6 +15,7 @@ use Composer\Package\Package;
 use Composer\Package\AliasPackage;
 use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
+use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
 use Symfony\Component\Console\Output\NullOutput;
@@ -22,7 +23,7 @@ use Symfony\Component\Console\Output\NullOutput;
 /**
  * @author James Hautot <james@rezo.net>
  */
-class PackageSelectionLoadTest extends \PHPUnit_Framework_TestCase
+class PackageSelectionLoadTest extends TestCase
 {
     /** @var PackageSelection */
     protected $selection;
