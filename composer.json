@@ -31,7 +31,7 @@
         "psr-4": { "Composer\\Satis\\": "src" }
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.0",
+        "phpunit/phpunit": "^6.4",
         "phpunit/phpunit-mock-objects": "^4.0",
         "mikey179/vfsStream": "^1.6"
     },
