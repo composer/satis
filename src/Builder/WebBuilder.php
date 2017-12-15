@@ -11,9 +11,7 @@
 
 namespace Composer\Satis\Builder;
 
-use Composer\Package\CompletePackageInterface;
-use Composer\Package\PackageInterface;
-use Composer\Package\RootPackageInterface;
+use Composer\Package\{CompletePackageInterface, PackageInterface, RootPackageInterface};
 
 /**
  * Build the web pages.

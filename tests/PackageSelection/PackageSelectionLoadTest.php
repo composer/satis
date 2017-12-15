@@ -11,13 +11,11 @@
 
 namespace Composer\Satis\PackageSelection;
 
-use Composer\Package\Package;
-use Composer\Package\AliasPackage;
+use Composer\Package\{Package, AliasPackage};
 use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\TestCase;
-use org\bovigo\vfs\vfsStreamDirectory;
-use org\bovigo\vfs\vfsStreamWrapper;
+use org\bovigo\vfs\{vfsStreamDirectory, vfsStreamWrapper};
 use Symfony\Component\Console\Output\NullOutput;
 
 /**

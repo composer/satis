@@ -12,14 +12,12 @@
 namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
-use Composer\Config;
-use Composer\Factory;
+use Composer\{Config, Factory};
 use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
 use Composer\Repository\VcsRepository;
 use Symfony\Component\Console\Helper\FormatterHelper;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\{InputArgument, InputInterface};
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**

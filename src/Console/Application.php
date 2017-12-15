@@ -11,10 +11,8 @@
 
 namespace Composer\Satis\Console;
 
-use Composer\Composer;
-use Composer\Factory;
-use Composer\IO\ConsoleIO;
-use Composer\IO\IOInterface;
+use Composer\{Composer, Factory};
+use Composer\IO\{ConsoleIO, IOInterface};
 use Composer\Satis\Console\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;

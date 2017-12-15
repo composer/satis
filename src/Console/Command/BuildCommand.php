@@ -14,20 +14,15 @@ namespace Composer\Satis\Console\Command;
 use Composer\Command\BaseCommand;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
-use Composer\Json\JsonFile;
-use Composer\Json\JsonValidationException;
-use Composer\Satis\Builder\ArchiveBuilder;
-use Composer\Satis\Builder\PackagesBuilder;
-use Composer\Satis\Builder\WebBuilder;
+use Composer\Json\{JsonFile, JsonValidationException};
+use Composer\Satis\Builder\{ArchiveBuilder, PackagesBuilder, WebBuilder};
 use Composer\Satis\Console\Application;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
 use Seld\JsonLint\JsonParser;
 use Seld\JsonLint\ParsingException;
-use Symfony\Component\Console\Input\InputArgument;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\{InputArgument, InputInterface, InputOption};
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
