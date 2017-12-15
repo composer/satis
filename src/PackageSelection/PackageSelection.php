@@ -96,9 +96,9 @@ class PackageSelection
             $this->requireAll = true;
         }
 
-        $this->minimumStability = isset($config['minimum-stability']) ? $config['minimum-stability'] : 'dev';
-        $this->abandoned = isset($config['abandoned']) ? $config['abandoned'] : [];
-        $this->homepage = isset($config['homepage']) ? $config['homepage'] : null;
+        $this->minimumStability = $config['minimum-stability'] ?? 'dev';
+        $this->abandoned = $config['abandoned'] ?? [];
+        $this->homepage = $config['homepage'] ?? null;
     }
 
     /**

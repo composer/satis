@@ -37,9 +37,9 @@ class ArchiveBuilderHelper
     {
         $this->output = $output;
         $this->archiveConfig = $archiveConfig;
-        $this->archiveConfig['skip-dev'] = isset($archiveConfig['skip-dev']) ? (bool) $archiveConfig['skip-dev'] : false;
-        $this->archiveConfig['whitelist'] = isset($archiveConfig['whitelist']) ? (array) $archiveConfig['whitelist'] : [];
-        $this->archiveConfig['blacklist'] = isset($archiveConfig['blacklist']) ? (array) $archiveConfig['blacklist'] : [];
+        $this->archiveConfig['skip-dev'] = (bool) ($archiveConfig['skip-dev'] ?? false);
+        $this->archiveConfig['whitelist'] = (array) ($archiveConfig['whitelist'] ?? []);
+        $this->archiveConfig['blacklist'] = (array) ($archiveConfig['blacklist'] ?? []);
     }
 
     /**

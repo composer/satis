@@ -44,7 +44,7 @@ class PackagesBuilder extends Builder
         parent::__construct($output, $outputDir, $config, $skipErrors);
 
         $this->filename = $this->outputDir . '/packages.json';
-        $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all$%hash%.json';
+        $this->includeFileName = $config['include-filename'] ?? 'include/all$%hash%.json';
     }
 
     /**

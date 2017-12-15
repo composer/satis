@@ -102,7 +102,7 @@ class WebBuilder extends Builder
     private function getTwigEnvironment()
     {
         if (null === $this->twig) {
-            $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+            $twigTemplate = $this->config['twig-template'] ?? null;
 
             $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -119,7 +119,7 @@ class WebBuilder extends Builder
      */
     private function getTwigTemplate()
     {
-        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+        $twigTemplate = $this->config['twig-template'] ?? null;
 
         return $twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig';
     }
