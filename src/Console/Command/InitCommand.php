@@ -12,7 +12,6 @@
 namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
-use Composer\Config;
 use Composer\Json\JsonFile;
 use Symfony\Component\Console\Helper\{FormatterHelper, QuestionHelper};
 use Symfony\Component\Console\Input\{InputArgument, InputInterface, InputOption};
