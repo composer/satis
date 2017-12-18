@@ -162,7 +162,7 @@ EOT
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
         if (!$outputDir = $input->getArgument('output-dir')) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+            $outputDir = $config['output-dir'] ?? null;
         }
 
         if (null === $outputDir) {

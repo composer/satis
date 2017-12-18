@@ -39,10 +39,10 @@ class ArchiveBuilder extends Builder
         $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
         $basedir = $helper->getDirectory($this->outputDir);
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $basedir));
-        $format = isset($this->config['archive']['format']) ? $this->config['archive']['format'] : 'zip';
-        $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
-        $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
-        $ignoreFilters = isset($this->config['archive']['ignore-filters']) ? (bool) $this->config['archive']['ignore-filters'] : false;
+        $format = $this->config['archive']['format'] ?? 'zip';
+        $endpoint = $this->config['archive']['prefix-url'] ?? $this->config['homepage'];
+        $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
+        $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
