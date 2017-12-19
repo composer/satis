@@ -38,6 +38,7 @@ return (new PhpCsFixer\Config('satis'))
         'phpdoc_align' => false,
         'phpdoc_summary' => false,
         'simplified_null_return' => false,
+        'ternary_to_null_coalescing' => true,
     ])
     ->setFinder($finder)
 ;
