@@ -11,13 +11,13 @@
 
 namespace Composer\Satis\PackageSelection;
 
-use Composer\Package\Package;
 use Composer\Package\AliasPackage;
+use Composer\Package\Package;
 use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
@@ -40,9 +40,9 @@ class PackageSelectionLoadTest extends TestCase
     protected function setUp()
     {
         static $extra = [
-            "branch-alias" => [
-                "dev-master" => "1.0-dev",
-            ]
+            'branch-alias' => [
+                'dev-master' => '1.0-dev',
+            ],
         ];
 
         $this->package = new Package('vendor/name', '1.0.0.0', '1.0');

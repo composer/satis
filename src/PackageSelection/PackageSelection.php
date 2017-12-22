@@ -118,7 +118,7 @@ class PackageSelection
      */
     public function hasRepositoryFilter()
     {
-        return $this->repositoryFilter !== null;
+        return null !== $this->repositoryFilter;
     }
 
     /**
@@ -177,7 +177,7 @@ class PackageSelection
         }
 
         if ($this->hasRepositoryFilter()) {
-            if (count($repos) === 0) {
+            if (0 === count($repos)) {
                 throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
             } elseif (count($repos) > 1) {
                 throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
