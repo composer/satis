@@ -1,5 +1,7 @@
 <?php
 
+/* This config requires PHP-CS-Fixer version ^2.9 */
+
 $header = <<<EOF
 This file is part of composer/satis.
 
