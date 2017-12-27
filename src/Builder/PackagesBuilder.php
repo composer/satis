@@ -13,7 +13,6 @@ namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
 use Composer\Package\Dumper\ArrayDumper;
-use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**

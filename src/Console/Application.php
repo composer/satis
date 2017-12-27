@@ -15,7 +15,6 @@ use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
 use Composer\IO\IOInterface;
-use Composer\Satis\Console\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;
 use Symfony\Component\Console\Application as BaseApplication;
