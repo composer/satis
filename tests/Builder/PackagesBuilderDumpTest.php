@@ -14,8 +14,8 @@ namespace Composer\Satis\Builder;
 use Composer\Json\JsonFile;
 use Composer\Package\Package;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStreamDirectory;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**

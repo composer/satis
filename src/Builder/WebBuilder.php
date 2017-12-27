@@ -39,7 +39,7 @@ class WebBuilder extends Builder
         $mappedPackages = $this->getMappedPackageList($packages);
 
         $name = $this->rootPackage->getPrettyName();
-        if ($name === '__root__') {
+        if ('__root__' === $name) {
             $name = 'A';
             $this->output->writeln('Define a "name" property in your json config to name the repository');
         }

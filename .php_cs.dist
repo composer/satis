@@ -1,5 +1,7 @@
 <?php
 
+/* This config requires PHP-CS-Fixer version ^2.9 */
+
 $header = <<<EOF
 This file is part of composer/satis.
 
@@ -24,8 +26,8 @@ return (new PhpCsFixer\Config('satis'))
         '@PSR2' => true,
         '@Symfony' => true,
         // additionally
-        'concat_with_spaces' => true,
-        'concat_without_spaces' => false,
+        'array_syntax' => ['syntax' => 'short'],
+        'concat_space' => false,
         'header_comment' => ['header' => $header],
         'no_unused_imports' => false,
         'no_useless_else' => true,
@@ -33,9 +35,8 @@ return (new PhpCsFixer\Config('satis'))
         'ordered_imports' => true,
         'phpdoc_align' => false,
         'phpdoc_order' => true,
-        'phpdoc_params' => false,
+        'phpdoc_align' => false,
         'phpdoc_summary' => false,
-        'short_array_syntax' => true,
         'simplified_null_return' => false,
     ])
     ->setFinder($finder)

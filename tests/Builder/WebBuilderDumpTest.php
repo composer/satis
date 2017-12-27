@@ -16,9 +16,9 @@ use Composer\Package\Link;
 use Composer\Package\RootPackage;
 use Composer\Satis\Builder\WebBuilder;
 use org\bovigo\vfs\vfsStream;
-use PHPUnit\Framework\TestCase;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
