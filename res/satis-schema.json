@@ -252,6 +252,10 @@
         "notify-batch": {
             "type": "string",
             "description": "a URL that will be called every time a user installs a package."
+        },
+        "_comment": {
+            "type": ["array", "string"],
+            "description": "A key to store comments in"
         }
     }
 }
