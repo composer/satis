@@ -149,7 +149,7 @@ EOT
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
         }
 
-        if ($repositoryUrl !== null && count($packagesFilter) > 0) {
+        if (null !== $repositoryUrl && count($packagesFilter) > 0) {
             throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
         }
 
@@ -157,7 +157,7 @@ EOT
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
         if (!$outputDir = $input->getArgument('output-dir')) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+            $outputDir = $config['output-dir'] ?? null;
         }
 
         if (null === $outputDir) {
@@ -169,7 +169,7 @@ EOT
         $composer = $application->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
-        if ($repositoryUrl !== null) {
+        if (null !== $repositoryUrl) {
             $packageSelection->setRepositoryFilter($repositoryUrl);
         } else {
             $packageSelection->setPackagesFilter($packagesFilter);

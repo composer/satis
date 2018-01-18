@@ -12,8 +12,8 @@
 namespace Composer\Satis\PackageSelection;
 
 use Composer\Package\{CompletePackage, Link, Package};
-use PHPUnit\Framework\TestCase;
 use Composer\Repository\ArrayRepository;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**

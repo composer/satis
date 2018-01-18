@@ -82,10 +82,16 @@
             <div class="col-xs-2 text-xs-left text-sm-right"><strong>Releases</strong></div>
             <div class="col-xs-12 col-sm-10">
                 {% for version in package.versions %}
+
+                {% set branch_alias = attribute(version.extra['branch-alias'], version.prettyVersion) %}
+                {%- if branch_alias -%}
+                    {% set branch_alias = ", branch-alias: " ~ branch_alias %}
+                {%- endif -%}
+
                 {%- if version.distType -%}
-                <a href="{{ version.distUrl }}" title="{{ version.distReference }}">{{ version.prettyVersion }}</a>
+                <a href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
-                <a href="{{ version.sourceUrl }}" title="{{ version.sourceReference }}">{{ version.prettyVersion }}</a>
+                <a href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- endif -%}
                 {%- if not loop.last -%}, {% endif -%}
                 {% endfor %}
