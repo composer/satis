@@ -11,14 +11,10 @@
 
 namespace Composer\Test\Satis;
 
-use Composer\Package\CompletePackage;
-use Composer\Package\Link;
-use Composer\Package\RootPackage;
+use Composer\Package\{CompletePackage, Link, RootPackage};
 use Composer\Satis\Builder\WebBuilder;
-use org\bovigo\vfs\vfsStream;
-use org\bovigo\vfs\vfsStreamDirectory;
-use org\bovigo\vfs\vfsStreamWrapper;
 use PHPUnit\Framework\TestCase;
+use org\bovigo\vfs\{vfsStream, vfsStreamDirectory, vfsStreamWrapper};
 use Symfony\Component\Console\Output\NullOutput;
 
 /**

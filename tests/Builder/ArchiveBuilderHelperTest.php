@@ -11,8 +11,7 @@
 
 namespace Composer\Satis\Builder;
 
-use Composer\Package\Link;
-use Composer\Package\Package;
+use Composer\Package\{Link, Package};
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
