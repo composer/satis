@@ -90,7 +90,13 @@ class ArchiveBuilder extends Builder
                     $progressBar->display();
                 }
             } else {
-                $this->output->writeln(sprintf("<info>Dumping '%s'.</info>", $package->getName()));
+                $this->output->writeln(
+                    sprintf(
+                        "<info>Dumping package '%s' in version '%s'.</info>",
+                        $package->getName(),
+                        $package->getPrettyVersion()
+                    )
+                );
             }
 
             try {
