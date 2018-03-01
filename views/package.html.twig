@@ -99,7 +99,7 @@
         </div>
 
         {% set package_dependencies = attribute(dependencies, name) %}
-        {% if package_dependencies|length %}
+        {% if package_dependencies and package_dependencies|length %}
         <div class="row">
             <div class="col-xs-2 text-xs-left text-sm-right"><strong>Required by</strong></div>
             <div class="col-xs-12 col-sm-10">
