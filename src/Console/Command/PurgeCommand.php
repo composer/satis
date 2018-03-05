@@ -31,7 +31,7 @@ class PurgeCommand extends BaseCommand
 <<<'EOT'
 The <info>purge</info> command deletes useless archive files, depending
 on given json file (satis.json is used by default) and the
-lastest json file in the include directory of the given output-dir.
+newest json file in the include directory of the given output-dir.
 
 In your satis.json (or other name you give), you must define
 "archive" argument.
