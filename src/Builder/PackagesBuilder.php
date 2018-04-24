@@ -136,15 +136,47 @@ class PackagesBuilder extends Builder
             $pattern = '#^' . str_replace('%hash%', '([0-9a-zA-Z]{' . strlen($hash) . '})', preg_quote($basename, '#')) . '$#';
             $paths[$dirname][] = [$pattern, $hash];
         }
+        $pruneFiles = [];
         foreach ($paths as $dirname => $entries) {
             foreach (new \DirectoryIterator($dirname) as $file) {
                 foreach ($entries as $entry) {
                     list($pattern, $hash) = $entry;
                     if (preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
-                        unlink($file->getPathname());
-                        $this->output->writeln('<comment>Deleted ' . $file->getPathname() . '</comment>');
+                        $group = sprintf(
+                            '%s/%s',
+                            basename($dirname),
+                            preg_replace('/\$.*$/', '', $file->getFilename())
+                        );
+                        if (!array_key_exists($group, $pruneFiles)) {
+                            $pruneFiles[$group] = [];
+                        }
+                        // Mark file for pruning.
+                        $pruneFiles[$group][] = new \SplFileInfo($file->getPathname());
                     }
                 }
+            }
+        }
+        // Get the pruning limit.
+        $offset = $this->config['providers-history-size'] ?? 0;
+        // Unlink to-be-pruned files.
+        foreach ($pruneFiles as $group => $files) {
+            // Sort to-be-pruned files base on ctime, latest first.
+            usort(
+                $files,
+                function (\SplFileInfo $fileA, \SplFileInfo $fileB) {
+                    return $fileB->getCTime() <=> $fileA->getCTime();
+                }
+            );
+            // If configured, skip files from the to-be-pruned files by offset.
+            $files = array_splice($files, $offset);
+            foreach ($files as $file) {
+                unlink($file->getPathname());
+                $this->output->writeln(
+                    sprintf(
+                        '<comment>Deleted %s</comment>',
+                        $file->getPathname()
+                    )
+                );
             }
         }
     }
