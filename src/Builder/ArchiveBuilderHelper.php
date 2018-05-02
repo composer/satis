@@ -82,18 +82,86 @@ class ArchiveBuilderHelper
         }
 
         $names = $package->getNames();
-        if ($this->archiveConfig['whitelist'] && !array_intersect($this->archiveConfig['whitelist'], $names)) {
+
+        if ($this->archiveConfig['whitelist'] && !$this->isOneOfNamesInList($names, $this->archiveConfig['whitelist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
 
             return true;
         }
 
-        if ($this->archiveConfig['blacklist'] && array_intersect($this->archiveConfig['blacklist'], $names)) {
+        if ($this->archiveConfig['blacklist'] && $this->isOneOfNamesInList($names, $this->archiveConfig['blacklist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
 
             return true;
         }
 
         return false;
+    }
+
+    /**
+     * Check if any of the names is in the list.
+     *
+     * Any * in the list is treated as a wildcard.
+     *
+     * @param array $names Names to check
+     * @param array $list  List to check the names against
+     *
+     * @return bool true if any of the names is in the list
+     */
+    protected function isOneOfNamesInList(array $names, array $list) {
+
+        $patterns = $this->convertListToRegexPatterns($list);
+
+        foreach($names as $name) {
+            if($this->doesNameMatchOneOfPatterns($name, $patterns)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the name matches any of the patterns.
+     *
+     * @param string $name     Name to check
+     * @param array  $patterns Patterns to check the name against
+     *
+     * @return bool true if the name matches any of the patterns
+     */
+    protected function doesNameMatchOneOfPatterns($name, array $patterns) {
+
+        foreach($patterns as $pattern) {
+            if(preg_match($pattern, $name)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Convert a list to regex patterns for use in preg_ functions.
+     *
+     * Any * is replaced with .* and the rest is escaped.
+     *
+     * @param array $list List to convert to patterns
+     *
+     * @return array array of patterns
+     */
+    protected function convertListToRegexPatterns(array $list) {
+
+        $patterns = [ ];
+
+        foreach($list as $entry) {
+
+            $pattern = explode('*', $entry);
+            $pattern = array_map(function($value) { return preg_quote($value, '/'); }, $pattern);
+            $pattern = '/^' . implode('.*', $pattern) . '$/';
+
+            $patterns[] = $pattern;
+        }
+
+        return $patterns;
     }
 }
