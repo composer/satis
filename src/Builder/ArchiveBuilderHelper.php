@@ -108,12 +108,12 @@ class ArchiveBuilderHelper
      *
      * @return bool true if any of the names is in the list
      */
-    protected function isOneOfNamesInList(array $names, array $list) {
-
+    protected function isOneOfNamesInList(array $names, array $list)
+    {
         $patterns = $this->convertListToRegexPatterns($list);
 
-        foreach($names as $name) {
-            if($this->doesNameMatchOneOfPatterns($name, $patterns)) {
+        foreach ($names as $name) {
+            if ($this->doesNameMatchOneOfPatterns($name, $patterns)) {
                 return true;
             }
         }
@@ -129,10 +129,10 @@ class ArchiveBuilderHelper
      *
      * @return bool true if the name matches any of the patterns
      */
-    protected function doesNameMatchOneOfPatterns($name, array $patterns) {
-
-        foreach($patterns as $pattern) {
-            if(preg_match($pattern, $name)) {
+    protected function doesNameMatchOneOfPatterns($name, array $patterns)
+    {
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $name)) {
                 return true;
             }
         }
@@ -149,14 +149,13 @@ class ArchiveBuilderHelper
      *
      * @return array array of patterns
      */
-    protected function convertListToRegexPatterns(array $list) {
+    protected function convertListToRegexPatterns(array $list)
+    {
+        $patterns = [];
 
-        $patterns = [ ];
-
-        foreach($list as $entry) {
-
+        foreach ($list as $entry) {
             $pattern = explode('*', $entry);
-            $pattern = array_map(function($value) { return preg_quote($value, '/'); }, $pattern);
+            $pattern = array_map(function ($value) { return preg_quote($value, '/'); }, $pattern);
             $pattern = '/^' . implode('.*', $pattern) . '$/';
 
             $patterns[] = $pattern;

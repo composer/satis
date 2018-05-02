@@ -14,10 +14,15 @@ namespace Composer\Satis\PackageSelection;
 use Composer\Composer;
 use Composer\DependencyResolver\Pool;
 use Composer\Json\JsonFile;
-use Composer\Package\{AliasPackage, BasePackage, Link};
+use Composer\Package\AliasPackage;
+use Composer\Package\BasePackage;
+use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
-use Composer\Repository\{ComposerRepository, ConfigurableRepositoryInterface, PlatformRepository, RepositoryInterface};
+use Composer\Repository\ComposerRepository;
+use Composer\Repository\ConfigurableRepositoryInterface;
+use Composer\Repository\PlatformRepository;
+use Composer\Repository\RepositoryInterface;
 use Composer\Semver\Constraint\MultiConstraint;
 use Symfony\Component\Console\Output\OutputInterface;
 
