@@ -16,5 +16,5 @@ namespace Composer\Satis;
  */
 class Satis
 {
-    const VERSION = '1.0.0-dev';
+    const VERSION = '1.0.0';
 }
