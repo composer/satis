@@ -38,35 +38,42 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
 
     protected $satisConfig;
 
+    protected $root;
+
+    protected $home;
+
+    protected $target;
+
     public function tearDown()
     {
-        $root = __DIR__ . '/vfs';
         $fs = new Filesystem();
-        $fs->remove($root);
+        $fs->remove($this->root);
     }
 
     public function setUp()
     {
-        $root = __DIR__ . '/vfs';
-        $home = $root . '/home/ubuntu';
-        $target = $home . '/satis.server/dist/monolog/monolog';
-        $fs = new Filesystem();
-        $fs->mkdir($target, 0777);
-        $fs->dumpFile($target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar', 'the package archive.');
-        $fs->dumpFile($target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar', 'the package archive.');
+        $this->root = __DIR__ . '/vfs';
+        $this->home = $this->root . '/home/ubuntu';
+        $this->target = $this->home . '/satis.server/dist/monolog/monolog';
 
-        $composerConfig = new ComposerConfig(true, $home . '/satis.server');
+        $composerConfig = new ComposerConfig(true, $this->home . '/satis.server');
         $composerConfig->merge([
-            'cache-dir'=> $home . '/.cache/composer',
-            'data-dir'=> $home . '/.local/share/composer',
-            'home'=> $home . '/.config/composer'
+            'cache-dir'=> $this->home . '/.cache/composer',
+            'data-dir'=> $this->home . '/.local/share/composer',
+            'home'=> $this->home . '/.config/composer'
         ]);
-        $composerConfig->setConfigSource(new JsonConfigSource(new JsonFile($home . '/.config/composer/config.json')));
-        $composerConfig->setAuthConfigSource(new JsonConfigSource(new JsonFile($home . '/.config/composer/auth.json')));
+        $composerConfig->setConfigSource(new JsonConfigSource(new JsonFile($this->home . '/.config/composer/config.json')));
+        $composerConfig->setAuthConfigSource(new JsonConfigSource(new JsonFile($this->home . '/.config/composer/auth.json')));
 
-        $downloader = $this->getMockBuilder('Composer\Downloader\DownloaderInterface')->disableOriginalConstructor()->getMock();
         $downloadManager = $this->getMockBuilder('Composer\Downloader\DownloadManager')->disableOriginalConstructor()->getMock();
-        $downloadManager->method('getDownloader')->willReturn($this->returnValue($downloader));
+        $downloadManager->method('download')->will(
+            $this->returnCallback(
+                function($package, $source) {
+                    $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+                    $filesystem->dumpFile(realpath($source) . '/' . 'README.md', '# The demo archive.');
+                }
+            )
+        );
 
         $this->composer = new Composer();
         $this->composer->setConfig($composerConfig);
@@ -77,7 +84,7 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
 
         $this->output = new NullOutput();
 
-        $this->outputDir = $home . '/satis.server';
+        $this->outputDir = $this->home . '/satis.server';
 
         $this->satisConfig = [
             "name" => "monolog/monolog",
@@ -105,8 +112,10 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getDataForTestDump
      */
-    public function testDump($customConfig, $packages, $expectedFileName)
+    public function testDumpWithDownloadedArchives($customConfig, $packages, $expectedFileName)
     {
+        $this->initArchives();
+
         $config = array_merge_recursive($this->satisConfig, $customConfig);
 
         $builder = new ArchiveBuilder($this->output, $this->outputDir, $config, true);
@@ -147,5 +156,36 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
             [['archive' => ['override-dist-type' => false]], $this->getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
             [['archive' => ['override-dist-type' => true]], $this->getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar']
         ];
+    }
+
+    /**
+     * @dataProvider getDataForTestDump
+     */
+    public function testDumpWithoutDownloadedArchives($customConfig, $packages, $expectedFileName)
+    {
+        $this->removeArchives();
+
+        $config = array_merge_recursive($this->satisConfig, $customConfig);
+        $builder = new ArchiveBuilder($this->output, $this->outputDir, $config, true);
+        $builder->setInput($this->input);
+        $builder->setComposer($this->composer);
+        $builder->dump($packages);
+
+        $this->assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+    }
+
+    private function initArchives()
+    {
+        $fs = new Filesystem();
+        $fs->mkdir($this->target, 0777);
+        $fs->dumpFile($this->target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar', 'the package archive.');
+        $fs->dumpFile($this->target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar', 'the package archive.');
+    }
+
+    private function removeArchives()
+    {
+        $fs = new Filesystem();
+        $fs->remove($this->target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar');
+        $fs->remove($this->target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar');
     }
 }
