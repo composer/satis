@@ -43,6 +43,7 @@ class ArchiveBuilder extends Builder
         $endpoint = isset($this->config['archive']['prefix-url']) ? $this->config['archive']['prefix-url'] : $this->config['homepage'];
         $includeArchiveChecksum = isset($this->config['archive']['checksum']) ? (bool) $this->config['archive']['checksum'] : true;
         $ignoreFilters = isset($this->config['archive']['ignore-filters']) ? (bool) $this->config['archive']['ignore-filters'] : false;
+        $overrideDistType = isset($this->config['archive']['override-dist-type']) ? (bool) $this->config['archive']['override-dist-type'] : false;
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
@@ -99,6 +100,7 @@ class ArchiveBuilder extends Builder
                 }
 
                 $intermediatePath = preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
+
                 $packageName = $archiveManager->getPackageFilename($package);
 
                 if ('pear-library' === $package->getType()) {
@@ -109,7 +111,8 @@ class ArchiveBuilder extends Builder
                         realpath($basedir),
                         $intermediatePath,
                         $packageName,
-                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION))
+                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION)
+                    )
                     ;
 
                     if (!file_exists($path)) {
@@ -124,6 +127,10 @@ class ArchiveBuilder extends Builder
                     // Set archive format to `file` to tell composer to download it as is
                     $archiveFormat = 'file';
                 } else {
+                    if (true === $overrideDistType) {
+                        $package->setDistType($format);
+                    }
+
                     $path = $archiveManager->archive($package, $format, sprintf('%s/%s', $basedir, $intermediatePath), null, $ignoreFilters);
                     $archiveFormat = $format;
                 }

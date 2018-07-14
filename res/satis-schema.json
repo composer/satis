@@ -76,6 +76,10 @@
                 "ignore-filters": {
                     "type": "boolean",
                     "description": "Ignore filters when looking for files in the package."
+                },
+                "override-dist-type": {
+                    "type": "boolean",
+                    "description": "If true, archive format will be used to substitute dist type when generating archive file name."
                 }
             }
         },
