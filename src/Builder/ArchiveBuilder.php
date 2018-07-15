@@ -43,7 +43,7 @@ class ArchiveBuilder extends Builder
         $endpoint = $this->config['archive']['prefix-url'] ?? $this->config['homepage'];
         $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
         $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);
-        $overrideDistType = (bool) ($this->config['archive']['override-dist-type']) ?? false);
+        $overrideDistType = (bool) ($this->config['archive']['override-dist-type'] ?? false);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
