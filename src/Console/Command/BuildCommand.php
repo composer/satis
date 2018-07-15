@@ -43,7 +43,7 @@ class BuildCommand extends BaseCommand
             ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
-                new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built, if not provided all packages are.', null),
+                new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built. If not provided, all packages are built.', null),
                 new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
@@ -154,7 +154,7 @@ EOT
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
         }
 
-        if ($repositoryUrl !== null && count($packagesFilter) > 0) {
+        if (null !== $repositoryUrl && count($packagesFilter) > 0) {
             throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
         }
 
@@ -162,7 +162,7 @@ EOT
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
         if (!$outputDir = $input->getArgument('output-dir')) {
-            $outputDir = isset($config['output-dir']) ? $config['output-dir'] : null;
+            $outputDir = $config['output-dir'] ?? null;
         }
 
         if (null === $outputDir) {
@@ -174,7 +174,7 @@ EOT
         $composer = $application->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
-        if ($repositoryUrl !== null) {
+        if (null !== $repositoryUrl) {
             $packageSelection->setRepositoryFilter($repositoryUrl);
         } else {
             $packageSelection->setPackagesFilter($packagesFilter);

@@ -29,7 +29,7 @@
 
             <div class="collapse navbar-collapse in">
                 <p class="navbar-text navbar-right">
-                    <small class="text-muted">
+                    <small class="text-muted" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
                         Last updated: <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
                     </small>
                 </p>

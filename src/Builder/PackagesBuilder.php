@@ -13,7 +13,6 @@ namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
 use Composer\Package\Dumper\ArrayDumper;
-use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -44,7 +43,7 @@ class PackagesBuilder extends Builder
         parent::__construct($output, $outputDir, $config, $skipErrors);
 
         $this->filename = $this->outputDir . '/packages.json';
-        $this->includeFileName = isset($config['include-filename']) ? $config['include-filename'] : 'include/all$%hash%.json';
+        $this->includeFileName = $config['include-filename'] ?? 'include/all$%hash%.json';
     }
 
     /**
@@ -131,21 +130,53 @@ class PackagesBuilder extends Builder
             $path = $this->outputDir . '/' . ltrim($includesUrl, '/');
             $dirname = dirname($path);
             $basename = basename($path);
-            if (strpos($dirname, '%hash%') !== false) {
+            if (false !== strpos($dirname, '%hash%')) {
                 throw new \RuntimeException('Refusing to prune when %hash% is in dirname');
             }
             $pattern = '#^' . str_replace('%hash%', '([0-9a-zA-Z]{' . strlen($hash) . '})', preg_quote($basename, '#')) . '$#';
             $paths[$dirname][] = [$pattern, $hash];
         }
+        $pruneFiles = [];
         foreach ($paths as $dirname => $entries) {
             foreach (new \DirectoryIterator($dirname) as $file) {
                 foreach ($entries as $entry) {
                     list($pattern, $hash) = $entry;
                     if (preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
-                        unlink($file->getPathname());
-                        $this->output->writeln('<comment>Deleted ' . $file->getPathname() . '</comment>');
+                        $group = sprintf(
+                            '%s/%s',
+                            basename($dirname),
+                            preg_replace('/\$.*$/', '', $file->getFilename())
+                        );
+                        if (!array_key_exists($group, $pruneFiles)) {
+                            $pruneFiles[$group] = [];
+                        }
+                        // Mark file for pruning.
+                        $pruneFiles[$group][] = new \SplFileInfo($file->getPathname());
                     }
                 }
+            }
+        }
+        // Get the pruning limit.
+        $offset = $this->config['providers-history-size'] ?? 0;
+        // Unlink to-be-pruned files.
+        foreach ($pruneFiles as $group => $files) {
+            // Sort to-be-pruned files base on ctime, latest first.
+            usort(
+                $files,
+                function (\SplFileInfo $fileA, \SplFileInfo $fileB) {
+                    return $fileB->getCTime() <=> $fileA->getCTime();
+                }
+            );
+            // If configured, skip files from the to-be-pruned files by offset.
+            $files = array_splice($files, $offset);
+            foreach ($files as $file) {
+                unlink($file->getPathname());
+                $this->output->writeln(
+                    sprintf(
+                        '<comment>Deleted %s</comment>',
+                        $file->getPathname()
+                    )
+                );
             }
         }
     }
@@ -169,7 +200,7 @@ class PackagesBuilder extends Builder
 
         $hash = hash($hashAlgorithm, $contents);
 
-        if (strpos($includesUrl, '%hash%') !== false) {
+        if (false !== strpos($includesUrl, '%hash%')) {
             $this->writtenIncludeJsons[] = [$hash, $includesUrl];
             $filename = str_replace('%hash%', $hash, $includesUrl);
             if (file_exists($path = $this->outputDir . '/' . ltrim($filename, '/'))) {

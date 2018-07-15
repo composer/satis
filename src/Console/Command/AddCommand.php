@@ -12,7 +12,6 @@
 namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
-use Composer\Config;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Json\JsonFile;

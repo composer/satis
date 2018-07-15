@@ -13,12 +13,13 @@ namespace Composer\Test\Satis;
 
 use Composer\Package\Package;
 use Composer\Satis\Builder\WebBuilder;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>
  */
-class WebBuilderTest extends \PHPUnit_Framework_TestCase
+class WebBuilderTest extends TestCase
 {
     /** @var WebBuilder */
     protected $webBuilder;

@@ -18,12 +18,13 @@ use Composer\Satis\Builder\WebBuilder;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
  * @author James Hautot <james@rezo.net>
  */
-class WebBuilderDumpTest extends \PHPUnit_Framework_TestCase
+class WebBuilderDumpTest extends TestCase
 {
     /** @var RootPackage */
     protected $rootPackage;

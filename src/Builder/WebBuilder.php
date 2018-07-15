@@ -39,7 +39,7 @@ class WebBuilder extends Builder
         $mappedPackages = $this->getMappedPackageList($packages);
 
         $name = $this->rootPackage->getPrettyName();
-        if ($name === '__root__') {
+        if ('__root__' === $name) {
             $name = 'A';
             $this->output->writeln('Define a "name" property in your json config to name the repository');
         }
@@ -102,7 +102,7 @@ class WebBuilder extends Builder
     private function getTwigEnvironment()
     {
         if (null === $this->twig) {
-            $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+            $twigTemplate = $this->config['twig-template'] ?? null;
 
             $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new \Twig_Loader_Filesystem($templateDir);
@@ -119,7 +119,7 @@ class WebBuilder extends Builder
      */
     private function getTwigTemplate()
     {
-        $twigTemplate = isset($this->config['twig-template']) ? $this->config['twig-template'] : null;
+        $twigTemplate = $this->config['twig-template'] ?? null;
 
         return $twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig';
     }
