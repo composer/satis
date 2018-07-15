@@ -43,6 +43,7 @@ class ArchiveBuilder extends Builder
         $endpoint = $this->config['archive']['prefix-url'] ?? $this->config['homepage'];
         $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
         $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);
+        $overrideDistType = (bool) ($this->config['archive']['override-dist-type'] ?? false);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
         /* @var \Composer\Downloader\DownloadManager $downloadManager */
@@ -105,6 +106,7 @@ class ArchiveBuilder extends Builder
                 }
 
                 $intermediatePath = preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
+
                 $packageName = $archiveManager->getPackageFilename($package);
 
                 if ('pear-library' === $package->getType()) {
@@ -115,8 +117,8 @@ class ArchiveBuilder extends Builder
                         realpath($basedir),
                         $intermediatePath,
                         $packageName,
-                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION))
-                    ;
+                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION)
+                    );
 
                     if (!file_exists($path)) {
                         $downloadDir = sys_get_temp_dir() . '/composer_archiver/' . $packageName;
@@ -130,8 +132,24 @@ class ArchiveBuilder extends Builder
                     // Set archive format to `file` to tell composer to download it as is
                     $archiveFormat = 'file';
                 } else {
-                    $path = $archiveManager->archive($package, $format, sprintf('%s/%s', $basedir, $intermediatePath), null, $ignoreFilters);
+                    $targetDir = sprintf('%s/%s', $basedir, $intermediatePath);
                     $archiveFormat = $format;
+
+                    if (true === $overrideDistType) {
+                        $filesystem = new Filesystem();
+                        $filesystem->ensureDirectoryExists($targetDir);
+                        $originalDistType = $package->getDistType();
+                        $package->setDistType($format);
+                        $path = realpath($targetDir) . '/' . $archiveManager->getPackageFilename($package) . '.' . $format;
+
+                        if (!file_exists($path)) {
+                            $package->setDistType($originalDistType);
+                            $downloaded = $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
+                            $filesystem->rename($downloaded, $path);
+                        }
+                    } else {
+                        $path = $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
+                    }
                 }
 
                 $archive = basename($path);
