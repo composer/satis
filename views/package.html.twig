@@ -88,7 +88,9 @@
                     {% set branch_alias = ", branch-alias: " ~ branch_alias %}
                 {%- endif -%}
 
-                {%- if version.distType -%}
+                {%- if package.highest.type == 'metapackage' -%}
+                {{ version.prettyVersion }}
+                {%- elseif version.distType -%}
                 <a href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
                 <a href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
