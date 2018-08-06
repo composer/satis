@@ -7,7 +7,7 @@ Simple static Composer repository generator.
 
 ## Run from source
 
-- Install satis: `composer create-project composer/satis:dev-master --keep-vcs`
+- Install satis: `composer create-project composer/satis:dev-master`
 - Build a repository: `php bin/satis build <configuration-file> <output-dir>`
 
 Read the more detailed instructions in the [documentation][].
