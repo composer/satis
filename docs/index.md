@@ -19,7 +19,7 @@ You can get it from GitHub:
 
 You can install it via CLI:
 
-    composer create-project composer/satis --stability=dev --keep-vcs
+    composer create-project composer/satis --stability=dev
 
 You can run it as a Docker container:
 
