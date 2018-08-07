@@ -11,6 +11,9 @@
 
 namespace Composer\Satis\PackageSelection;
 
+use Composer\Config;
+use Composer\Factory;
+use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
@@ -169,7 +172,7 @@ class PackageSelectionTest extends TestCase
         $property->setAccessible(true);
         $property->setValue($builder, $requireDevDependencies);
 
-        $this->assertSame($expected, $method->invokeArgs($builder, [$package]));
+        $this->assertSame($expected, $method->invokeArgs($builder, [$package, true]));
     }
 
     /**
@@ -228,5 +231,247 @@ class PackageSelectionTest extends TestCase
         $method->invokeArgs($builder, []);
 
         $this->assertEquals($expected, $property->getValue($builder));
+    }
+
+    /**
+     * @return array
+     */
+    public function dataSelect()
+    {
+        $packages = [
+            'alpha' => [
+                'name' => 'vendor/project-alpha',
+                'version' => '1.2.3.0',
+            ],
+            'beta' => [
+                'name' => 'vendor/project-beta',
+                'version' => '1.2.3.0',
+            ],
+            'gamma1' => [
+                'name' => 'vendor/project-gamma',
+                'version' => '1.2.3.0',
+            ],
+            'gamma2' => [
+                'name' => 'vendor/project-gamma',
+                'version' => '2.3.4.0',
+            ],
+            'gamma3' => [
+                'name' => 'vendor/project-gamma',
+                'version' => '3.4.5.0',
+            ],
+            'gamma4' => [
+                'name' => 'vendor/project-gamma',
+                'version' => '4.5.6.0',
+            ],
+            'delta' => [
+                'name' => 'vendor/project-delta',
+                'version' => '1.2.3.0',
+                'require' => [
+                    'vendor/project-alpha' =>  '^1',
+                    'vendor/project-gamma' => '^1',
+                ],
+            ],
+            'epsilon' => [
+                'name' => 'vendor/project-epsilon',
+                'version' => '1.2.3.0',
+                'require' => [
+                    'vendor/project-alpha' => '^1',
+                ],
+                'require-dev' => [
+                    'vendor/project-gamma' => '^4',
+                ]
+            ],
+            'zeta' => [
+                'name' => 'vendor/project-zeta',
+                'version' => '1.2.3.0',
+                'require' => [
+                    'vendor/project-epsilon' => '^1',
+                ],
+            ],
+            'eta' => [
+                'name' => 'vendor/project-eta',
+                'version' => '1.2.3.0',
+                'require' => [
+                    'vendor/project-gamma' => '>=1',
+                ],
+            ],
+        ];
+
+        $repo['everything'] = [
+            'type' => 'package',
+            'url' => 'example.org/everything',
+            'package' => \array_values($packages),
+        ];
+        $repo['gamma'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-gamma',
+            'package' => [
+                $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+            ]
+        ];
+        $repo['delta'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-delta',
+            'package' => $packages['delta']
+        ];
+
+        foreach ($packages as &$p) {
+            $p = $p['name'] . '-' . $p['version'];
+        }
+
+        $data = [];
+        
+        $data['Require-all'] = [
+            $packages,
+            [
+                'repositories' => [
+                    $repo['everything'],
+                ],
+            ],
+        ];
+
+        $data['Require'] = [
+            [
+                $packages['alpha'],
+                $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+            ],
+            [
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-alpha' => '>=1',
+                    'vendor/project-gamma' => '>=1',
+                ],
+            ],
+        ];
+
+        $data['Require dependencies'] = [
+            [
+                $packages['delta'],
+                $packages['alpha'],
+                $packages['gamma1'],
+            ],
+            [
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-delta' => '>=1',
+                ],
+                'require-dependencies' => true,
+            ],
+        ];
+
+        $data['Require dependencies and dev-dependencies'] = [
+            [
+                $packages['epsilon'],
+                $packages['alpha'],
+                $packages['gamma4'],
+            ],
+            [
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-epsilon' => '>=1',
+                ],
+                'require-dependencies' => true,
+                'require-dev-dependencies' => true,
+            ],
+        ];
+
+        $data['Traverse dependencies but not dev-dependencies'] = [
+            [
+                $packages['zeta'],
+                $packages['epsilon'],
+                $packages['alpha'],
+            ],
+            [
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-zeta' => '>=1',
+                ],
+                'require-dependencies' => true,
+                'require-dev-dependencies' => true,
+            ],
+        ];
+
+        $data['Reduce required dependencies'] = [
+            [
+                $packages['eta'],
+                $packages['gamma1'],
+                $packages['gamma4'],
+            ],
+            [
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-eta' => '>=1',
+                ],
+                'require-dependencies' => true,
+            ],
+        ];
+
+        $data['Load from repositories-dep'] = [
+            [
+                $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+                $packages['delta'],
+                $packages['alpha'],
+            ],
+            [
+                'repositories' => [
+                    $repo['gamma'],
+                    $repo['delta'],
+                ],
+                'repositories-dep' => [
+                    $repo['everything'],
+                ],
+                'require-dependencies' => true,
+            ],
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataSelect
+     *
+     * @param array $config
+     * @param array $expected
+     */
+    public function testSelect($expected, $config, $filterRepo = null, $filterPackages = null)
+    {
+        unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
+
+        $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
+
+        $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
+        $selection->setRepositoryFilter($filterRepo);
+        $selection->setPackagesFilter($filterPackages ?? []);
+
+        $selectionRef = new \ReflectionClass(\get_class($selection));
+
+        $select = $selectionRef->getMethod('select');
+        $select->setAccessible(true);
+        $select->invokeArgs($selection, [$composer, true]);
+
+        $selected = $selectionRef->getProperty('selected');
+        $selected->setAccessible(true);
+
+        \sort($expected, \SORT_STRING);
+        $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
     }
 }

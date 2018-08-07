@@ -45,6 +45,7 @@ class BuildCommand extends BaseCommand
                 new InputArgument('output-dir', InputArgument::OPTIONAL, 'Location where to output built files', null),
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built. If not provided, all packages are built.', null),
                 new InputOption('repository-url', null, InputOption::VALUE_OPTIONAL, 'Only update the repository at given url', null),
+                new InputOption('repository-strict', null, InputOption::VALUE_NONE, 'Also apply the repository filter when resolving dependencies'),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
@@ -58,6 +59,7 @@ The json config file accepts the following keys:
 
 - <info>"repositories"</info>: defines which repositories are searched
   for packages.
+- <info>"repositories-dep"</info>: define additional repositories for dependencies
 - <info>"output-dir"</info>: where to output the repository files
   if not provided as an argument when calling build.
 - <info>"require-all"</info>: boolean, if true, all packages present
@@ -175,7 +177,7 @@ EOT
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
         if (null !== $repositoryUrl) {
-            $packageSelection->setRepositoryFilter($repositoryUrl);
+            $packageSelection->setRepositoryFilter($repositoryUrl, (bool) $this->getOption('repository-strict'));
         } else {
             $packageSelection->setPackagesFilter($packagesFilter);
         }

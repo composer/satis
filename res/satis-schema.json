@@ -88,6 +88,11 @@
             "description": "A set of additional repositories where packages can be found.",
             "additionalProperties": true
         },
+        "repositories-dep": {
+            "type": ["object", "array"],
+            "description": "A set of additional repositories where packages for dependencies can be found.",
+            "additionalProperties": true
+        },
         "minimum-stability": {
             "type": "string",
             "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable.",
