@@ -80,6 +80,10 @@
                 "override-dist-type": {
                     "type": "boolean",
                     "description": "If true, archive format will be used to substitute dist type when generating archive file name."
+                },
+                "rearchive": {
+                    "type": "boolean",
+                    "description": "Create new archives for packages with a tar or zip dist, defaults to true"
                 }
             }
         },
