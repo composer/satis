@@ -122,6 +122,10 @@
             "type": "boolean",
             "description": "If true, resolve and add all Dev dependencies of each required package."
         },
+        "require-dependency-filter": {
+            "type": "boolean",
+            "description": "If false, will include all versions matching a dependency."
+        },
         "include-filename": {
             "type": "string",
             "description": "Specify filename instead of default include/all${SHA1_HASH}.json"

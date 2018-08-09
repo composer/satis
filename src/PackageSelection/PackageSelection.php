@@ -55,6 +55,9 @@ class PackageSelection
     /** @var bool required dev-dependencies if true. */
     private $requireDevDependencies;
 
+    /** @var bool Filter dependencies if true. */
+    private $requireDependencyFilter;
+
     /** @var string Minimum stability accepted for Packages in the list. */
     private $minimumStability;
 
@@ -99,6 +102,7 @@ class PackageSelection
         $this->requireAll = isset($config['require-all']) && true === $config['require-all'];
         $this->requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $this->requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $this->requireDependencyFilter = (bool) ($config['require-dependency-filter'] ?? true);
 
         if (!$this->requireAll && !isset($config['require'])) {
             $this->output->writeln('No explicit requires defined, enabling require-all');
@@ -423,7 +427,7 @@ class PackageSelection
                 }
             }
 
-            if (!$isRoot && \count($matches) > 1) {
+            if (!$isRoot && $this->requireDependencyFilter && \count($matches) > 1) {
                 // filter matches like Composer's installer
                 \array_walk($matches, function (&$package) {
                     $package = $package->getId();
@@ -535,7 +539,7 @@ class PackageSelection
         if ($this->requireDependencies) {
             $required = $package->getRequires();
         }
-        if ($isRoot && $this->requireDevDependencies) {
+        if (($isRoot || !$this->requireDependencyFilter) && $this->requireDevDependencies) {
             $required = array_merge($required, $package->getDevRequires());
         }
 
