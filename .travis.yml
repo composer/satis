@@ -5,7 +5,8 @@ language: php
 
 cache:
   directories:
-    - $HOME/.composer/cache/files
+    - $HOME/.composer
+    - vendor
 
 git:
   depth: 5
@@ -16,16 +17,24 @@ php:
   - 7.2
   - nightly
 
+env:
+  matrix:
+    - COMPOSER_FLAGS="--prefer-lowest"
+    - COMPOSER_FLAGS=""
+
 matrix:
   fast_finish: true
   allow_failures:
     - php: nightly
 
 before_install:
-  - flags="--no-interaction --no-progress --prefer-dist"
+  - travis_retry composer self-update
 
 install:
-  - composer install $flags
+  - travis_retry composer install --no-interaction --no-progress --prefer-dist $COMPOSER_FLAGS
 
 script:
-  - vendor/bin/phpunit
+  - vendor/bin/phpunit --coverage-text --coverage-clover coverage.xml
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
