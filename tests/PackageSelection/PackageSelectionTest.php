@@ -449,8 +449,10 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataSelect
      *
-     * @param array $config
      * @param array $expected
+     * @param array $config
+     * @param string $filterRepo
+     * @param array $filterPackages
      */
     public function testSelect($expected, $config, $filterRepo = null, $filterPackages = null)
     {
@@ -473,5 +475,216 @@ class PackageSelectionTest extends TestCase
 
         \sort($expected, \SORT_STRING);
         $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
+    }
+
+    /**
+     * @return array
+     */
+    public function dataClean()
+    {
+        $packages = [
+            'alpha' => [
+                'dist' => [
+                    'type' => 'zip',
+                    'url' => 'http://127.0.0.1/output/dist/alpha.zip',
+                ],
+                'source' => [
+                    'type' => 'git',
+                    'url' => './git-repo'
+                ],
+            ],
+            'beta' => [
+                'dist' => [
+                    'type' => 'zip',
+                    'url' => 'http://192.168.0.2/output/dist/beta.zip',
+                ],
+                'source' => [
+                    'type' => 'git',
+                    'url' => 'http://localhost/beta.git',
+                ],
+            ],
+            'gamma' => [
+                'dist' => [
+                    'type' => 'zip',
+                    'url' => 'http://192.168.0.1/output/dist/gamma.zip',
+                ],
+                'source' => [
+                    'type' => 'git',
+                    'url' => 'http://192.168.1.1/gamma.git',
+                ],
+            ],
+            'delta' => [
+                'dist' => [
+                    'type' => 'zip',
+                    'url' => 'http://example.org/output/dist/delta.zip',
+                ],
+                'source' => [
+                    'type' => 'git',
+                    'url' => 'http://source.example.org/delta.git',
+                ],
+            ],
+            'epsilon' => [
+                'dist' => [
+                    'type' => 'zip',
+                    'url' => 'http://[abcd::]/output/dist/epsilon.zip',
+                ],
+                'source' => [
+                    'type' => 'git',
+                    'url' => 'http://[::1]/epsilon.git',
+                ],
+            ],
+        ];
+
+        $data['Keep everything'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', './git-repo'],
+                'beta' => ['http://192.168.0.2/output/dist/beta.zip', 'http://localhost/beta.git'],
+                'gamma' => ['http://192.168.0.1/output/dist/gamma.zip', 'http://192.168.1.1/gamma.git'],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
+            ],
+            [],
+            $packages
+        ];
+
+        $data['Remove local file URLs'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', null],
+                'beta' => ['http://192.168.0.2/output/dist/beta.zip', 'http://localhost/beta.git'],
+                'gamma' => ['http://192.168.0.1/output/dist/gamma.zip', 'http://192.168.1.1/gamma.git'],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
+            ],
+            [
+                'strip-hosts' => true
+            ],
+            $packages
+        ];
+
+        $data['Remove local IPs'] = [
+            [
+                'beta' => ['http://192.168.0.2/output/dist/beta.zip', null],
+                'gamma' => ['http://192.168.0.1/output/dist/gamma.zip', 'http://192.168.1.1/gamma.git'],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', null],
+            ],
+            [
+                'strip-hosts' => ['/local'],
+            ],
+            $packages
+        ];
+
+        $data['Remove private IPs'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', null],
+                'beta' => [null, 'http://localhost/beta.git'],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
+            ],
+            [
+                'strip-hosts' => ['/private'],
+            ],
+            $packages
+        ];
+
+        $data['Remove IPv4 with CIDR notation'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', null],
+                'beta' => [null, 'http://localhost/beta.git'],
+                'gamma' => [null, 'http://192.168.1.1/gamma.git'],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
+            ],
+            [
+                'strip-hosts' => ['192.168.0.0/24'],
+            ],
+            $packages
+        ];
+
+        $data['Remove IPv6 address'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', null],
+                'beta' => ['http://192.168.0.2/output/dist/beta.zip', 'http://localhost/beta.git'],
+                'gamma' => ['http://192.168.0.1/output/dist/gamma.zip', 'http://192.168.1.1/gamma.git'],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => [null, 'http://[::1]/epsilon.git'],
+            ],
+            [
+                'strip-hosts' => ['abcd::'],
+            ],
+            $packages
+        ];
+
+        $data['Remove domain'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', null],
+                'beta' => ['http://192.168.0.2/output/dist/beta.zip', 'http://localhost/beta.git'],
+                'gamma' => ['http://192.168.0.1/output/dist/gamma.zip', 'http://192.168.1.1/gamma.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
+            ],
+            [
+                'strip-hosts' => ['example.org'],
+            ],
+            $packages
+        ];
+
+        $data['Preserve distURL from ArchiveBuilder'] = [
+            [
+                'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', null],
+                'beta' => [null, 'http://localhost/beta.git'],
+                'gamma' => ['http://192.168.0.1/output/dist/gamma.zip', null],
+                'delta' => ['http://example.org/output/dist/delta.zip', 'http://source.example.org/delta.git'],
+                'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
+            ],
+            [
+                'strip-hosts' => ['/private'],
+                'archive' => [
+                    'directory' => 'dist',
+                    'prefix-url' => 'http://192.168.0.1'
+                ]
+            ],
+            $packages
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataClean
+     *
+     * @param array $expected
+     * @param array $config
+     * @param array $packages
+     */
+    public function testClean($expected, $config, $packages)
+    {
+        $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
+        $selectionRef = new \ReflectionClass(\get_class($selection));
+
+        foreach ($packages as $i => $p) {
+            $packages[$i] = new Package($i, '1.0.0.0', '1.0');
+            $packages[$i]->setDistType($p['dist']['type']);
+            $packages[$i]->setDistUrl($p['dist']['url']);
+            $packages[$i]->setSourceType($p['source']['type']);
+            $packages[$i]->setSourceUrl($p['source']['url']);
+        }
+
+        $selected = $selectionRef->getProperty('selected');
+        $selected->setAccessible(true);
+        $selected->setValue($selection, $packages);
+
+        $clean = $selectionRef->getMethod('clean');
+        $clean->setAccessible(true);
+        
+        $cleanPackages = $clean->invokeArgs($selection, []);
+        $sources = [];
+        foreach ($cleanPackages as $name => $package) {
+            $sources[$name] = [
+                ($package->getDistType() !== null)? $package->getDistUrl(): null,
+                ($package->getSourceType() !== null)? $package->getSourceUrl(): null,
+            ];
+        }
+
+        $this->assertEquals($expected, $sources);
     }
 }

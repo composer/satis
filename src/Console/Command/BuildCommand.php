@@ -78,6 +78,8 @@ The json config file accepts the following keys:
   but requires dev requirements rather than regular ones.
 - <info>"config"</info>: all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
+- <info>"strip-hosts"</info>: boolean or an array of domains, IPs, CIDR notations, '/local' (=localnet and other reserved)
+  or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.
 - <info>"output-html"</info>: boolean, controls whether the repository
   has an html page as well or not.
 - <info>"name"</info>: for html output, this defines the name of the
@@ -190,6 +192,8 @@ EOT
             $downloads->setInput($input);
             $downloads->dump($packages);
         }
+
+        $packages = $packageSelection->clean();
 
         if ($packageSelection->hasFilterForPackages() || $packageSelection->hasRepositoryFilter()) {
             // in case of an active filter we need to load the dumped packages.json and merge the

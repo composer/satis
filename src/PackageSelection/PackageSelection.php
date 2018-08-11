@@ -25,6 +25,7 @@ use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Semver\Constraint\EmptyConstraint;
+use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -76,6 +77,12 @@ class PackageSelection
     /** @var array A list of packages marked as abandoned */
     private $abandoned = [];
 
+    /** @var array|bool Patterns from strip-hosts. */
+    private $stripHosts = false;
+
+    /** @var string The prefix of the distURLs when using archive. */
+    private $archiveEndpoint;
+
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
@@ -111,6 +118,10 @@ class PackageSelection
 
         $this->minimumStability = $config['minimum-stability'] ?? 'dev';
         $this->abandoned = $config['abandoned'] ?? [];
+
+        $this->stripHosts = $this->createStripHostsPatterns($config['strip-hosts'] ?? false);
+        $this->archiveEndpoint = isset($config['archive']['directory'])? ($config['archive']['prefix-url'] ?? $config['homepage']) . '/': null;
+        
         $this->homepage = $config['homepage'] ?? null;
     }
 
@@ -216,6 +227,15 @@ class PackageSelection
     }
 
     /**
+     * Clean up the selection for publishing
+     */
+    public function clean()
+    {
+        $this->applyStripHosts();
+        return $this->selected;
+    }
+
+    /**
      * Loads previously dumped Packages in order to merge with updates.
      *
      * @return PackageInterface[]
@@ -286,6 +306,174 @@ class PackageSelection
         }
 
         return $packages;
+    }
+
+    /**
+     * Create patterns from strip-hosts
+     */
+    private function createStripHostsPatterns($stripHostsConfig)
+    {
+        if (!is_array($stripHostsConfig)) {
+            return $stripHostsConfig;
+        }
+        $patterns = [];
+        foreach ($stripHostsConfig as $entry) {
+            if (!strlen($entry)) {
+                continue;
+            }
+            if ($entry === '/private' || $entry === '/local') {
+                $patterns[] = [$entry];
+                continue;
+            } elseif (strpos($entry, ":") !== false) {
+                $type = 'ipv6';
+                if (!defined('AF_INET6')) {
+                    $this->output->writeln('<error>Unable to use IPv6.</error>');
+                    continue;
+                }
+            } elseif (preg_match("#[^/.\\d]#", $entry) === 0) {
+                $type = 'ipv4';
+            } else {
+                $type = 'name';
+                $host = '#^(?:.+\.)?' . preg_quote($entry, '#') . '$#ui';
+                $patterns[] = [$type, $host];
+                continue;
+            }
+            @list($host, $mask) = explode("/", $entry, 2);
+            $host = @inet_pton($host);
+            if ($host === false || (int)$mask != $mask) {
+                $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $entry));
+                continue;
+            }
+            $host = unpack("N*", $host);
+            if ($mask === null) {
+                $mask = $type === 'ipv4'? 32: 128;
+            } else {
+                $mask = (int)$mask;
+                if ($mask < 0 || $type === 'ipv4' && $mask > 32 || $type === 'ipv6' && $mask > 128) {
+                    continue;
+                }
+            }
+            $patterns[] = [$type, $host, $mask];
+        }
+        return $patterns;
+    }
+
+    /**
+     * Apply the patterns from strip-hosts
+     */
+    private function applyStripHosts()
+    {
+        if ($this->stripHosts === false) {
+            return;
+        }
+        foreach ($this->selected as $uniqueName => $package) {
+            $sources = [];
+            if ($package->getSourceType()) {
+                $sources[] = 'source';
+            }
+            if ($package->getDistType()) {
+                $sources[] = 'dist';
+            }
+            foreach ($sources as $i => $s) {
+                $url = $s === 'source'? $package->getSourceUrl(): $package->getDistUrl();
+                // skip distURL applied by ArchiveBuilder
+                if ($s === 'dist' && $this->archiveEndpoint !== null
+                    && substr($url, 0, strlen($this->archiveEndpoint)) === $this->archiveEndpoint
+                ) {
+                    continue;
+                }
+                if ($this->matchStripHostsPatterns($url)) {
+                    if ($s === 'dist') {
+                        // if the type is not set, ArrayDumper ignores the other properties
+                        $package->setDistType(null);
+                    } else {
+                        $package->setSourceType(null);
+                    }
+                    unset($sources[$i]);
+                    if (count($sources) === 0) {
+                        $this->output->writeln(sprintf('<error>%s has no source left after applying the strip-hosts filters and will be removed</error>', $package->getUniqueName()));
+                        unset($this->selected[$uniqueName]);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Match an URL against the patterns from strip-hosts
+     *
+     * @return bool
+     */
+    private function matchStripHostsPatterns($url)
+    {
+        if (Filesystem::isLocalPath($url)) {
+            return true;
+        }
+        if (is_array($this->stripHosts)) {
+
+            $url = trim(parse_url($url, PHP_URL_HOST), '[]');
+            if (filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) !== false) {
+                $urltype = 'ipv4';
+            } elseif (filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) !== false) {
+                $urltype = 'ipv6';
+            } else {
+                $urltype = 'name';
+            }
+            if ($urltype === 'ipv4' || $urltype === 'ipv6') {
+                $urlunpack = unpack('N*', @inet_pton($url));
+            }
+
+            foreach ($this->stripHosts as $pattern) {
+                @list($type, $host, $mask) = $pattern;
+                if ($type === '/local') {                    
+                    if ($urltype === 'name' && strtolower($url) === 'localhost'
+                        || ($urltype === 'ipv4' || $urltype === 'ipv6')
+                        && filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE) === false
+                    ) {
+                        return true;
+                    }
+                } elseif ($type === '/private') {
+                    if (($urltype === 'ipv4' || $urltype === 'ipv6')
+                        && filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE) === false
+                    ) {
+                        return true;
+                    }
+                } elseif ($type === 'ipv4' || $type === 'ipv6') {
+                    if ($urltype === $type && $this->matchAddr($urlunpack, $host, $mask)) {
+                        return true;
+                    }
+                } elseif ($type === 'name') {
+                    if ($urltype === 'name' && preg_match($host, $url)) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Test if two addresses have the same prefix
+     *
+     * @param int[] $addr1
+     *  Chunked addr
+     * @param int[] $addr2
+     *  Chunked addr
+     * @param int $len
+     *  Length of the test
+     * @param int $chunklen
+     *  Length of each chunk
+     *
+     * @return bool
+     */
+    private function matchAddr($addr1, $addr2, $len = 0, $chunklen = 32)
+    {
+        for (; $len > 0; $len -= $chunklen, next($addr1), next($addr2)) {
+            $shift = $len >= $chunklen? 0: $chunklen - $len;
+            if ((current($addr1) >> $shift) !== (current($addr2) >> $shift)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
