@@ -13,6 +13,7 @@ namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
 use Composer\Json\JsonFile;
+use Composer\Satis\PackageSelection\PackageSelection;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -62,44 +63,29 @@ EOT
             return 1;
         }
 
-        if (!$outputDir = $input->getArgument('output-dir')) {
-            throw new \InvalidArgumentException('The output dir must be specified as second argument');
+        $outputDir = $input->getArgument('output-dir') ?? $config['output-dir'] ?? null;
+        if ($outputDir === null) {
+            throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
         }
 
-        $files = glob($outputDir . '/include/*.json');
+        $packageSelection = new PackageSelection($output, $outputDir, $config, false);
+        $packages = $packageSelection->load();
 
-        if (empty($files)) {
-            $output->writeln('<info>No log file</info>');
-
-            return 1;
-        }
-
-        $files = array_combine($files, array_map('filemtime', $files));
-        arsort($files);
-
-        $file = file_get_contents(key($files));
-        $json = json_decode($file, true);
-
-        $prefix = $config['archive']['directory'];
-        if (isset($config['archive']['prefix-url'])) {
-            $prefix = sprintf('%s/%s/', $config['archive']['prefix-url'], $prefix);
-        } else {
-            $prefix = sprintf('%s/%s/', $config['homepage'], $prefix);
-        }
+        $prefix = sprintf(
+            '%s/%s/',
+            $config['archive']['prefix-url'] ?? $config['homepage'],
+            $config['archive']['directory']
+        );
 
         $length = strlen($prefix);
         $needed = [];
-        foreach ($json['packages'] as $package) {
-            foreach ($package as $version) {
-                if (!isset($version['dist']['url'])) {
-                    continue;
-                }
-
-                $url = $version['dist']['url'];
-
-                if (substr($url, 0, $length) === $prefix) {
-                    $needed[] = substr($url, $length);
-                }
+        foreach ($packages as $package) {
+            if (!$package->getDistType()) {
+                continue;
+            }
+            $url = $package->getDistUrl();
+            if (substr($url, 0, $length) === $prefix) {
+                $needed[] = substr($url, $length);
             }
         }
 
@@ -120,7 +106,8 @@ EOT
         /** @var SplFileInfo[] $unreferenced */
         $unreferenced = [];
         foreach ($finder as $file) {
-            if (!in_array($file->getRelativePathname(), $needed)) {
+            $filename = strtr($file->getRelativePathname(), DIRECTORY_SEPARATOR, '/');
+            if (!in_array($filename, $needed)) {
                 $unreferenced[] = $file;
             }
         }
@@ -140,26 +127,35 @@ EOT
             ));
         }
 
-        $finder = new Finder();
-        $finder
-            ->directories()
-            ->ignoreDotFiles(true)
-            ->ignoreUnreadableDirs(true)
-            ->in($distDirectory)
-        ;
-
-        foreach ($finder->getIterator() as $directory) {
-            if (!(new Finder())->in($directory->getPathname())->files()->count()) {
-                rmdir($directory->getPathname());
-                $output->writeln(sprintf(
-                    '<info>Removed empty directory</info>: <comment>%s</comment>',
-                    $directory->getPathname()
-                ));
-            }
-        }
+        $this->removeEmptyDirectories($output, $distDirectory);
 
         $output->writeln('<info>Done.</info>');
 
         return 0;
+    }
+
+    private function removeEmptyDirectories($output, $dir, $depth = 2)
+    {
+        $empty = true;
+        $children = @scandir($dir);
+        if ($children === false) {
+            return false;
+        }
+        foreach ($children as $child) {
+            if ($child === '.' || $child === '..') {
+                continue;
+            }
+            $path = $dir . DIRECTORY_SEPARATOR . $child;
+            if (is_dir($path)
+                && $depth > 0
+                && $this->removeEmptyDirectories($output, $path, $depth -1)
+                && rmdir($path)
+            ) {
+                $output->writeln(sprintf('<info>Removed empty directory</info>: <comment>%s</comment>', $path));
+            } else {
+                $empty = false;
+            }
+        }
+        return $empty;
     }
 }
