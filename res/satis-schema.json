@@ -122,6 +122,17 @@
             "type": "boolean",
             "description": "If true, resolve and add all Dev dependencies of each required package."
         },
+        "require-dependency-filter": {
+            "type": "boolean",
+            "description": "If false, will include all versions matching a dependency."
+        },
+        "strip-hosts": {
+            "type": ["array", "boolean"],
+            "description": "List of domains, IPs, CIDR notations, '/local' (=localnet and other reserved) or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.",
+            "items": {
+                "type": "string"
+            }
+        },
         "include-filename": {
             "type": "string",
             "description": "Specify filename instead of default include/all${SHA1_HASH}.json"
