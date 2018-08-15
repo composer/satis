@@ -179,7 +179,7 @@ EOT
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
         if (null !== $repositoryUrl) {
-            $packageSelection->setRepositoryFilter($repositoryUrl, (bool) $this->getOption('repository-strict'));
+            $packageSelection->setRepositoryFilter($repositoryUrl, (bool) $input->getOption('repository-strict'));
         } else {
             $packageSelection->setPackagesFilter($packagesFilter);
         }
