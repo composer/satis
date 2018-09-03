@@ -209,7 +209,9 @@ class PackageSelection
         if ($this->requireDependencies || $this->requireDevDependencies) {
             // dependencies of required packages might have changed and be part of filtered repos
             if ($this->hasRepositoryFilter() && true !== $this->repositoryFilterDep) {
-                $this->addRepositories($pool, \array_diff($initialRepos, $repos));
+                $this->addRepositories($pool, \array_filter($initialRepos, function ($r) use ($repos) {
+                    return \in_array($r, $repos) === false;
+                }));
             }
 
             // additional repositories for dependencies
