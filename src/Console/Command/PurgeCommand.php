@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of composer/satis.
  *
@@ -64,7 +66,7 @@ EOT
         }
 
         $outputDir = $input->getArgument('output-dir') ?? $config['output-dir'] ?? null;
-        if ($outputDir === null) {
+        if (null === $outputDir) {
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
         }
 
@@ -138,17 +140,17 @@ EOT
     {
         $empty = true;
         $children = @scandir($dir);
-        if ($children === false) {
+        if (false === $children) {
             return false;
         }
         foreach ($children as $child) {
-            if ($child === '.' || $child === '..') {
+            if ('.' === $child || '..' === $child) {
                 continue;
             }
             $path = $dir . DIRECTORY_SEPARATOR . $child;
             if (is_dir($path)
                 && $depth > 0
-                && $this->removeEmptyDirectories($output, $path, $depth -1)
+                && $this->removeEmptyDirectories($output, $path, $depth - 1)
                 && rmdir($path)
             ) {
                 $output->writeln(sprintf('<info>Removed empty directory</info>: <comment>%s</comment>', $path));
@@ -156,6 +158,7 @@ EOT
                 $empty = false;
             }
         }
+
         return $empty;
     }
 }

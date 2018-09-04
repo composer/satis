@@ -15,6 +15,7 @@ title: Config
     "type": "composer",
     "url": "https://packagist.org"
   }],
+  "repositories-dep": [],
   "require": {
     "company/package1": "1.2.0",
     "company/package2": "1.5.2",
@@ -28,7 +29,10 @@ title: Config
     "prefix-url": "https://amazing.cdn.example.org",
     "whitelist": [ "company/package1" ],
     "blacklist": [ "company/package2" ],
-    "checksum": true
+    "checksum": true,
+    "ignore-filters": false,
+    "override-dist-type": true,
+    "rearchive": true,
   },
   "abandoned": {
     "company/package": true,
@@ -45,6 +49,7 @@ title: Config
   "config": {
 
   },
+  "strip-hosts": [],
   "notify-batch": "https://example.com/endpoint"
 }
 ```

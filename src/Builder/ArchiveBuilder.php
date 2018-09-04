@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of composer/satis.
  *
@@ -12,10 +14,10 @@
 namespace Composer\Satis\Builder;
 
 use Composer\Composer;
-use Composer\Factory;
 use Composer\Downloader\DownloadManager;
-use Composer\Package\PackageInterface;
+use Composer\Factory;
 use Composer\Package\Archiver\ArchiveManager;
+use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
@@ -222,7 +224,7 @@ class ArchiveBuilder extends Builder
         $filesystem = new Filesystem();
         $filesystem->ensureDirectoryExists($targetDir);
         $targetDir = realpath($targetDir);
-    
+
         if ($overrideDistType) {
             $originalDistType = $package->getDistType();
             $package->setDistType($format);
@@ -263,9 +265,10 @@ class ArchiveBuilder extends Builder
             $path = $targetDir . '/' . $packageName . '.' . $format;
             $downloaded = $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
             $filesystem->rename($downloaded, $path);
+
             return $path;
-        } else {
-            return $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
         }
+
+        return $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
     }
 }

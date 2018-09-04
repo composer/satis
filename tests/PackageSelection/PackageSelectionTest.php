@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of composer/satis.
  *
@@ -267,7 +269,7 @@ class PackageSelectionTest extends TestCase
                 'name' => 'vendor/project-delta',
                 'version' => '1.2.3.0',
                 'require' => [
-                    'vendor/project-alpha' =>  '^1',
+                    'vendor/project-alpha' => '^1',
                     'vendor/project-gamma' => '^1',
                 ],
             ],
@@ -279,7 +281,7 @@ class PackageSelectionTest extends TestCase
                 ],
                 'require-dev' => [
                     'vendor/project-gamma' => '^4',
-                ]
+                ],
             ],
             'zeta' => [
                 'name' => 'vendor/project-zeta',
@@ -310,12 +312,12 @@ class PackageSelectionTest extends TestCase
                 $packages['gamma2'],
                 $packages['gamma3'],
                 $packages['gamma4'],
-            ]
+            ],
         ];
         $repo['delta'] = [
             'type' => 'package',
             'url' => 'example.org/project-delta',
-            'package' => $packages['delta']
+            'package' => $packages['delta'],
         ];
 
         foreach ($packages as &$p) {
@@ -323,7 +325,7 @@ class PackageSelectionTest extends TestCase
         }
 
         $data = [];
-        
+
         $data['Require-all'] = [
             $packages,
             [
@@ -490,7 +492,7 @@ class PackageSelectionTest extends TestCase
                 ],
                 'source' => [
                     'type' => 'git',
-                    'url' => './git-repo'
+                    'url' => './git-repo',
                 ],
             ],
             'beta' => [
@@ -544,7 +546,7 @@ class PackageSelectionTest extends TestCase
                 'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
             ],
             [],
-            $packages
+            $packages,
         ];
 
         $data['Remove local file URLs'] = [
@@ -556,9 +558,9 @@ class PackageSelectionTest extends TestCase
                 'epsilon' => ['http://[abcd::]/output/dist/epsilon.zip', 'http://[::1]/epsilon.git'],
             ],
             [
-                'strip-hosts' => true
+                'strip-hosts' => true,
             ],
-            $packages
+            $packages,
         ];
 
         $data['Remove local IPs'] = [
@@ -571,7 +573,7 @@ class PackageSelectionTest extends TestCase
             [
                 'strip-hosts' => ['/local'],
             ],
-            $packages
+            $packages,
         ];
 
         $data['Remove private IPs'] = [
@@ -584,7 +586,7 @@ class PackageSelectionTest extends TestCase
             [
                 'strip-hosts' => ['/private'],
             ],
-            $packages
+            $packages,
         ];
 
         $data['Remove IPv4 with CIDR notation'] = [
@@ -598,7 +600,7 @@ class PackageSelectionTest extends TestCase
             [
                 'strip-hosts' => ['192.168.0.0/24'],
             ],
-            $packages
+            $packages,
         ];
 
         $data['Remove IPv6 address'] = [
@@ -612,7 +614,7 @@ class PackageSelectionTest extends TestCase
             [
                 'strip-hosts' => ['abcd::'],
             ],
-            $packages
+            $packages,
         ];
 
         $data['Remove domain'] = [
@@ -625,7 +627,7 @@ class PackageSelectionTest extends TestCase
             [
                 'strip-hosts' => ['example.org'],
             ],
-            $packages
+            $packages,
         ];
 
         $data['Preserve distURL from ArchiveBuilder'] = [
@@ -640,10 +642,10 @@ class PackageSelectionTest extends TestCase
                 'strip-hosts' => ['/private'],
                 'archive' => [
                     'directory' => 'dist',
-                    'prefix-url' => 'http://192.168.0.1'
-                ]
+                    'prefix-url' => 'http://192.168.0.1',
+                ],
             ],
-            $packages
+            $packages,
         ];
 
         return $data;
@@ -675,13 +677,13 @@ class PackageSelectionTest extends TestCase
 
         $clean = $selectionRef->getMethod('clean');
         $clean->setAccessible(true);
-        
+
         $cleanPackages = $clean->invokeArgs($selection, []);
         $sources = [];
         foreach ($cleanPackages as $name => $package) {
             $sources[$name] = [
-                ($package->getDistType() !== null)? $package->getDistUrl(): null,
-                ($package->getSourceType() !== null)? $package->getSourceUrl(): null,
+                (null !== $package->getDistType()) ? $package->getDistUrl() : null,
+                (null !== $package->getSourceType()) ? $package->getSourceUrl() : null,
             ];
         }
 
