@@ -225,7 +225,7 @@
                 },
                 "cache-vcs-dir": {
                     "type": "string",
-                    "description": "The location where vcs infos (git clones, github api calls, etc. when reading vcs repos) are cached, defaults to \"{$cache-dir}/vcs\"."
+                    "description": "The location where vcs info (git clones, github api calls, etc. when reading vcs repos) are cached, defaults to \"{$cache-dir}/vcs\"."
                 },
                 "cache-ttl": {
                     "type": "integer",

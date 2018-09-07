@@ -173,7 +173,7 @@ class PackageSelection
      * Sets the list of packages to build.
      *
      * @param Composer $composer The Composer instance
-     * @param bool     $verbose  Output infos if true
+     * @param bool     $verbose  Output info if true
      *
      * @throws \InvalidArgumentException
      * @throws \Exception
@@ -546,7 +546,7 @@ class PackageSelection
      *
      * @param array  $repos            List of all Repositories configured
      * @param string $minimumStability The minimum stability each package must have to be selected
-     * @param bool   $verbose          Output infos if true
+     * @param bool   $verbose          Output info if true
      *
      * @return Link[]|Package[]
      */
