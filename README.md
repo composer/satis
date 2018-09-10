@@ -35,7 +35,7 @@ docker run --rm -it -v /build:/build composer/satis
 Run the image (with Composer cache from host):
 
 ``` sh
-docker run --rm -it -v /build:/build -v $COMPOSER_HOME:/composer composer/satis
+docker run --rm -it -v /build:/build -v "${COMPOSER_HOME:-$HOME/.composer}:/composer" composer/satis
 ```
 
 If you want to run the image without implicitly running Satis, you have to
