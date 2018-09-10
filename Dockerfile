@@ -20,11 +20,8 @@ RUN apk --no-cache add curl git subversion mercurial openssh openssl tini \
  && apk del .build-deps
 
 ENV COMPOSER_HOME /composer
-ENV PATH "/composer/vendor/bin:$PATH"
-ENV COMPOSER_ALLOW_SUPERUSER 1
 
 COPY php-cli.ini /usr/local/etc/php/
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY --from=build /satis /satis/
 
 WORKDIR /satis
