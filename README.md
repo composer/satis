@@ -61,7 +61,7 @@ php bin/satis purge <configuration-file> <output-dir>
 
 ## Updating
 
-Updating Satis is as simple as running `git pull && composer update` in the
+Updating Satis is as simple as running `git pull && composer install` in the
 Satis directory.
 
 If you are running Satis as a Docker container, simply pull the latest image.
