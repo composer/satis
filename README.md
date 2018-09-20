@@ -22,16 +22,6 @@ Pull the image:
 docker pull composer/satis
 ```
 
-Run the image:
-
-``` sh
-docker run --rm -it -v /build:/build composer/satis
-```
-
- > Note: by default it will look for a configuration file named `satis.json`
-    inside the `/build` directory and dump the generated output files in
-    `/build/output`.
-
 Run the image (with Composer cache from host):
 
 ``` sh
