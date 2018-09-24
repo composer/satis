@@ -1,9 +1,9 @@
 *
-!/bin/
-!/res/
-!/src/
-!/views/
-!/composer.json
-!/composer.lock
-!/LICENSE
-!/php-cli.ini
+!bin
+!res
+!views
+!src
+!composer.json
+!composer.lock
+!LICENSE
+!php-cli.ini
