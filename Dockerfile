@@ -2,7 +2,7 @@ FROM composer:1 AS build
 
 WORKDIR /satis
 
-COPY . /satis/
+COPY * /satis/
 
 RUN composer install \
   --no-interaction \
