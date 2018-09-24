@@ -1,8 +1,13 @@
+# ignore everything
 *
+
+# unignored directories
 !bin
 !res
 !views
 !src
+
+# unignored files
 !composer.json
 !composer.lock
 !LICENSE
