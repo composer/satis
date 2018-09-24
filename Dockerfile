@@ -2,11 +2,7 @@ FROM composer:1 AS build
 
 WORKDIR /satis
 
-COPY bin /satis/bin/
-COPY res /satis/res/
-COPY src /satis/src/
-COPY views /satis/views/
-COPY ["composer.*", "LICENSE", "/satis/"]
+COPY . /satis/
 
 RUN composer install \
   --no-interaction \
