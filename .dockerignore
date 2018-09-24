@@ -1,9 +1,7 @@
 *
 !/bin/
-!/docs/
 !/res/
 !/src/
-!/vendor/
 !/views/
 !/composer.json
 !/composer.lock
