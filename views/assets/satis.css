@@ -1,5 +1,8 @@
 body { padding-top: 20px; }
 
+.panel-body { padding: 10px; }
+.panel-heading { padding: 8px 15px; }
+
 .text-xs-left { text-align: left; }
 .text-xs-right { text-align: right; }
 .text-xs-center { text-align: center; }
