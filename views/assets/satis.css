@@ -1,5 +1,8 @@
 body { padding-top: 20px; }
 
+h1 { display: inline-block; }
+.page-header { margin: 20px 0 20px; }
+#add-satis-btn { cursor: pointer; }
 .panel-body { padding: 10px; }
 .panel-heading { padding: 8px 15px; }
 

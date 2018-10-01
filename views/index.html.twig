@@ -37,18 +37,18 @@
         </div>
     </nav>
 
-    <pre><code>{
+    <pre id="repo-config" class="hidden"><code>{
   "repositories": [{
     "type": "composer",
     "url": "{{ url }}"
   }]
 }</code></pre>
-    <p class="text-right">
-        <em>Add this Satis repository to your <kbd>composer.json</kbd></em>
-    </p>
 
     <div class="page-header">
         <h1>Packages</h1>
+        <span id="add-satis-btn">
+           <em>Add this Satis repository to your <kbd>composer.json</kbd></em>
+        </span>        
     </div>
 
     <form>
@@ -89,6 +89,12 @@ $(function () {
     var packages = list.find('.panel');
     var timeElements = $('time');
     var inputTimeout;
+    var addSatis = $('#add-satis-btn');
+    var repoConfig = $('#repo-config');
+    
+    addSatis.click(function() {
+        repoConfig.toggleClass("hidden");
+    });
 
     var updateTimeElements = function () {
         momentize(timeElements);
