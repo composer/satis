@@ -198,6 +198,16 @@ class PackageSelection
             }
         }
 
+        if ($this->hasFilterForPackages()) {
+            $repos = $this->filterPackages($repos);
+
+            if (0 === count($repos)) {
+                throw new \InvalidArgumentException(sprintf('Specified package name "%s" does not exist.', $this->packagesFilter));
+            } elseif (count($repos) > 1) {
+                throw new \InvalidArgumentException(sprintf('Found more than one package name "%s".', $this->packagesFilter));
+            }
+        }
+
         $this->addRepositories($pool, $repos);
 
         // determine the required packages
@@ -765,6 +775,29 @@ class PackageSelection
                 return false;
             }
 
+            return true;
+        });
+    }
+
+    /**
+     * Filter given repositories.
+     *
+     * @param RepositoryInterface[] $repositories
+     *
+     * @return RepositoryInterface[]
+     */
+    private function filterPackages(array $repositories)
+    {
+        $package = $this->packagesFilter;
+        return array_filter($repositories, function ($repository) use ($package) {
+            if (!($repository instanceof ConfigurableRepositoryInterface)) {
+                return false;
+            }
+            $config = $repository->getRepoConfig();
+
+            if (!isset($config['name']) || $config['name'] !== $package[0]) {
+                return false;
+            }
             return true;
         });
     }
