@@ -287,7 +287,7 @@
         },
         "pretty-print": {
             "type": "boolean",
-            "description": "Defaults to true. If true, the output files will NOT be minified (will look pretty tough(."
+            "description": "Defaults to true. If true, the output files will NOT be minified (will look pretty tough)."
         }
     }
 }
