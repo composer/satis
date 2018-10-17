@@ -284,6 +284,10 @@
         "_comment": {
             "type": ["array", "string"],
             "description": "A key to store comments in"
+        },
+        "pretty-print": {
+            "type": "boolean",
+            "description": "Defaults to true. When false, the JSON_PRETTY_PRINT option will not be used on encoding."
         }
     }
 }

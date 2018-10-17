@@ -198,7 +198,12 @@ class PackagesBuilder extends Builder
         $path = $tmpPath = $this->outputDir . '/' . ltrim($filename, '/');
 
         $repoJson = new JsonFile($path);
-        $contents = $repoJson->encode(['packages' => $packages]) . "\n";
+        $options = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+        if ($this->config['pretty-print'] ?? true) {
+            $options |= JSON_PRETTY_PRINT;
+        }
+        
+        $contents = $repoJson->encode(['packages' => $packages], $options) . "\n";
 
         $hash = hash($hashAlgorithm, $contents);
 

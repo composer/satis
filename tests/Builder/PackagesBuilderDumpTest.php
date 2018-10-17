@@ -149,4 +149,56 @@ class PackagesBuilderDumpTest extends TestCase
 
         $this->assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
     }
+
+    /**
+     * Provider to test out the minification option
+     * @return array[]
+     */
+    public function prettyPrintProvider()
+    {
+        return [
+            'test pretty print enabled' => [
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+                true
+            ],
+            'test pretty print disabled' => [
+                JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+                false
+            ]
+        ];
+    }
+
+    /**
+     * @dataProvider prettyPrintProvider
+     *
+     * @param int $jsonOptions
+     * @param bool $shouldPrettyPrint
+     */
+    public function testPrettyPrintOption($jsonOptions, $shouldPrettyPrint = true)
+    {
+        $expected = [
+            'packages' => [
+                'vendor/name' => [
+                    '1.0' => [
+                        'name' => 'vendor/name',
+                        'version' => '1.0',
+                        'version_normalized' => '1.0.0.0',
+                        'type' => 'library'
+                    ]
+                ]
+            ]
+        ];
+
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+            'pretty-print' => $shouldPrettyPrint,
+            'include-filename' => 'out.json'
+        ], false);
+        $packages = self::createPackages(1);
+        $packagesBuilder->dump($packages);
+        $content = $this->root->getChild('build/out.json')->getContent();
+
+        self::assertEquals(trim(json_encode($expected, $jsonOptions)), trim($content));
+    }
 }
