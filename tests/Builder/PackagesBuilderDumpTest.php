@@ -83,8 +83,7 @@ class PackagesBuilderDumpTest extends TestCase
                 $packageName = key($arrayPackages);
                 $arrayPackages[$packageName][$i . '.0']['uid'] = 1;
                 $hash = current($packagesJson['providers'][$packageName]);
-                $includeJson = str_replace(['%package%', '%hash%'], [$packageName, $hash],
-                    $packagesJson['providers-url']);
+                $includeJson = str_replace(['%package%', '%hash%'], [$packageName, $hash], $packagesJson['providers-url']);
             } else {
                 $includes = array_keys($packagesJson['includes']);
                 $includeJson = end($includes);
