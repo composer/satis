@@ -17,20 +17,22 @@
 <body>
 
 <div class="container">
-    <header class="d-flex flex-column my-3 p-3 bg-light">
-        <a class="navbar-brand" href="/">
-            {{ name|default('Composer repository') }}
+    <header class="mt-3">
+        <a href="/">
+            <h1>{{ name|default('Composer repository') }}</h1>
         </a>
+
         {% if description %}
-            <span>{{ description|raw }}</span>
+            <p class="lead">{{ description|raw }}</h3>
         {% endif %}
-        <span class="small" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
+
+        <p class="small text-muted" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
             Last updated: <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
-        </span>
+        </p>
     </header>
 
     <div id="repo-help" class="my-3">
-        <a class="btn btn-primary" data-toggle="collapse" href="#repo-config">
+        <a class="btn btn-outline-primary" data-toggle="collapse" href="#repo-config">
            <em>Add this repository to your <kbd>composer.json</kbd></em>
         </a>
 
@@ -44,7 +46,7 @@
 }</code></pre></div>
     </div>
 
-    <h1>Packages</h1>      
+    <h2>Packages</h2>      
 
     <form>
         <div class="form-group">
