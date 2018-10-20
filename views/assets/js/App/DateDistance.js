@@ -1,5 +1,5 @@
 import $ from 'jquery';
-import distanceInWordsToNow from 'date-fns/distance_in_words_to_now' 
+import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 
 class DateDistance {
     static calculate($elements) {
@@ -7,8 +7,11 @@ class DateDistance {
             let element  = $(this);
             let datetime = element.attr('datetime');
             let date     = new Date(datetime);
+            let distance = distanceInWordsToNow(date, {
+                addSuffix: true
+            });
             
-            element.text(`${distanceInWordsToNow(date)} ago`);
+            element.text(distance);
         });
     }
 }

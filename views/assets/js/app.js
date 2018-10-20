@@ -10,7 +10,7 @@ function updateTimeElements () {
 };
 
 $(document).ready(function() {
-    new PackageFilter($('input#search'), $('#package-list'), '.card');
+    new PackageFilter('input#search', '#package-list', '.card');
 
     updateTimeElements();
     window.setInterval(updateTimeElements, 5000);

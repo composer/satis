@@ -1,11 +1,11 @@
 import $ from 'jquery';
 
 class PackageFilter {
-    constructor($input, $list, listItemSelector) {
-        this.input = $input;
-        this.list = $list;
-        this.listItemSelector = listItemSelector;
-        this.packages = this.list.find(listItemSelector);
+    constructor(input, list, listItem) {
+        this.input = $(input);
+        this.list = $(list);
+        this.listItemSelector = listItem;
+        this.packages = this.list.find(listItem);
         this.inputTimeout = null;
 
         this.readHash = this.readHash.bind(this);
