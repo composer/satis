@@ -1,13 +1,17 @@
-<div class="panel {% if package.abandoned %}panel-danger{% else %}panel-info{% endif %}">
-    <div class="panel-heading">
-        <h3 id="{{ package.highest.name }}" class="panel-title package-title">
-            <a href="#{{ package.highest.name }}" class="anchor">
+{% set row_class  = 'row mb-2 mb-md-0' %}
+{% set col1_class = 'col-md-2 text-left text-md-right' %}
+{% set col2_class = 'col-md-10' %}
+
+<div class="card {% if package.abandoned %}border-danger{% else %}border-primary{% endif %} mb-3">
+    <div class="card-header {% if package.abandoned %}bg-danger{% else %}bg-primary{% endif %}">
+        <span id="{{ package.highest.name }}" class="">
+            <a href="#{{ package.highest.name }}" class="anchor text-white">
                 <svg class="octicon-link" width="16" height="16">
                     <use xlink:href="#octicon-link"></use>
                 </svg>
                 {{ package.highest.name }}
             </a>
-        </h3>
+        </span>
 
         {% if package.abandoned %}
         <p class="abandoned">
@@ -20,56 +24,61 @@
             {% endif %}
         </p>
         {% endif %}
-
     </div>
 
-    <div class="panel-body">
+    <div class="card-body">
         {% if package.highest.description %}
         <p>{{ package.highest.description }}</p>
         {% endif %}
 
         {% if package.highest.keywords %}
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Keywords</strong></div>
-            <div class="col-xs-12 col-sm-10">{{ package.highest.keywords|join(', ') }}</div>
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>Keywords</strong></div>
+            <div class="{{ col2_class }}">
+                {% for keyword in package.highest.keywords %}
+                <span class="badge badge-secondary">{{ keyword }}</span>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
 
         {% if package.highest.homepage %}
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Homepage</strong></div>
-            <div class="col-xs-12 col-sm-10"><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></div>
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>Homepage</strong></div>
+            <div class="{{ col2_class }}"><a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a></div>
         </div>
         {% endif %}
 
         {% if package.highest.license %}
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>License</strong></div>
-            <div class="col-xs-12 col-sm-10">{{ package.highest.license|join(', ') }}</div>
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>License</strong></div>
+            <div class="{{ col2_class }}">{{ package.highest.license|join(', ') }}</div>
+        </div>
+        {% endif %}
         </div>
         {% endif %}
 
         {% if package.highest.authors %}
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Authors</strong></div>
-            <div class="col-xs-12 col-sm-10">
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>Authors</strong></div>
+            <div class="{{ col2_class }}">
                 {% for author in package.highest.authors %}
-                {%- if author.homepage -%}
-                <a href="{{ author.homepage }}">{{ author.name }}</a>
-                {%- else -%}
-                {{ author.name }}
-                {%- endif -%}
-                {%- if not loop.last -%}, {% endif -%}
+                    {%- if author.homepage -%}
+                        <a href="{{ author.homepage }}">{{ author.name }}</a>
+                    {%- else -%}
+                        {{ author.name }}
+                    {%- endif -%}
+                    {%- if not loop.last -%}, {% endif -%}
                 {% endfor %}
             </div>
         </div>
         {% endif %}
 
         {% if package.highest.support %}
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Support</strong></div>
-            <div class="col-xs-12 col-sm-10">
-                <ul>
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>Support</strong></div>
+            <div class="{{ col2_class }}">
+                <ul class="list-unstyled m-0">
                     {% for support_type, support_url in package.highest.support %}
                     <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
                     {% endfor %}
@@ -78,9 +87,9 @@
         </div>
         {% endif %}
 
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Releases</strong></div>
-            <div class="col-xs-12 col-sm-10">
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>Releases</strong></div>
+            <div class="{{ col2_class }}">
                 {% for version in package.versions %}
 
                 {% set branch_alias = attribute(version.extra['branch-alias'], version.prettyVersion) %}
@@ -102,10 +111,10 @@
 
         {% set package_dependencies = attribute(dependencies, name) %}
         {% if package_dependencies and package_dependencies|length %}
-        <div class="row">
-            <div class="col-xs-2 text-xs-left text-sm-right"><strong>Required by</strong></div>
-            <div class="col-xs-12 col-sm-10">
-                <ul>
+        <div class="{{ row_class }}">
+            <div class="{{ col1_class }}"><strong>Required by</strong></div>
+            <div class="{{ col2_class }}">
+                <ul class="list-unstyled m-0">
                     {% for dependency in package_dependencies %}
                     <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
                     {% endfor %}
