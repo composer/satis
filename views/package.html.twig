@@ -104,7 +104,7 @@
         {% set package_dependencies = attribute(dependencies, name) %}
 
         {% if package_dependencies and package_dependencies|length %}
-            <dt class="{{ col1_class }}">Required by</div>
+            <dt class="{{ col1_class }}">Required by</dt>
             <dd class="{{ col2_class }}">
                 <ul class="list-unstyled m-0">
                     {% for dependency in package_dependencies %}
