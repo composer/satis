@@ -3,15 +3,13 @@
 {% set col2_class = 'col-sm-9 col-md-10' %}
 
 <div class="card {% if package.abandoned %}border-danger{% else %}border-primary{% endif %} mb-3">
-    <div class="card-header {% if package.abandoned %}bg-danger{% else %}bg-primary{% endif %}">
-        <span id="{{ package.highest.name }}" class="">
-            <a href="#{{ package.highest.name }}" class="anchor text-white">
-                <svg class="octicon-link" width="16" height="16">
-                    <use xlink:href="#octicon-link"></use>
-                </svg>
-                {{ package.highest.name }}
-            </a>
-        </span>
+    <div id="{{ package.highest.name }}" class="card-header {% if package.abandoned %}bg-danger{% else %}bg-primary{% endif %}">
+        <a href="#{{ package.highest.name }}" class="text-white">
+            <svg class="octicon-link" width="16" height="16">
+                <use xlink:href="#octicon-link"></use>
+            </svg>
+            {{ package.highest.name }}
+        </a>
 
         {% if package.abandoned %}
         <p class="abandoned">
