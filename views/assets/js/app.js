@@ -6,7 +6,7 @@ import DateDistance from './App/DateDistance';
 import PackageFilter from './App/PackageFilter';
 
 function updateTimeElements () {
-    DateDistance.calculate($('time'))
+    DateDistance.calculate('time')
 };
 
 $(document).ready(function() {

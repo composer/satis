@@ -1,18 +1,20 @@
-import $ from 'jquery';
 import distanceInWordsToNow from 'date-fns/distance_in_words_to_now';
 
 class DateDistance {
-    static calculate($elements) {
-        $($elements).each(function() {
-            let element  = $(this);
-            let datetime = element.attr('datetime');
+    static calculate(elements) {
+        if (typeof elements === 'string') {
+            elements = document.querySelectorAll(elements);
+        }
+        for (let i = 0; i < elements.length; i++) {
+            let element  = elements[i];
+            let datetime = element.attributes.datetime.value;
             let date     = new Date(datetime);
             let distance = distanceInWordsToNow(date, {
                 addSuffix: true
             });
             
-            element.text(distance);
-        });
+            element.textContent = distance;
+        }
     }
 }
 
