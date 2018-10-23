@@ -37,3 +37,9 @@
 // @import "~bootstrap/scss/carousel";
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/print";
+
+pre.file {
+    border-left: 2px solid $primary;
+    background-color: $light;
+    padding: map-get($spacers, 2);
+}
