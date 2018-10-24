@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
@@ -7,52 +7,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex,nofollow" />
 
-    <title>{{ name }} Composer repository</title>
+    <title>{{ name|default('Composer repository') }}</title>
 
     <style type="text/css">
-        {% include 'assets/bootstrap.min.css' %}
-        {% include 'assets/satis.css' %}
+        {% include 'build/style.css' %}
     </style>
 </head>
 
 <body>
 
 <div class="container">
-    <nav class="navbar navbar-default">
-        <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="/">
-                    {% if name %}{{ name }}{% else %}Composer repository{% endif %}
-                    {% if description %}<small>{{ description|raw }}</small>{% endif %}
-                </a>
-            </div>
-
-            <div class="collapse navbar-collapse in">
-                <p class="navbar-text navbar-right">
-                    <small class="text-muted" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
-                        Last updated: <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
-                    </small>
-                </p>
-            </div>
+    <header class="mt-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <a href="/">
+                <h1>{{ name|default('Composer repository') }}</h1>
+            </a>
+            <span class="badge badge-light m-1" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
+                Last updated: <br class="d-md-none"> <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
+            </span>
         </div>
-    </nav>
 
-    <pre id="repo-config" class="hidden"><code>{
-  "repositories": [{
-    "type": "composer",
-    "url": "{{ url }}"
-  }]
-}</code></pre>
+        {% if description %}
+            <p class="lead">{{ description|raw }}</p>
+        {% endif %}
+    </header>
 
-    <div class="page-header">
-        <h1>Packages</h1>
-        <span id="add-satis-btn">
-           <em>Add this Satis repository to your <kbd>composer.json</kbd></em>
-        </span>        
-    </div>
-
-    <form>
+    <form class="my-3">
         <div class="form-group">
+            <label for="search" class="sr-only">Filter packages</label>
             <input type="text"
                 id="search"
                 class="form-control"
@@ -61,6 +43,32 @@
                 autofocus>
         </div>
     </form>
+
+    <div id="repo-help" class="my-3">
+        <p class="small">
+            This is a private Composer repository.
+            To use it, you have to <a title="Check how to add this repository to your project" data-toggle="collapse" href="#repo-config">add this repository</a> to your <code>composer.json</code> file.
+        </p>
+
+        <div id="repo-config" class="my-3 card card-outline collapse">
+            <div class="card-body">
+                <h5 class="card-title">Setting up this repository in your projects</h5>
+                <p>
+                    Add this <a href="https://getcomposer.org/" title="Visit getcomposer.org">Composer</a>
+                    repository to your project's <code>composer.json</code>
+                    file, then you can require these private packages just like you would with
+                    one from <a href="https://packagist.org">Packagist</a>.
+                </p>
+                <pre class="file my-3">{
+  "repositories": [{
+    "type": "composer",
+    "url": "{{ url }}"
+  }]
+}</pre>
+            <p class="small mb-0">Read more on <a href="https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md">how to handle composer private packages</a>.</p>
+            </div>
+        </div>
+    </div>
 
     <div id="package-list">
         {% for name, package in packages %}{% include 'package.html.twig' %}{% endfor %}
@@ -72,77 +80,7 @@
 </div>
 
 <script type="text/javascript">
-{% include 'assets/jquery.slim.min.js' %}
-{% include 'assets/bootstrap.min.js' %}
-{% include 'assets/moment.min.js' %}
-
-function momentize(elements) {
-    elements.each(function () {
-        var element = $(this);
-        element.text(moment(element.attr('datetime')).fromNow());
-    });
-}
-
-$(function () {
-    var input = $('input#search');
-    var list = $('div#package-list');
-    var packages = list.find('.panel');
-    var timeElements = $('time');
-    var inputTimeout;
-    var addSatis = $('#add-satis-btn');
-    var repoConfig = $('#repo-config');
-    
-    addSatis.click(function() {
-        repoConfig.toggleClass("hidden");
-    });
-
-    var updateTimeElements = function () {
-        momentize(timeElements);
-    };
-
-    var readHash = function () {
-        var hash = window.decodeURIComponent(window.location.hash.substr(1));
-        if (hash.length > 0) {
-            input.val(hash);
-            filterPackages();
-        }
-    };
-
-    var updateHash = function () {
-        window.location.hash = window.encodeURIComponent(input.val());
-    };
-
-    var filterPackages = function () {
-        var needle = input.val().toLowerCase();
-
-        list.hide();
-
-        packages.each(function () {
-            $(this).closest('div.panel').toggle(
-                $(this).text().toLowerCase().indexOf(needle) !== -1
-            );
-        });
-
-        list.show();
-    };
-
-    input.keyup(function () {
-        updateHash();
-        window.clearTimeout(inputTimeout);
-        inputTimeout = window.setTimeout(filterPackages, 350);
-    });
-
-    $(window).keyup(function (event) {
-        if (event.keyCode === 27) { // "ESC" keyCode
-            input.val('');
-            filterPackages();
-        }
-    });
-
-    readHash();
-    updateTimeElements();
-    window.setInterval(updateTimeElements, 5000);
-});
+{% include 'build/app.js' %}
 </script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="octicon-link" viewBox="0 0 16 16">
