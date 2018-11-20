@@ -19,7 +19,7 @@ FROM php:7-cli-alpine
 
 MAINTAINER https://github.com/composer/satis
 
-RUN apk --no-cache add curl git subversion mercurial openssh openssl tini \
+RUN apk --no-cache add bash curl git subversion mercurial openssh openssl tini zip unzip \
  && apk add --update --no-cache --virtual .build-deps zlib-dev \
  && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) zip \
  && runDeps="$( \
