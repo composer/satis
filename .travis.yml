@@ -1,7 +1,5 @@
-sudo: false
-dist: trusty
-
 language: php
+dist: trusty
 
 cache:
   directories:
