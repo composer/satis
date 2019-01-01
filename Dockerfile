@@ -20,7 +20,8 @@ FROM php:7-cli-alpine
 MAINTAINER https://github.com/composer/satis
 
 RUN apk --no-cache add bash curl git subversion mercurial openssh openssl tini zip unzip \
- && apk add --update --no-cache --virtual .build-deps zlib-dev \
+ && apk add --update --no-cache --virtual .build-deps zlib-dev libzip-dev \
+ && docker-php-ext-configure zip --with-libzip \
  && docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) zip \
  && runDeps="$( \
     scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
