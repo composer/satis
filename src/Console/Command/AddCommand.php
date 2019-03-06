@@ -21,6 +21,7 @@ use Composer\Repository\VcsRepository;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 /**
@@ -36,6 +37,7 @@ class AddCommand extends BaseCommand
             ->setDefinition([
                 new InputArgument('url', InputArgument::REQUIRED, 'VCS repository URL'),
                 new InputArgument('file', InputArgument::OPTIONAL, 'JSON file to use', './satis.json'),
+                new InputOption('type', NULL, InputOption::VALUE_OPTIONAL, 'VCS driver (see https://getcomposer.org/doc/05-repositories.md#git-alternatives)', 'vcs'),
             ])
             ->setHelp(<<<'EOT'
 The <info>add</info> command adds given repository URL to the json file
@@ -59,6 +61,7 @@ EOT
 
         $configFile = $input->getArgument('file');
         $repositoryUrl = $input->getArgument('url');
+        $vcsDriver = $input->getOption('type');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $output->writeln('<error>Unable to write to remote file ' . $configFile . '</error>');
@@ -73,7 +76,7 @@ EOT
             return 1;
         }
 
-        if (!$this->isRepositoryValid($repositoryUrl)) {
+        if (!$this->isRepositoryValid($repositoryUrl, $vcsDriver)) {
             $output->writeln('<error>Invalid Repository URL: ' . $repositoryUrl . '</error>');
 
             return 3;
@@ -92,7 +95,7 @@ EOT
             }
         }
 
-        $config['repositories'][] = ['type' => 'vcs', 'url' => $repositoryUrl];
+        $config['repositories'][] = ['type' => $vcsDriver, 'url' => $repositoryUrl];
 
         $file->write($config);
 
@@ -109,15 +112,16 @@ EOT
      * Validate repository URL
      *
      * @param $repositoryUrl
+     * @param $type
      *
      * @return bool
      */
-    protected function isRepositoryValid($repositoryUrl)
+    protected function isRepositoryValid($repositoryUrl, $type)
     {
         $io = new NullIO();
         $config = Factory::createConfig();
         $io->loadConfiguration($config);
-        $repository = new VcsRepository(['url' => $repositoryUrl], $io, $config);
+        $repository = new VcsRepository(['url' => $repositoryUrl, 'type' => $type], $io, $config);
 
         if (!($driver = $repository->getDriver())) {
             return false;
