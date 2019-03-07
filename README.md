@@ -84,6 +84,9 @@ See the list of [contributors][] who participate(d) in this project.
 - [composer-satis-builder][] - Simple tool for updating the Satis configuration
     (satis.json) "require" key on the basis of the project composer.json.
 
+## Examples
+
+- [eventum/composer] - A simple static set of packages hosted in GitHub Pages
 
 ## License
 
@@ -98,3 +101,4 @@ Satis is licensed under the MIT License - see the [LICENSE][] file for details
 [satis-control-panel]: https://github.com/realshadow/satis-control-panel
 [composer-satis-builder]: https://github.com/AOEpeople/composer-satis-builder
 [LICENSE]: https://github.com/composer/satis/blob/master/LICENSE
+[eventum/composer]: https://github.com/eventum/composer
