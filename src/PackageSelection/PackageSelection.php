@@ -64,6 +64,9 @@ class PackageSelection
     /** @var string Minimum stability accepted for Packages in the list. */
     private $minimumStability;
 
+    /** @var array Minimum stability accepted by Package. */
+    private $minimumStabilityPerPackage;
+
     /** @var array The active package filter to merge. */
     private $packagesFilter = [];
 
@@ -119,6 +122,7 @@ class PackageSelection
         }
 
         $this->minimumStability = $config['minimum-stability'] ?? 'dev';
+        $this->minimumStabilityPerPackage = $config['minimum-stability-per-package'] ?? [];
         $this->abandoned = $config['abandoned'] ?? [];
 
         $this->stripHosts = $this->createStripHostsPatterns($config['strip-hosts'] ?? false);
@@ -186,7 +190,12 @@ class PackageSelection
         $this->output->writeln('<info>Scanning packages</info>');
 
         $repos = $initialRepos = $composer->getRepositoryManager()->getRepositories();
-        $pool = new Pool($this->minimumStability);
+
+        $stabilityFlags = array_map(function ($value) {
+            return BasePackage::$stabilities[$value];
+        }, $this->minimumStabilityPerPackage);
+
+        $pool = new Pool($this->minimumStability, $stabilityFlags);
 
         if ($this->hasRepositoryFilter()) {
             $repos = $this->filterRepositories($repos);
