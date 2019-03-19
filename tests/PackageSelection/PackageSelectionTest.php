@@ -245,9 +245,17 @@ class PackageSelectionTest extends TestCase
                 'name' => 'vendor/project-alpha',
                 'version' => '1.2.3.0',
             ],
+            'alpha-dev' => [
+                'name' => 'vendor/project-alpha',
+                'version' => '1.2.3.1-dev',
+            ],
             'beta' => [
                 'name' => 'vendor/project-beta',
                 'version' => '1.2.3.0',
+            ],
+            'beta-dev' => [
+                'name' => 'vendor/project-beta',
+                'version' => '1.2.3.1-dev',
             ],
             'gamma1' => [
                 'name' => 'vendor/project-gamma',
@@ -344,6 +352,7 @@ class PackageSelectionTest extends TestCase
                 $packages['gamma4'],
             ],
             [
+                'minimum-stability' => 'stable',
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -361,6 +370,7 @@ class PackageSelectionTest extends TestCase
                 $packages['gamma1'],
             ],
             [
+                'minimum-stability' => 'stable',
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -378,6 +388,7 @@ class PackageSelectionTest extends TestCase
                 $packages['gamma4'],
             ],
             [
+                'minimum-stability' => 'stable',
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -396,6 +407,7 @@ class PackageSelectionTest extends TestCase
                 $packages['alpha'],
             ],
             [
+                'minimum-stability' => 'stable',
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -414,6 +426,7 @@ class PackageSelectionTest extends TestCase
                 $packages['gamma4'],
             ],
             [
+                'minimum-stability' => 'stable',
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -434,6 +447,7 @@ class PackageSelectionTest extends TestCase
                 $packages['alpha'],
             ],
             [
+                'minimum-stability' => 'stable',
                 'repositories' => [
                     $repo['gamma'],
                     $repo['delta'],
@@ -442,6 +456,27 @@ class PackageSelectionTest extends TestCase
                     $repo['everything'],
                 ],
                 'require-dependencies' => true,
+            ],
+        ];
+
+        $data['Set minimum-stability for a specific package'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['beta']
+            ],
+            [
+                'minimum-stability' => 'stable',
+                'minimum-stability-per-package' => [
+                    'vendor/project-alpha' => 'dev'
+                ],
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-alpha' => '*',
+                    'vendor/project-beta' => '*'
+                ]
             ],
         ];
 
