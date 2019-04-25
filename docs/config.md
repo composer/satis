@@ -60,7 +60,7 @@ title: Config
 
 ### name
 
-The name of the Satis repository. Available inside the template as `{{ name }}`.
+The name of the Satis repository. Available inside the template as {% raw %}{{ name }}{% endraw %}.
 
 ### description
 
