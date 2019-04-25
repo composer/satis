@@ -14,21 +14,18 @@ declare(strict_types=1);
 namespace Composer\Satis\Builder;
 
 use Composer\Composer;
-use Composer\Config as ComposerConfig;
+use Composer\Config;
 use Composer\Config\JsonConfigSource;
-use Composer\Downloader\DownloadManager;
-use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
 use Composer\Package\CompletePackage;
-use Composer\Package\Package;
-use Symfony\Component\Console\Input\InputInterface;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * @author Michael Lee <michael.lee@zerustech.com>
  */
-class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
+class ArchiveBuilderTest extends TestCase
 {
     protected $composer;
 
@@ -46,19 +43,19 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
 
     protected $target;
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $fs = new Filesystem();
         $fs->remove($this->root);
     }
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->root = __DIR__ . '/vfs';
         $this->home = $this->root . '/home/ubuntu';
         $this->target = $this->home . '/satis.server/dist/monolog/monolog';
 
-        $composerConfig = new ComposerConfig(true, $this->home . '/satis.server');
+        $composerConfig = new Config(true, $this->home . '/satis.server');
         $composerConfig->merge([
             'cache-dir' => $this->home . '/.cache/composer',
             'data-dir' => $this->home . '/.local/share/composer',
@@ -71,7 +68,7 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
         $downloadManager->method('download')->will(
             $this->returnCallback(
                 function ($package, $source) {
-                    $filesystem = new \Symfony\Component\Filesystem\Filesystem();
+                    $filesystem = new Filesystem();
                     $filesystem->dumpFile(realpath($source) . '/' . 'README.md', '# The demo archive.');
                 }
             )
@@ -114,7 +111,7 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getDataForTestDump
      */
-    public function testDumpWithDownloadedArchives($customConfig, $packages, $expectedFileName)
+    public function testDumpWithDownloadedArchives(array $customConfig, array $packages, string $expectedFileName)
     {
         $this->initArchives();
 
@@ -164,7 +161,7 @@ class ArchiveBuilderTest extends \PHPUnit\Framework\TestCase
     /**
      * @dataProvider getDataForTestDump
      */
-    public function testDumpWithoutDownloadedArchives($customConfig, $packages, $expectedFileName)
+    public function testDumpWithoutDownloadedArchives(array $customConfig, array $packages, string $expectedFileName)
     {
         $this->removeArchives();
 

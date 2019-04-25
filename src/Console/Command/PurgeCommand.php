@@ -45,7 +45,7 @@ EOT
             );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $configFile = $input->getArgument('file');
         $file = new JsonFile($configFile);
@@ -136,18 +136,22 @@ EOT
         return 0;
     }
 
-    private function removeEmptyDirectories($output, $dir, $depth = 2)
+    private function removeEmptyDirectories(OutputInterface $output, string $dir, int $depth = 2): bool
     {
         $empty = true;
         $children = @scandir($dir);
+
         if (false === $children) {
             return false;
         }
+
         foreach ($children as $child) {
             if ('.' === $child || '..' === $child) {
                 continue;
             }
+
             $path = $dir . DIRECTORY_SEPARATOR . $child;
+
             if (is_dir($path)
                 && $depth > 0
                 && $this->removeEmptyDirectories($output, $path, $depth - 1)

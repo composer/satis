@@ -17,6 +17,8 @@ use Composer\Package\Package;
 use Composer\Satis\Builder\WebBuilder;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
+use Twig\Environment;
+use Twig\Loader\ArrayLoader;
 
 /**
  * @author James Hautot <james@rezo.net>
@@ -26,12 +28,12 @@ class WebBuilderTest extends TestCase
     /** @var WebBuilder */
     protected $webBuilder;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->webBuilder = new WebBuilder(new NullOutput(), 'build', [], false);
     }
 
-    public function dataGetDescSortedVersions()
+    public function dataGetDescSortedVersions(): array
     {
         $data = [];
 
@@ -57,7 +59,7 @@ class WebBuilderTest extends TestCase
 
     public function testTwigEnvironment()
     {
-        $twig = new \Twig_Environment(new \Twig_Loader_Array([]));
+        $twig = new Environment(new ArrayLoader([]));
         $this->webBuilder->setTwigEnvironment($twig);
 
         $reflection = new \ReflectionClass($this->webBuilder);

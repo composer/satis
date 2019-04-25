@@ -23,9 +23,6 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\Question;
 
-/**
- * @author Sergey Kolodyazhnyy <sergey.kolodyazhnyy@gmail.com>
- */
 class InitCommand extends BaseCommand
 {
     protected function configure()
@@ -46,13 +43,7 @@ EOT
         ;
     }
 
-    /**
-     * Print welcome message
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     */
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
@@ -70,15 +61,7 @@ EOT
         ]);
     }
 
-    /**
-     * Generate configuration file
-     *
-     * @param InputInterface  $input  The input instance
-     * @param OutputInterface $output The output instance
-     *
-     * @return int
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
@@ -123,13 +106,7 @@ EOT
         return 0;
     }
 
-    /**
-     * Interact with user
-     *
-     * @param InputInterface $input
-     * @param OutputInterface $output
-     */
-    protected function interact(InputInterface $input, OutputInterface $output)
+    protected function interact(InputInterface $input, OutputInterface $output): void
     {
         $this->prompt($input, $output, 'Repository name', 'name', function ($value) {
             if (!$value) {
@@ -150,16 +127,7 @@ EOT
         });
     }
 
-    /**
-     * Prompt for an input option.
-     *
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     * @param string          $prompt
-     * @param string          $optionName For the default value and where the answer is set
-     * @param callable        $validator
-     */
-    protected function prompt(InputInterface $input, OutputInterface $output, $prompt, $optionName, $validator)
+    protected function prompt(InputInterface $input, OutputInterface $output, string $prompt, string $optionName, callable $validator)
     {
         /** @var QuestionHelper $helper */
         $helper = $this->getHelper('question');
@@ -170,15 +138,7 @@ EOT
         $input->setOption($optionName, $helper->ask($input, $output, $question));
     }
 
-    /**
-     * Build a question
-     *
-     * @param string $prompt
-     * @param string $default
-     *
-     * @return Question
-     */
-    protected function getQuestion($prompt, $default)
+    protected function getQuestion(string $prompt, string $default): Question
     {
         $prompt = ($default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
 

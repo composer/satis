@@ -24,14 +24,10 @@ use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @author Jordi Boggiano <j.boggiano@seld.be>
- */
 class Application extends BaseApplication
 {
     /** @var IOInterface */
     protected $io;
-
     /** @var Composer */
     protected $composer;
 
@@ -40,10 +36,7 @@ class Application extends BaseApplication
         parent::__construct('Satis', Satis::VERSION);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function doRun(InputInterface $input, OutputInterface $output)
+    public function doRun(InputInterface $input, OutputInterface $output): int
     {
         $styles = Factory::createAdditionalStyles();
         foreach ($styles as $name => $style) {
@@ -57,13 +50,13 @@ class Application extends BaseApplication
     }
 
     /**
-     * @param bool              $required Not used
-     * @param array|string|null $config   either a configuration array or a filename to read from,
-     *                                    if null it will read from the default filename
+     * @param bool $required
+     * @param array|string|null $config
+     *  Either a configuration array or a filename to read from, if null it will read from the default filename.
      *
      * @return Composer
      */
-    public function getComposer($required = true, $config = null)
+    public function getComposer(bool $required = true, $config = null): Composer
     {
         if (null === $this->composer) {
             try {
@@ -77,10 +70,7 @@ class Application extends BaseApplication
         return $this->composer;
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function getDefaultCommands()
+    protected function getDefaultCommands(): array
     {
         $commands = array_merge(parent::getDefaultCommands(), [
             new Command\InitCommand(),

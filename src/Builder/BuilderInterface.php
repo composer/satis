@@ -15,11 +15,6 @@ namespace Composer\Satis\Builder;
 
 use Composer\Package\PackageInterface;
 
-/**
- * Builder interface.
- *
- * @author James Hautot <james@rezo.net>
- */
 interface BuilderInterface
 {
     /**

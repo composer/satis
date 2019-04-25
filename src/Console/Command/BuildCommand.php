@@ -32,9 +32,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @author Jordi Boggiano <j.boggiano@seld.be>
- */
 class BuildCommand extends BaseCommand
 {
     protected function configure()
@@ -103,16 +100,11 @@ EOT
     }
 
     /**
-     * @param InputInterface  $input  The input instance
-     * @param OutputInterface $output The output instance
-     *
      * @throws JsonValidationException
      * @throws ParsingException
      * @throws \Exception
-     *
-     * @return int
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
@@ -221,10 +213,7 @@ EOT
         return 0;
     }
 
-    /**
-     * @return Config
-     */
-    private function getConfiguration()
+    private function getConfiguration(): Config
     {
         $config = new Config();
 
@@ -241,12 +230,7 @@ EOT
         return $config;
     }
 
-    /**
-     * @throws \RuntimeException
-     *
-     * @return string
-     */
-    private function getComposerHome()
+    private function getComposerHome(): string
     {
         $home = getenv('COMPOSER_HOME');
         if (!$home) {
@@ -267,17 +251,10 @@ EOT
     }
 
     /**
-     * Validates the syntax and the schema of the current config json file
-     * according to satis-schema.json rules.
-     *
-     * @param string $configFile The json file to use
-     *
      * @throws ParsingException        if the json file has an invalid syntax
      * @throws JsonValidationException if the json file doesn't match the schema
-     *
-     * @return bool true on success
      */
-    private function check($configFile)
+    private function check(string $configFile): bool
     {
         $content = file_get_contents($configFile);
 
@@ -300,6 +277,7 @@ EOT
                 foreach ((array) $validator->getErrors() as $error) {
                     $errors[] = ($error['property'] ? $error['property'] . ' : ' : '') . $error['message'];
                 }
+
                 throw new JsonValidationException('The json config file does not match the expected JSON schema', $errors);
             }
 
