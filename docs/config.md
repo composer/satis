@@ -80,23 +80,33 @@ Configuration for creating package archives.
 
 `directory`
 : The directory in wich to output the archives.
+
 `format`
 : The archive format to use.
+
 `skip-dev`
 : Whether or not to create archives for development versions.
+
 `absolute-directory`
 : The directory in which to output the archives (prioritized over `directory` if provided).
+
 `prefix-url`
 : Hostname (and path) to prefix when generating source url for the archive (defaults to `homepage`).
+
 `white-list`
 : List of whitelisted packages (only matching packages will be output).
+
 `black-list`
 : List of blacklisted packages (matching packages will be skipped).
+
 `checksum`
 : Whether or not to generate checksum values.
+
 `ignore-filters`
 : Whether or not to ignore filters when looking for files in packages.
+
 `override-dist-type`
 : If true, archive format will be used to substitute the original dist type.
+
 `rearchive`
 : If true, rearchive packages with a tar or zip dist.
