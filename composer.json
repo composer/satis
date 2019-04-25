@@ -22,27 +22,22 @@
     },
     "bin": ["bin/satis"],
     "require": {
-        "php": "^7.0",
-        "composer/composer": "^1.4",
-        "twig/twig": "^1.7 || ^2.0",
-        "symfony/console": "^2.1 || ^3.0.4 || ^4.0"
+        "php": "^7.2",
+        "composer/composer": "^1.8.5",
+        "symfony/console": "^4.2",
+        "twig/twig": "^2.8"
     },
     "autoload": {
         "psr-4": { "Composer\\Satis\\": "src" }
     },
     "require-dev": {
-        "phpunit/phpunit": "^6.4",
-        "phpunit/phpunit-mock-objects": "^4.0",
+        "ext-json": "*",
+        "friendsofphp/php-cs-fixer": "^2.14",
         "mikey179/vfsstream": "^1.6",
-        "friendsofphp/php-cs-fixer": "^2.11"
+        "phpunit/phpunit": "^7.0 || ^8.0"
     },
     "autoload-dev": {
         "psr-4": { "Composer\\Satis\\": "tests" }
-    },
-    "config": {
-        "platform": {
-            "php": "7.0"
-        }
     },
     "extra": {
         "branch-alias": {
