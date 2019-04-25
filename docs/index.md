@@ -30,4 +30,4 @@ Install using Composer:
 Run our Docker container:
 
     docker pull composer/satis
-    docker run --rm -it -v /build:/build composer/satis
+    docker run --rm -it -v <workspace>:/build composer/satis

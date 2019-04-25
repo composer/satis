@@ -58,55 +58,99 @@ title: Config
 
 ## Keys
 
-### `name`
+### name
 
 The name of the Satis repository. Available inside the template as `{% raw %}{{ name }}{% endraw %}`.
 
-### `description`
+### description
 
 A brief description of the Satis repository. Available inside the template as `{% raw %}{{ description }}{% endraw %}`
 
-### `homepage`
+### homepage
 
 Available inside the template as `{% raw %}{{ url }}{% endraw %}`.
 
-### `require`
+### require
 
 Hash of package name (keys) and version constraint (values) that should be included in the output.
 
-### `archive`
+### archive
 
 Configuration for creating package archives.
 
-`directory`
+directory
 : The directory in wich to output the archives.
 
-`format`
+format
 : The archive format to use.
 
-`skip-dev`
+skip-dev
 : Whether or not to create archives for development versions.
 
-`absolute-directory`
-: The directory in which to output the archives (prioritized over `directory` if provided).
+absolute-directory
+: The directory in which to output the archives (prioritized over **directory** if provided).
 
-`prefix-url`
-: Hostname (and path) to prefix when generating source url for the archive (defaults to `homepage`).
+prefix-url
+: Hostname (and path) to prefix when generating source url for the archive (defaults to **homepage**).
 
-`white-list`
+white-list
 : List of whitelisted packages (only matching packages will be output).
 
-`black-list`
+black-list
 : List of blacklisted packages (matching packages will be skipped).
 
-`checksum`
+checksum
 : Whether or not to generate checksum values.
 
-`ignore-filters`
+ignore-filters
 : Whether or not to ignore filters when looking for files in packages.
 
-`override-dist-type`
+override-dist-type
 : If true, archive format will be used to substitute the original dist type.
 
-`rearchive`
+rearchive
 : If true, rearchive packages with a tar or zip dist.
+
+### abandoned
+
+A list of packages that will visually be marked as abandoned. Optionally a replacement can be suggested.
+
+### require-all
+
+If true, selects all versions of all packages in all repositories defined.
+
+### require-dependencies
+
+If true, resolve and add all dependencies of each required package.
+
+### require-dev-dependencies
+
+If true, resolve and add all development dependencies of each required package.
+
+### require-dependency-filter
+
+If false, will include versions matching a dependency.
+
+### include-filename
+
+Filename to use for the json to include, defaults to `include/all${SHA1_HASH}.json`.
+
+### output-dir
+
+Directory in which to store repository data.
+
+### output-html
+
+If true, generate html output from templates.
+
+### twig-template
+
+Path to twig template used for generating html output.
+
+### providers
+
+If true, output package providers. This will generate a directory per vendor and a json file per package.
+
+### pretty-print
+
+Whether or not to use `JSON_PRETTY_PRINT` when generating json output.
