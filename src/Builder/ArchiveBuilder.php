@@ -17,29 +17,21 @@ use Composer\Composer;
 use Composer\Downloader\DownloadManager;
 use Composer\Factory;
 use Composer\Package\Archiver\ArchiveManager;
+use Composer\Package\CompletePackage;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Builds the archives of the repository.
- *
- * @author James Hautot <james@rezo.net>
- */
 class ArchiveBuilder extends Builder
 {
     /** @var Composer A Composer instance. */
     private $composer;
-
     /** @var InputInterface */
     private $input;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function dump(array $packages)
+    public function dump(array $packages): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
         $basedir = $helper->getDirectory($this->outputDir);
@@ -48,9 +40,9 @@ class ArchiveBuilder extends Builder
         $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
-        /* @var \Composer\Downloader\DownloadManager $downloadManager */
+        /* @var DownloadManager $downloadManager */
         $downloadManager = $this->composer->getDownloadManager();
-        /* @var \Composer\Package\Archiver\ArchiveManager $archiveManager */
+        /* @var ArchiveManager $archiveManager */
         $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
         $archiveManager->setOverwriteFiles(false);
 
@@ -76,7 +68,7 @@ class ArchiveBuilder extends Builder
             );
         }
 
-        /* @var \Composer\Package\CompletePackage $package */
+        /* @var CompletePackage $package */
         foreach ($packages as $package) {
             if ($helper->isSkippable($package)) {
                 continue;
@@ -173,48 +165,21 @@ class ArchiveBuilder extends Builder
         }
     }
 
-    /**
-     * Sets the Composer instance.
-     *
-     * @param Composer $composer A Composer instance
-     *
-     * @return $this
-     */
-    public function setComposer(Composer $composer)
+    public function setComposer(Composer $composer): self
     {
         $this->composer = $composer;
 
         return $this;
     }
 
-    /**
-     * @param InputInterface $input
-     *
-     * @return $this;
-     */
-    public function setInput(InputInterface $input)
+    public function setInput(InputInterface $input): self
     {
         $this->input = $input;
 
         return $this;
     }
 
-    /**
-     * Archive a package if it is missing
-     *
-     * @param DownloadManager $downloadManager
-     *  DownloadManager used to retrieve existing archives under distSource
-     * @param ArchiveManager $archiveManager
-     *  ArchiveManager used to create archives
-     * @param PackageInterface $package
-     *  The Package to save
-     * @param string $targetDir
-     *  Directory for the archive file
-     *
-     * @return string
-     *  The filename of the archive
-     */
-    private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, PackageInterface $package, string $targetDir)
+    private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, PackageInterface $package, string $targetDir): string
     {
         $format = (string) ($this->config['archive']['format'] ?? 'zip');
         $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);

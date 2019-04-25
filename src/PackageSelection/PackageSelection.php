@@ -30,11 +30,6 @@ use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Builds the Packages list.
- *
- * @author James Hautot <james@rezo.net>
- */
 class PackageSelection
 {
     /** @var OutputInterface The output Interface. */
@@ -70,7 +65,7 @@ class PackageSelection
     /** @var array The active package filter to merge. */
     private $packagesFilter = [];
 
-    /** @var string The active repository filter to merge. */
+    /** @var string|null The active repository filter to merge. */
     private $repositoryFilter;
 
     /** @var bool Apply the filter also for resolving dependencies. */
@@ -91,23 +86,15 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
-    /**
-     * Base Constructor.
-     *
-     * @param OutputInterface $output     The output Interface
-     * @param string          $outputDir  The directory where to build
-     * @param array           $config     The parameters from ./satis.json
-     * @param bool            $skipErrors Escapes Exceptions if true
-     */
-    public function __construct(OutputInterface $output, $outputDir, $config, $skipErrors)
+    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
     {
         $this->output = $output;
-        $this->skipErrors = (bool) $skipErrors;
+        $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->fetchOptions($config);
     }
 
-    private function fetchOptions($config)
+    private function fetchOptions(array $config)
     {
         $this->depRepositories = $config['repositories-dep'] ?? [];
 
@@ -131,60 +118,32 @@ class PackageSelection
         $this->homepage = $config['homepage'] ?? null;
     }
 
-    /**
-     * Sets the active repository filter to merge
-     *
-     * @param string $repositoryFilter The active repository filter to merge
-     * @param bool $forDependencies Apply the filter also for resolving dependencies
-     */
-    public function setRepositoryFilter($repositoryFilter, $forDependencies = false)
+    public function setRepositoryFilter(?string $repositoryFilter, bool $forDependencies = false): void
     {
         $this->repositoryFilter = $repositoryFilter;
         $this->repositoryFilterDep = (bool) $forDependencies;
     }
 
-    /**
-     * Tells if repository list should be reduced to single repository
-     *
-     * @return bool true if repository filter is set
-     */
-    public function hasRepositoryFilter()
+    public function hasRepositoryFilter(): bool
     {
         return null !== $this->repositoryFilter;
     }
 
-    /**
-     * Sets the active package filter to merge
-     *
-     * @param array $packagesFilter The active package filter to merge
-     */
-    public function setPackagesFilter(array $packagesFilter = [])
+    public function setPackagesFilter(array $packagesFilter = []): void
     {
         $this->packagesFilter = $packagesFilter;
     }
 
-    /**
-     * Tells if there is at least one package filter.
-     *
-     * @return bool true if there is at least one package filter
-     */
-    public function hasFilterForPackages()
+    public function hasFilterForPackages(): bool
     {
         return count($this->packagesFilter) > 0;
     }
 
     /**
-     * Sets the list of packages to build.
-     *
-     * @param Composer $composer The Composer instance
-     * @param bool     $verbose  Output info if true
-     *
      * @throws \InvalidArgumentException
      * @throws \Exception
-     *
-     * @return PackageInterface[]
      */
-    public function select(Composer $composer, $verbose)
+    public function select(Composer $composer, bool $verbose): array
     {
         // run over all packages and store matching ones
         $this->output->writeln('<info>Scanning packages</info>');
@@ -219,7 +178,7 @@ class PackageSelection
             // dependencies of required packages might have changed and be part of filtered repos
             if ($this->hasRepositoryFilter() && true !== $this->repositoryFilterDep) {
                 $this->addRepositories($pool, \array_filter($initialRepos, function ($r) use ($repos) {
-                    return \in_array($r, $repos) === false;
+                    return false === \in_array($r, $repos);
                 }));
             }
 
@@ -239,10 +198,7 @@ class PackageSelection
         return $this->selected;
     }
 
-    /**
-     * Clean up the selection for publishing
-     */
-    public function clean()
+    public function clean(): array
     {
         $this->applyStripHosts();
 
@@ -250,11 +206,9 @@ class PackageSelection
     }
 
     /**
-     * Loads previously dumped Packages in order to merge with updates.
-     *
      * @return PackageInterface[]
      */
-    public function load()
+    public function load(): array
     {
         $packages = [];
         $repoJson = new JsonFile($this->filename);
@@ -324,17 +278,24 @@ class PackageSelection
 
     /**
      * Create patterns from strip-hosts
+     *
+     * @param array|false $stripHostsConfig
+     *
+     * @return array|false
      */
     private function createStripHostsPatterns($stripHostsConfig)
     {
         if (!is_array($stripHostsConfig)) {
             return $stripHostsConfig;
         }
+
         $patterns = [];
+
         foreach ($stripHostsConfig as $entry) {
             if (!strlen($entry)) {
                 continue;
             }
+
             if ('/private' === $entry || '/local' === $entry) {
                 $patterns[] = [$entry];
                 continue;
@@ -352,21 +313,28 @@ class PackageSelection
                 $patterns[] = [$type, $host];
                 continue;
             }
+
             @list($host, $mask) = explode('/', $entry, 2);
+
             $host = @inet_pton($host);
+
             if (false === $host || (int) $mask != $mask) {
                 $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $entry));
                 continue;
             }
+
             $host = unpack('N*', $host);
+
             if (null === $mask) {
                 $mask = 'ipv4' === $type ? 32 : 128;
             } else {
                 $mask = (int) $mask;
+
                 if ($mask < 0 || 'ipv4' === $type && $mask > 32 || 'ipv6' === $type && $mask > 128) {
                     continue;
                 }
             }
+
             $patterns[] = [$type, $host, $mask];
         }
 
@@ -381,22 +349,28 @@ class PackageSelection
         if (false === $this->stripHosts) {
             return;
         }
+
         foreach ($this->selected as $uniqueName => $package) {
             $sources = [];
+
             if ($package->getSourceType()) {
                 $sources[] = 'source';
             }
+
             if ($package->getDistType()) {
                 $sources[] = 'dist';
             }
+
             foreach ($sources as $i => $s) {
                 $url = 'source' === $s ? $package->getSourceUrl() : $package->getDistUrl();
+
                 // skip distURL applied by ArchiveBuilder
                 if ('dist' === $s && null !== $this->archiveEndpoint
                     && substr($url, 0, strlen($this->archiveEndpoint)) === $this->archiveEndpoint
                 ) {
                     continue;
                 }
+
                 if ($this->matchStripHostsPatterns($url)) {
                     if ('dist' === $s) {
                         // if the type is not set, ArrayDumper ignores the other properties
@@ -404,7 +378,9 @@ class PackageSelection
                     } else {
                         $package->setSourceType(null);
                     }
+
                     unset($sources[$i]);
+
                     if (0 === count($sources)) {
                         $this->output->writeln(sprintf('<error>%s has no source left after applying the strip-hosts filters and will be removed</error>', $package->getUniqueName()));
                         unset($this->selected[$uniqueName]);
@@ -424,8 +400,10 @@ class PackageSelection
         if (Filesystem::isLocalPath($url)) {
             return true;
         }
+
         if (is_array($this->stripHosts)) {
             $url = trim(parse_url($url, PHP_URL_HOST), '[]');
+
             if (false !== filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
                 $urltype = 'ipv4';
             } elseif (false !== filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
@@ -433,12 +411,14 @@ class PackageSelection
             } else {
                 $urltype = 'name';
             }
+
             if ('ipv4' === $urltype || 'ipv6' === $urltype) {
                 $urlunpack = unpack('N*', @inet_pton($url));
             }
 
             foreach ($this->stripHosts as $pattern) {
                 @list($type, $host, $mask) = $pattern;
+
                 if ('/local' === $type) {
                     if ('name' === $urltype && 'localhost' === strtolower($url)
                         || ('ipv4' === $urltype || 'ipv6' === $urltype)
@@ -499,7 +479,7 @@ class PackageSelection
      * @param RepositoryInterface[] $repos
      *  Array of repositories
      */
-    private function addRepositories(Pool $pool, $repos)
+    private function addRepositories(Pool $pool, array $repos)
     {
         foreach ($repos as $repo) {
             try {

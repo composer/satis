@@ -37,7 +37,7 @@ class WebBuilderDumpTest extends TestCase
     /** @var vfsStreamDirectory */
     protected $root;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->rootPackage = new RootPackage('dummy root package', 0, 0);
 
@@ -46,7 +46,7 @@ class WebBuilderDumpTest extends TestCase
         $this->root = $this->setFileSystem();
     }
 
-    protected function setFileSystem()
+    protected function setFileSystem(): vfsStreamDirectory
     {
         vfsStreamWrapper::register();
         $root = vfsStream::newDirectory('build');
@@ -93,10 +93,7 @@ class WebBuilderDumpTest extends TestCase
         $this->assertRegExp('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
 
-    /**
-     * @return array
-     */
-    public function dataAbandoned()
+    public function dataAbandoned(): array
     {
         $data = [];
 
@@ -119,7 +116,7 @@ class WebBuilderDumpTest extends TestCase
      * @param bool|string $abandoned
      * @param string $expected
      */
-    public function testAbandoned($abandoned, $expected)
+    public function testAbandoned($abandoned, string $expected)
     {
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);

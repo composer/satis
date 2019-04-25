@@ -24,9 +24,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * @author Sergey Kolodyazhnyy <sergey.kolodyazhnyy@gmail.com>
- */
 class AddCommand extends BaseCommand
 {
     protected function configure()
@@ -37,7 +34,7 @@ class AddCommand extends BaseCommand
             ->setDefinition([
                 new InputArgument('url', InputArgument::REQUIRED, 'VCS repository URL'),
                 new InputArgument('file', InputArgument::OPTIONAL, 'JSON file to use', './satis.json'),
-                new InputOption('type', NULL, InputOption::VALUE_OPTIONAL, 'VCS driver (see https://getcomposer.org/doc/05-repositories.md#git-alternatives)', 'vcs'),
+                new InputOption('type', null, InputOption::VALUE_OPTIONAL, 'VCS driver (see https://getcomposer.org/doc/05-repositories.md#git-alternatives)', 'vcs'),
             ])
             ->setHelp(<<<'EOT'
 The <info>add</info> command adds given repository URL to the json file
@@ -48,13 +45,7 @@ EOT
         ;
     }
 
-    /**
-     * @param InputInterface  $input  The input instance
-     * @param OutputInterface $output The output instance
-     *
-     * @return int
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var FormatterHelper $formatter */
         $formatter = $this->getHelper('formatter');
@@ -108,15 +99,7 @@ EOT
         return 0;
     }
 
-    /**
-     * Validate repository URL
-     *
-     * @param $repositoryUrl
-     * @param $type
-     *
-     * @return bool
-     */
-    protected function isRepositoryValid($repositoryUrl, $type)
+    protected function isRepositoryValid(string $repositoryUrl, string $type): bool
     {
         $io = new NullIO();
         $config = Factory::createConfig();

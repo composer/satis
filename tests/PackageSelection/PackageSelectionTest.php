@@ -28,10 +28,7 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionTest extends TestCase
 {
-    /**
-     * @return array
-     */
-    public function dataGetPackages()
+    public function dataGetPackages(): array
     {
         $emptyRepo = new ArrayRepository();
         $vendorRepo = new ArrayRepository();
@@ -87,12 +84,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataGetPackages
-     *
-     * @param array $expected
-     * @param array $filter
-     * @param ArrayRepository $repository
      */
-    public function testGetPackages($expected, $filter, $repository)
+    public function testGetPackages(array $expected, array $filter, ArrayRepository $repository)
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
         if (!empty($filter)) {
@@ -106,10 +99,7 @@ class PackageSelectionTest extends TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, [$repository]));
     }
 
-    /**
-     * @return array
-     */
-    public function dataGetRequired()
+    public function dataGetRequired(): array
     {
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
         $link = new Link('test', 'name');
@@ -152,13 +142,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataGetRequired
-     *
-     * @param array $expected
-     * @param Package $package
-     * @param bool $requireDependencies
-     * @param bool $requireDevDependencies
      */
-    public function testGetRequired($expected, $package, $requireDependencies, $requireDevDependencies)
+    public function testGetRequired(array $expected, Package $package, bool $requireDependencies, bool $requireDevDependencies)
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
 
@@ -177,10 +162,7 @@ class PackageSelectionTest extends TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, [$package, true]));
     }
 
-    /**
-     * @return array
-     */
-    public function dataSetSelectedAsAbandoned()
+    public function dataSetSelectedAsAbandoned(): array
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
         $packageAbandoned1 = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
@@ -210,11 +192,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataSetSelectedAsAbandoned
-     *
-     * @param array $expected
-     * @param array $config
      */
-    public function testSetSelectedAsAbandoned($expected, $config)
+    public function testSetSelectedAsAbandoned(array $expected, array $config)
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
@@ -235,10 +214,7 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, $property->getValue($builder));
     }
 
-    /**
-     * @return array
-     */
-    public function dataSelect()
+    public function dataSelect(): array
     {
         $packages = [
             'alpha' => [
@@ -463,20 +439,20 @@ class PackageSelectionTest extends TestCase
             [
                 $packages['alpha'],
                 $packages['alpha-dev'],
-                $packages['beta']
+                $packages['beta'],
             ],
             [
                 'minimum-stability' => 'stable',
                 'minimum-stability-per-package' => [
-                    'vendor/project-alpha' => 'dev'
+                    'vendor/project-alpha' => 'dev',
                 ],
                 'repositories' => [
                     $repo['everything'],
                 ],
                 'require' => [
                     'vendor/project-alpha' => '*',
-                    'vendor/project-beta' => '*'
-                ]
+                    'vendor/project-beta' => '*',
+                ],
             ],
         ];
 
@@ -485,13 +461,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataSelect
-     *
-     * @param array $expected
-     * @param array $config
-     * @param string $filterRepo
-     * @param array $filterPackages
      */
-    public function testSelect($expected, $config, $filterRepo = null, $filterPackages = null)
+    public function testSelect(array $expected, array $config, ?string $filterRepo = null, ?array $filterPackages = null)
     {
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
@@ -514,10 +485,7 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
     }
 
-    /**
-     * @return array
-     */
-    public function dataClean()
+    public function dataClean(): array
     {
         $packages = [
             'alpha' => [
@@ -688,12 +656,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataClean
-     *
-     * @param array $expected
-     * @param array $config
-     * @param array $packages
      */
-    public function testClean($expected, $config, $packages)
+    public function testClean(array $expected, array $config, array $packages)
     {
         $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
         $selectionRef = new \ReflectionClass(\get_class($selection));

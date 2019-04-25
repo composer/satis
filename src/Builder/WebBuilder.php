@@ -16,27 +16,19 @@ namespace Composer\Satis\Builder;
 use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
 
-/**
- * Build the web pages.
- *
- * @author James Hautot <james@rezo.net>
- */
 class WebBuilder extends Builder
 {
     /** @var RootPackageInterface Root package used to build the pages. */
     private $rootPackage;
-
     /** @var PackageInterface[] List of calculated required packages. */
     private $dependencies;
-
-    /** @var \Twig_Environment */
+    /** @var Environment */
     private $twig;
 
-    /**
-     * {@inheritdoc}
-     */
-    public function dump(array $packages)
+    public function dump(array $packages): void
     {
         $mappedPackages = $this->getMappedPackageList($packages);
 
@@ -66,60 +58,34 @@ class WebBuilder extends Builder
         file_put_contents($this->outputDir . '/index.html', $content);
     }
 
-    /**
-     * Defines the root package of the repository.
-     *
-     * @param RootPackageInterface $rootPackage The root package
-     *
-     * @return $this
-     */
-    public function setRootPackage(RootPackageInterface $rootPackage)
+    public function setRootPackage(RootPackageInterface $rootPackage): self
     {
         $this->rootPackage = $rootPackage;
 
         return $this;
     }
 
-    /**
-     * Sets the twig environment.
-     *
-     * @param \Twig_Environment $twig
-     *
-     * @return $this
-     */
-    public function setTwigEnvironment(\Twig_Environment $twig)
+    public function setTwigEnvironment(Environment $twig): self
     {
         $this->twig = $twig;
 
         return $this;
     }
 
-    /**
-     * Gets the twig environment.
-     *
-     * Creates default if needed.
-     *
-     * @return \Twig_Environment
-     */
-    private function getTwigEnvironment()
+    private function getTwigEnvironment(): Environment
     {
         if (null === $this->twig) {
             $twigTemplate = $this->config['twig-template'] ?? null;
 
             $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
-            $loader = new \Twig_Loader_Filesystem($templateDir);
-            $this->twig = new \Twig_Environment($loader);
+            $loader = new FilesystemLoader($templateDir);
+            $this->twig = new Environment($loader);
         }
 
         return $this->twig;
     }
 
-    /**
-     * Gets the twig template name.
-     *
-     * @return string
-     */
-    private function getTwigTemplate()
+    private function getTwigTemplate(): string
     {
         $twigTemplate = $this->config['twig-template'] ?? null;
 
@@ -133,7 +99,7 @@ class WebBuilder extends Builder
      *
      * @return $this
      */
-    private function setDependencies(array $packages)
+    private function setDependencies(array $packages): self
     {
         $dependencies = [];
         foreach ($packages as $package) {
@@ -154,7 +120,7 @@ class WebBuilder extends Builder
      *
      * @return array Grouped list of packages with versions
      */
-    private function getMappedPackageList(array $packages)
+    private function getMappedPackageList(array $packages): array
     {
         $groupedPackages = $this->groupPackagesByName($packages);
 
@@ -180,7 +146,7 @@ class WebBuilder extends Builder
      *
      * @return array List of packages grouped by name
      */
-    private function groupPackagesByName(array $packages)
+    private function groupPackagesByName(array $packages): array
     {
         $groupedPackages = [];
         foreach ($packages as $package) {
@@ -197,7 +163,7 @@ class WebBuilder extends Builder
      *
      * @return PackageInterface The package with the highest version
      */
-    private function getHighestVersion(array $packages)
+    private function getHighestVersion(array $packages): ?PackageInterface
     {
         /** @var $highestVersion PackageInterface|null */
         $highestVersion = null;
@@ -217,7 +183,7 @@ class WebBuilder extends Builder
      *
      * @return PackageInterface[] Sorted list of packages by version
      */
-    private function getDescSortedVersions(array $packages)
+    private function getDescSortedVersions(array $packages): array
     {
         usort($packages, function (PackageInterface $a, PackageInterface $b) {
             return version_compare($b->getVersion(), $a->getVersion());

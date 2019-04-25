@@ -13,10 +13,7 @@ declare(strict_types=1);
 
 namespace Composer\Satis;
 
-/**
- * @author Jordi Boggiano <j.boggiano@seld.be>
- */
 class Satis
 {
-    const VERSION = '1.0.0';
+    const VERSION = '2.0.0-dev';
 }

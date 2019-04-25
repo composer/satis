@@ -33,12 +33,12 @@ class PackagesBuilderDumpTest extends TestCase
      */
     protected $root;
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->root = vfsStream::setup('build');
     }
 
-    protected static function createPackages($majorVersionNumber, $asArray = false)
+    protected static function createPackages(int $majorVersionNumber, bool $asArray = false)
     {
         $version = $majorVersionNumber . '.0';
         $versionNormalized = $majorVersionNumber . '.0.0.0';
@@ -58,10 +58,7 @@ class PackagesBuilderDumpTest extends TestCase
         return [new Package('vendor/name', $versionNormalized, $version)];
     }
 
-    /**
-     * @param bool $providers
-     */
-    public function testNominalCase($providers = false)
+    public function testNominalCase(bool $providers = false)
     {
         $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
             'providers' => $providers,
@@ -150,31 +147,24 @@ class PackagesBuilderDumpTest extends TestCase
         $this->assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
     }
 
-    /**
-     * Provider to test out the minification option
-     * @return array[]
-     */
-    public function prettyPrintProvider()
+    public function prettyPrintProvider(): array
     {
         return [
             'test pretty print enabled' => [
                 JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
-                true
+                true,
             ],
             'test pretty print disabled' => [
                 JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
-                false
-            ]
+                false,
+            ],
         ];
     }
 
     /**
      * @dataProvider prettyPrintProvider
-     *
-     * @param int $jsonOptions
-     * @param bool $shouldPrettyPrint
      */
-    public function testPrettyPrintOption($jsonOptions, $shouldPrettyPrint = true)
+    public function testPrettyPrintOption(int $jsonOptions, bool $shouldPrettyPrint = true)
     {
         $expected = [
             'packages' => [
@@ -183,17 +173,17 @@ class PackagesBuilderDumpTest extends TestCase
                         'name' => 'vendor/name',
                         'version' => '1.0',
                         'version_normalized' => '1.0.0.0',
-                        'type' => 'library'
-                    ]
-                ]
-            ]
+                        'type' => 'library',
+                    ],
+                ],
+            ],
         ];
 
         $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
             'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
             'require' => ['vendor/name' => '*'],
             'pretty-print' => $shouldPrettyPrint,
-            'include-filename' => 'out.json'
+            'include-filename' => 'out.json',
         ], false);
         $packages = self::createPackages(1);
         $packagesBuilder->dump($packages);
