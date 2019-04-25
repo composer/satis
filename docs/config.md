@@ -4,7 +4,9 @@ permalink: config
 title: Config
 ---
 
-## Config
+# Config
+
+## Example
 
 ```
 {
@@ -32,7 +34,7 @@ title: Config
     "checksum": true,
     "ignore-filters": false,
     "override-dist-type": true,
-    "rearchive": true,
+    "rearchive": true
   },
   "abandoned": {
     "company/package": true,
@@ -53,3 +55,29 @@ title: Config
   "notify-batch": "https://example.com/endpoint"
 }
 ```
+
+## Keys
+
+### name
+
+The name of the Satis repository. Available inside the template as `{{ name }}`.
+
+### description
+
+A brief description of the Satis repository. Available inside the template as `{{ description }}`
+
+### homepage
+
+Available inside the template `{{ url }}`.
+
+### require
+
+Hash of package name (keys) and version constraint (values) that should be included in the output.
+
+### archive
+
+Configuration for creating package archives.
+
+#### archive.directory
+
+Directory in which archives should be stored.
