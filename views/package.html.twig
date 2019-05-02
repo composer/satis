@@ -36,7 +36,7 @@
         {% if package.highest.keywords %}
             <dt class="{{ col1_class }}">Keywords</dt>
             <dd class="{{ col2_class }}">
-                {% for keyword in package.highest.keywords %}
+                {% for keyword in package.highest.keywords|sort %}
                 <span class="badge badge-secondary">{{ keyword }}</span>
                 {% endfor %}
             </dd>
