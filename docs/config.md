@@ -20,8 +20,8 @@ title: Config
   "repositories-dep": [],
   "require": {
     "company/package1": "1.2.0",
-    "company/package2": "1.5.2",
-    "company/package3": "dev-master"
+    "company/package2": "^1.5.2",
+    "company/package3": "dev-master|dev-develop"
   },
   "archive": {
     "directory": "dist",
