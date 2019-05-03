@@ -5,3 +5,15 @@
 # See core.whitespace @ http://git-scm.com/docs/git-config for whitespace flags.
 *.php   text eol=lf whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,tabwidth=4 diff=php
 *.json  text eol=lf whitespace=blank-at-eol,blank-at-eof,space-before-tab,tab-in-indent,tabwidth=4
+
+# Exclude these files from git export.
+# This will effect when package is installed via --prefer-dist
+/*.dist export-ignore
+/.*.dist export-ignore
+/.*.yml export-ignore
+/.dockerignore export-ignore
+/.git* export-ignore
+/Dockerfile export-ignore
+/box.json export-ignore
+/tests/ export-ignore
+/webpack.config.js export-ignore
