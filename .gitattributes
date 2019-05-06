@@ -15,5 +15,6 @@
 /.git* export-ignore
 /Dockerfile export-ignore
 /box.json export-ignore
+/docs/ export-ignore
 /tests/ export-ignore
 /webpack.config.js export-ignore
