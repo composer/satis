@@ -9,7 +9,7 @@ Simple static Composer repository generator.
 ## Run from source
 
 - Install satis: `composer create-project composer/satis:dev-master`
-- Build a repository: `php bin/satis build <configuration-file> <output-dir>`
+- Build a repository: `php bin/satis build <configuration-file> <output-directory>`
 
 Read the more detailed instructions in the [documentation][].
 
@@ -29,7 +29,7 @@ docker run --rm --init -it \
   --user $(id -u):$(id -g) \
   --volume $(pwd):/build \
   --volume "${COMPOSER_HOME:-$HOME/.composer}:/composer" \
-  composer/satis
+  composer/satis build <configuration-file> <output-directory>
 ```
 
 If you want to run the image without implicitly running Satis, you have to
