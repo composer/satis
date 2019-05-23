@@ -37,7 +37,7 @@ ENV COMPOSER_HOME /composer
 COPY php-cli.ini /usr/local/etc/php/
 COPY --from=build /satis /satis/
 
-WORKDIR /satis
+WORKDIR /build
 
 ENTRYPOINT ["/sbin/tini", "-g", "--", "/satis/bin/docker-entrypoint.sh"]
 
