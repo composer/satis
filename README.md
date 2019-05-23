@@ -26,9 +26,9 @@ Run the image (with Composer cache from host):
 
 ``` sh
 docker run --rm --init -it \
-  -u $(id -u):$(id -g) \
-  -v $(pwd)/build:/build \
-  -v "${COMPOSER_HOME:-$HOME/.composer}:/composer" \
+  --user $(id -u):$(id -g) \
+  --volume $(pwd):/build \
+  --volume "${COMPOSER_HOME:-$HOME/.composer}:/composer" \
   composer/satis
 ```
 
