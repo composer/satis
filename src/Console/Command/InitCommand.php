@@ -138,9 +138,9 @@ EOT
         $input->setOption($optionName, $helper->ask($input, $output, $question));
     }
 
-    protected function getQuestion(string $prompt, string $default): Question
+    protected function getQuestion(string $prompt, ?string $default): Question
     {
-        $prompt = ($default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
+        $prompt = ($default ? sprintf('%s (%s)', $prompt, $default === null ? 'null' : $default) : $prompt) . ': ';
 
         return new Question($prompt, $default);
     }
