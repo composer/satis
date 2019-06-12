@@ -33,7 +33,16 @@ class ArchiveBuilder extends Builder
 
     public function dump(array $packages): void
     {
-        $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
+        $archiveConfig = $this->config['archive'];
+        if ($this->config['only-dependencies']) {
+            $blacklist = (array)($archiveConfig['blacklist'] ?? []);
+            $blacklist += array_keys($this->config['require']);
+
+            $archiveConfig = $this->config['archive'];
+            $archiveConfig['blacklist'] = $blacklist;
+        }
+        $helper = new ArchiveBuilderHelper($this->output, $archiveConfig);
+
         $basedir = $helper->getDirectory($this->outputDir);
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $basedir));
         $endpoint = $this->config['archive']['prefix-url'] ?? $this->config['homepage'];

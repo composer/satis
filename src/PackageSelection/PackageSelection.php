@@ -170,9 +170,7 @@ class PackageSelection
             }
         }
 
-        if (! $this->onlyDependencies) {
-            $this->addRepositories($pool, $repos);
-        }
+        $this->addRepositories($pool, $repos);
 
         // determine the required packages
         $rootLinks = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
