@@ -75,6 +75,8 @@ The json config file accepts the following keys:
   requirements' dependencies.
 - <info>"require-dev-dependencies"</info>: works like require-dependencies
   but requires dev requirements rather than regular ones.
+- <info>"only-dependencies"</info>: only require dependencies - choose this if you want to build
+  a mirror of your project's dependencies without building packages for the main project repositories.
 - <info>"config"</info>: all config options from composer, see
   http://getcomposer.org/doc/04-schema.md#config
 - <info>"strip-hosts"</info>: boolean or an array of domains, IPs, CIDR notations, '/local' (=localnet and other reserved)
