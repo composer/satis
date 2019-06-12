@@ -640,10 +640,12 @@ class PackageSelection
                 $uniqueName = $package->getUniqueName();
                 // add matching package if not yet selected
                 if (!isset($this->selected[$uniqueName])) {
-                    if ($verbose) {
-                        $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                    if (false === $isRoot || $this->onlyDependencies === false) {
+                        if ($verbose) {
+                            $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                        }
+                        $this->selected[$uniqueName] = $package;
                     }
-                    $this->selected[$uniqueName] = $package;
 
                     $required = $this->getRequired($package, $isRoot);
                     // append non-platform dependencies
