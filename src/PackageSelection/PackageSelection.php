@@ -53,6 +53,9 @@ class PackageSelection
     /** @var bool required dev-dependencies if true. */
     private $requireDevDependencies;
 
+    /** @var bool do not build packages only dependencies */
+    private $onlyDependencies;
+
     /** @var bool Filter dependencies if true. */
     private $requireDependencyFilter;
 
@@ -101,6 +104,7 @@ class PackageSelection
         $this->requireAll = isset($config['require-all']) && true === $config['require-all'];
         $this->requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $this->requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
+        $this->onlyDependencies = isset($config['only-dependencies']) && true === $config['only-dependencies'];
         $this->requireDependencyFilter = (bool) ($config['require-dependency-filter'] ?? true);
 
         if (!$this->requireAll && !isset($config['require'])) {
@@ -166,7 +170,9 @@ class PackageSelection
             }
         }
 
-        $this->addRepositories($pool, $repos);
+        if (! $this->onlyDependencies) {
+            $this->addRepositories($pool, $repos);
+        }
 
         // determine the required packages
         $rootLinks = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
