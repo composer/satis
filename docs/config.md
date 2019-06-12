@@ -127,6 +127,10 @@ If true, resolve and add all dependencies of each required package.
 
 If true, resolve and add all development dependencies of each required package.
 
+### only-dependencies
+
+If true, will only resolve and add dependencies, not the root projects listed in "require".
+
 ### require-dependency-filter
 
 If false, will include versions matching a dependency.
