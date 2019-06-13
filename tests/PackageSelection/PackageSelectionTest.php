@@ -376,6 +376,29 @@ class PackageSelectionTest extends TestCase
             ],
         ];
 
+        $data['Require only dependencies'] = [
+            [
+                $packages['alpha'],
+                $packages['epsilon'],
+                $packages['gamma1'],
+                $packages['gamma4'],
+            ],
+            [
+                'minimum-stability' => 'stable',
+                'repositories' => [
+                    $repo['everything'],
+                ],
+                'require' => [
+                    'vendor/project-epsilon' => '*',
+                    'vendor/project-zeta' => '*',
+                    'vendor/project-eta' => '*',
+                ],
+                'require-dependencies' => true,
+                'require-dev-dependencies' => true,
+                'only-dependencies' => true,
+            ],
+        ];
+
         $data['Traverse dependencies but not dev-dependencies'] = [
             [
                 $packages['zeta'],
