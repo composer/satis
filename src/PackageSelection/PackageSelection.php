@@ -615,7 +615,7 @@ class PackageSelection
                 $matches = [$link];
             } elseif (is_a($link, Link::class)) {
                 $name = $link->getTarget();
-                if ($this->onlyBestCandidates) {
+                if (!$isRoot && $this->onlyBestCandidates) {
                     $selector = new VersionSelector($pool);
                     $matches = [$selector->findBestCandidate($name, $link->getConstraint()->getPrettyString())];
                 }
