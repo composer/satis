@@ -22,6 +22,7 @@ use Composer\Package\BasePackage;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
+use Composer\Package\Version\VersionSelector;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
@@ -55,6 +56,9 @@ class PackageSelection
 
     /** @var bool do not build packages only dependencies */
     private $onlyDependencies;
+
+    /** @var bool only resolve best candidates in dependencies */
+    private $onlyBestCandidates;
 
     /** @var bool Filter dependencies if true. */
     private $requireDependencyFilter;
@@ -105,6 +109,7 @@ class PackageSelection
         $this->requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
         $this->requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
         $this->onlyDependencies = isset($config['only-dependencies']) && true === $config['only-dependencies'];
+        $this->onlyBestCandidates = isset($config['only-best-candidates']) && true === $config['only-best-candidates'];
         $this->requireDependencyFilter = (bool) ($config['require-dependency-filter'] ?? true);
 
         if (!$this->requireAll && !isset($config['require'])) {
@@ -610,7 +615,14 @@ class PackageSelection
                 $matches = [$link];
             } elseif (is_a($link, Link::class)) {
                 $name = $link->getTarget();
-                $matches = $pool->whatProvides($name, $link->getConstraint(), true);
+                if ($this->onlyBestCandidates) {
+                    $selector = new VersionSelector($pool);
+                    $matches = [$selector->findBestCandidate($name, $link->getConstraint()->getPrettyString())];
+                }
+                else {
+                    $matches = $pool->whatProvides($name, $link->getConstraint(), true);
+                }
+
                 if (0 === \count($matches)) {
                     $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
                 }
