@@ -136,6 +136,10 @@
             "type": "boolean",
             "description": "If true, will not require the root dependencies only their dependencies."
         },
+        "only-best-candidates": {
+            "type": "boolean",
+            "description": "If true, will only resolve best candidates amongst dependencies."
+        },
         "require-dependency-filter": {
             "type": "boolean",
             "description": "If false, will include all versions matching a dependency."
