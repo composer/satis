@@ -131,6 +131,10 @@ If true, resolve and add all development dependencies of each required package.
 
 If true, will only resolve and add dependencies, not the root projects listed in "require".
 
+### only-best-candidates
+
+Useful with require-dependencies, returns a minimal set of dependencies resulting in a constrained package list.
+
 ### require-dependency-filter
 
 If false, will include versions matching a dependency.
