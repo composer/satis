@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Builder;
 
+use Composer\Package\CompletePackage;
 use Composer\Package\PackageInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -72,6 +73,18 @@ class ArchiveBuilderHelper
         }
 
         return false;
+    }
+
+    public function filterVersions($packages, array $filter = ['dev-master']) {
+        $packagesToBuild = [];
+
+        /* @var CompletePackage $package */
+        foreach ($packages as $package) {
+            if(in_array($package->getPrettyVersion(), $filter)) {
+                $packagesToBuild[] = $package;
+            }
+        }
+        return $packagesToBuild;
     }
 
     protected function isOneOfNamesInList(array $names, array $list): bool
