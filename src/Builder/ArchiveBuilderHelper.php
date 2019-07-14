@@ -75,18 +75,6 @@ class ArchiveBuilderHelper
         return false;
     }
 
-    public function filterVersions($packages, array $filter = ['dev-master']) {
-        $packagesToBuild = [];
-
-        /* @var CompletePackage $package */
-        foreach ($packages as $package) {
-            if(in_array($package->getPrettyVersion(), $filter)) {
-                $packagesToBuild[] = $package;
-            }
-        }
-        return $packagesToBuild;
-    }
-
     protected function isOneOfNamesInList(array $names, array $list): bool
     {
         $patterns = $this->convertListToRegexPatterns($list);
