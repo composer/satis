@@ -27,9 +27,9 @@ class PackagesBuilder extends Builder
     /** @var array */
     private $writtenIncludeJsons = [];
 
-    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
+    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, InputInterface $input = null)
     {
-        parent::__construct($output, $outputDir, $config, $skipErrors);
+        parent::__construct($output, $outputDir, $config, $skipErrors, $input);
 
         $this->filename = $this->outputDir . '/packages.json';
         $this->includeFileName = $config['include-filename'] ?? 'include/all$%hash%.json';
@@ -181,7 +181,16 @@ class PackagesBuilder extends Builder
             }
         }
 
+        var_dump($this->input->getOption('versions-only'));
+
         if ($path) {
+
+//            if(!empty($this->input->getOption('versions-only'))) {
+//              var_dump($this->input->getOption('versions-only'));
+//              var_dump($path);
+//            }
+
+
             $this->writeToFile($path, $contents);
             $this->output->writeln("<info>wrote packages to $path</info>");
         }

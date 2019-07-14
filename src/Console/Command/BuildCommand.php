@@ -200,7 +200,7 @@ EOT
             ksort($packages);
         }
 
-        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
+        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors, $input);
         $packagesBuilder->dump($packages);
 
         if ($htmlView = !$input->getOption('no-html-output')) {

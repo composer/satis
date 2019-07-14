@@ -28,8 +28,6 @@ class ArchiveBuilder extends Builder
 {
     /** @var Composer A Composer instance. */
     private $composer;
-    /** @var InputInterface */
-    private $input;
 
     public function dump(array $packages): void
     {
