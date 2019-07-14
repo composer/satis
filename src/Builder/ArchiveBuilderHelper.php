@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Builder;
 
-use Composer\Package\CompletePackage;
 use Composer\Package\PackageInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 

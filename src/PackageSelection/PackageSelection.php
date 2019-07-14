@@ -28,7 +28,6 @@ use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
-use Composer\Satis\Builder\ArchiveBuilderHelper;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Input\InputInterface;
