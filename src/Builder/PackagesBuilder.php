@@ -78,7 +78,9 @@ class PackagesBuilder extends Builder
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, $this->includeFileName);
         }
 
-        $this->dumpPackagesJson($repo);
+        if(empty($this->input->getOption('versions-only'))) {
+            $this->dumpPackagesJson($repo);
+        }
 
         $this->pruneIncludeDirectories();
     }
@@ -115,20 +117,22 @@ class PackagesBuilder extends Builder
         }
         $pruneFiles = [];
         foreach ($paths as $dirname => $entries) {
-            foreach (new \DirectoryIterator($dirname) as $file) {
-                foreach ($entries as $entry) {
-                    list($pattern, $hash) = $entry;
-                    if (preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
-                        $group = sprintf(
-                            '%s/%s',
-                            basename($dirname),
-                            preg_replace('/\$.*$/', '', $file->getFilename())
-                        );
-                        if (!array_key_exists($group, $pruneFiles)) {
-                            $pruneFiles[$group] = [];
+            if(is_dir($dirname)) {
+                foreach (new \DirectoryIterator($dirname) as $file) {
+                    foreach ($entries as $entry) {
+                        list($pattern, $hash) = $entry;
+                        if (preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
+                            $group = sprintf(
+                                '%s/%s',
+                                basename($dirname),
+                                preg_replace('/\$.*$/', '', $file->getFilename())
+                            );
+                            if (!array_key_exists($group, $pruneFiles)) {
+                                $pruneFiles[$group] = [];
+                            }
+                            // Mark file for pruning.
+                            $pruneFiles[$group][] = new \SplFileInfo($file->getPathname());
                         }
-                        // Mark file for pruning.
-                        $pruneFiles[$group][] = new \SplFileInfo($file->getPathname());
                     }
                 }
             }
@@ -182,18 +186,15 @@ class PackagesBuilder extends Builder
             }
         }
 
-        var_dump($this->input->getOption('versions-only'));
-
         if ($path) {
 
-//            if(!empty($this->input->getOption('versions-only'))) {
-//              var_dump($this->input->getOption('versions-only'));
-//              var_dump($path);
-//            }
+            if(!empty($this->input->getOption('versions-only'))) {
+                $this->dumpVersionJson($packages, $repoJson);
+            } else {
+                $this->writeToFile($path, $contents);
+                $this->output->writeln("<info>wrote packages to $path</info>");
+            }
 
-
-            $this->writeToFile($path, $contents);
-            $this->output->writeln("<info>wrote packages to $path</info>");
         }
 
         return [
@@ -249,5 +250,25 @@ class PackagesBuilder extends Builder
         $this->output->writeln('<info>Writing packages.json</info>');
         $repoJson = new JsonFile($this->filename);
         $repoJson->write($repo);
+    }
+
+    /**
+     * @param array $packages
+     * @return void
+     * @param JsonFile $repoJson
+     */
+    private function dumpVersionJson(array $packages, JsonFile $repoJson): void
+    {
+        foreach ($packages as $package) {
+            foreach ($package as $version) {
+                $path = $this->config['archive']['absolute-directory'] . '/' . $version['name'] . '/';
+                $filename = ltrim(str_replace('/', '-', $version['name']) . '-' . $version['version'] . '.json', '/');
+                $ref = $version['version'];
+
+                $version = $repoJson->encode([$ref => $version]) . "\n";
+                $this->writeToFile($path . $filename, $version);
+                $this->output->writeln("<info>wrote package version '$ref' to $path</info>");
+            }
+        }
     }
 }
