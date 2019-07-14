@@ -16,6 +16,7 @@ namespace Composer\Satis\Builder;
 use Composer\Json\JsonFile;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\PackageInterface;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PackagesBuilder extends Builder
