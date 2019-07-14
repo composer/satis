@@ -819,8 +819,9 @@ class PackageSelection
         });
     }
 
-    private function filterVersions($packages, array $filter = ['dev-master']) {
+    private function filterVersions($packages) {
         $packagesToBuild = [];
+        $filter = explode(',', $this->input->getOption('versions-only'));
 
         /* @var CompletePackage $package */
         foreach ($packages as $package) {
