@@ -19,6 +19,7 @@ use Composer\DependencyResolver\Pool;
 use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
+use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
@@ -27,14 +28,19 @@ use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
+use Composer\Satis\Builder\ArchiveBuilderHelper;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Util\Filesystem;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PackageSelection
 {
     /** @var OutputInterface The output Interface. */
     protected $output;
+
+    /** @var InputInterface */
+    private $input;
 
     /** @var bool Skips Exceptions if true. */
     protected $skipErrors;
@@ -93,9 +99,10 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
-    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
+    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, InputInterface $input = null)
     {
         $this->output = $output;
+        $this->input = $input;
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->fetchOptions($config);
@@ -201,6 +208,10 @@ class PackageSelection
         }
 
         $this->setSelectedAsAbandoned();
+
+        if(!empty($this->input->getOption('versions-only'))) {
+            $this->selected = $this->filterVersions($this->selected);
+        }
 
         ksort($this->selected, SORT_STRING);
 
@@ -774,5 +785,17 @@ class PackageSelection
 
             return true;
         });
+    }
+
+    private function filterVersions($packages, array $filter = ['dev-master']) {
+        $packagesToBuild = [];
+
+        /* @var CompletePackage $package */
+        foreach ($packages as $package) {
+            if(in_array($package->getPrettyVersion(), $filter)) {
+                $packagesToBuild[] = $package;
+            }
+        }
+        return $packagesToBuild;
     }
 }
