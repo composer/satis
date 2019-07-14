@@ -23,6 +23,7 @@ use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
+use Composer\Package\Version\VersionParser;
 use Composer\Package\Version\VersionSelector;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
@@ -98,6 +99,9 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
+    /** @var VersionParser */
+    private $versionParser;
+
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, InputInterface $input = null)
     {
         $this->output = $output;
@@ -105,6 +109,7 @@ class PackageSelection
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->fetchOptions($config);
+        $this->versionParser = new VersionParser();
     }
 
     private function fetchOptions(array $config)
@@ -819,9 +824,13 @@ class PackageSelection
         });
     }
 
-    private function filterVersions($packages) {
+    /**
+     * @param array $packages
+     * @return array
+     */
+    private function filterVersions(array $packages) {
         $packagesToBuild = [];
-        $filter = explode(',', $this->input->getOption('versions-only'));
+        $filter = $this->normalizeInputVersions();
 
         /* @var CompletePackage $package */
         foreach ($packages as $package) {
@@ -830,5 +839,28 @@ class PackageSelection
             }
         }
         return $packagesToBuild;
+    }
+
+    /**
+     * @return array
+     */
+    private function normalizeInputVersions() {
+        $versions = explode(',', $this->input->getOption('versions-only'));
+        $normalizedVersions = [];
+
+        foreach($versions as $version) {
+            $parsedBranch = $this->versionParser->normalize($version);
+
+            if ('dev-' === substr($parsedBranch, 0, 4) || '9999999-dev' === $parsedBranch) {
+                $normalizedVersions[] = 'dev-' . $version;
+            } else {
+                $prefix = substr($version, 0, 1) === 'v' ? 'v' : '';
+                $versionToBuild = $prefix . preg_replace('{(\.9{7})+}', '.x', $parsedBranch);
+                $versionToBuild = preg_replace('/^v/', '$1', $versionToBuild);
+                $normalizedVersions[] = substr($versionToBuild, 0, 5);
+            }
+        }
+
+        return $normalizedVersions;
     }
 }
