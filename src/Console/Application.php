@@ -76,6 +76,7 @@ class Application extends BaseApplication
             new Command\InitCommand(),
             new Command\AddCommand(),
             new Command\BuildCommand(),
+            new Command\PublishGitlabCommand(),
             new Command\PurgeCommand(),
         ]);
 
