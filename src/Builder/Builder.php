@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Builder;
 
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class Builder implements BuilderInterface
 {
     /** @var OutputInterface $output The output Interface. */
     protected $output;
+    /** @var InputInterface */
+    protected $input;
     /** @var string $outputDir The directory where to build. */
     protected $outputDir;
     /** @var array $config The parameters from ./satis.json. */
@@ -26,9 +29,10 @@ abstract class Builder implements BuilderInterface
     /** @var bool $skipErrors Skips Exceptions if true. */
     protected $skipErrors;
 
-    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
+    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, InputInterface $input = null)
     {
         $this->output = $output;
+        $this->input = $input;
         $this->outputDir = $outputDir;
         $this->config = $config;
         $this->skipErrors = $skipErrors;
