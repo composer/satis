@@ -13,46 +13,131 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Publisher;
 
+use Composer\Json\JsonFile;
+use GuzzleHttp\Client;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class GitlabPublisher extends Publisher
 {
-    /** @var integer $authHeader Gitlab auth header. */
+    /** @var array $authHeader Gitlab auth header. */
     protected $authHeader;
-
-    /** @var integer $projectId Gitlab project id. */
-    protected $projectId;
 
     /** @var integer $projectUrl Gitlab project url. */
     protected $projectUrl;
 
-    /** @var string $namespace Gitlab project namespace. */
-    protected $namespace;
-
-    public function __construct(OutputInterface $output, string $outputDir, bool $skipErrors, InputInterface $input = null)
+    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, InputInterface $input)
     {
-        parent::__construct($output, $outputDir, $skipErrors, $input);
+        parent::__construct($output, $outputDir, $config, $skipErrors, $input);
 
-        $this->projectId = getenv('CI_PROJECT_ID');
         $this->projectUrl = $this->getProjectUrl();
-        $this->namespace = getenv('CI_PROJECT_NAMESPACE');
         $this->authHeader = $this->getAuthHeader();
+        $this->outputDir = $outputDir;
+        $this->uploadFilesToGitlab();
+    }
+
+    public function uploadFilesToGitlab() {
+        $files = $this->findFilesToUpload();
+
+        $this->output->writeln("\n<options=bold,underscore>About to Publish following files ...</>");
+        foreach ($files as $file) {
+            $this->output->writeln("\t$file");
+
+            if (preg_match('/.json$/', $file, $fileMatches)) {
+                preg_match('/version-(.*).json$/', $file, $packageVersion);
+                $composer = new JsonFile($file);
+                $composer = $composer->read();
+            }
+
+            // Build attachments to send
+            $attachments[] = [
+                'contents' => base64_encode(file_get_contents($file)),
+                'filename' => basename($file),
+                'length' => filesize($file)
+            ];
+        }
+
+        /**
+         * Build Gitlab request
+         */
+        $client = new Client([
+            'timeout' => 20.0,
+        ]);
+
+
+        $composer = reset($composer);
+
+        var_dump($composer['name']);
+
+        $packageName = urlencode($composer['name']);
+        $apiUrl = $this->getProjectUrl() . '/api/v4/projects/' . $this->input->getOption('project-id') . "/packages/composer/" . $packageName;
+
+        $response = $client->request(
+            'PUT',
+            $apiUrl, [
+                'headers' => $this->getAuthHeader(),
+                'body' => json_encode([
+                    'name' => $composer['name'],
+                    'version' => $composer['version'],
+                    'version_data' => $composer['version_normalized'],
+                    'attachments' => $attachments,
+                ])
+            ]
+        );
+
+        if ($response->getStatusCode() == 200) {
+            $this->output->writeln('<info>Package ' . $composer['name'] . ' published ...</info>');
+        }
+    }
+
+    /**
+     * Find all files needed for this package
+     *
+     * @param string $uploadDir
+     * @return array $files
+     */
+    private function findFilesToUpload()
+    {
+        $dirs = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->outputDir));
+        $files = array();
+
+        foreach ($dirs as $file) {
+            if ($file->isDir()) {
+                continue;
+            }
+
+            if (preg_match("/\.(json|tar|zip)*$/i", $file->getPathname(), $matches)) {
+                $files[] = $file->getPathname();
+            }
+        }
+        return $files;
     }
 
     private function getProjectUrl() {
-        $projectUrl = parse_url(getenv('CI_PROJECT_URL'));
-        return sprintf("%s://%s:%s", $projectUrl['scheme'], $projectUrl['host'], $projectUrl['port']);
+        try {
+            $url = $this->input->getOption('project-url');
+
+            if(!empty($url)) {
+                $projectUrl = parse_url($url);
+            }
+
+            return sprintf("%s://%s:%s", $projectUrl['scheme'], $projectUrl['host'], $projectUrl['port']);
+        } catch (\Exception $e) {
+            $this->output->writeln("<error>Set option '--project-url' or environment variable 'CI_PROJECT_URL' and make sure it is a valid url</error>");
+
+            exit;
+        }
     }
 
     private function getAuthHeader() {
-        $tokenPrivate = getenv('PRIVATE_TOKEN');
-        $tokenJob = getenv('PRIVATE_TOKEN');
+        $tokenPrivate = $this->input->getOption('private-token');
+        $tokenJob = getenv('CI_JOB_TOKEN');
         $authHeader =  $tokenPrivate ? ["Private-Token" => $tokenPrivate] : ["JOB-TOKEN" => $tokenJob];
 
         if(empty($tokenPrivate) && empty($tokenJob)) {
-            $this->output->writeln("<error>Neither 'PRIVATE_TOKEN' nor 'CI_JOB_TOKEN' set. </error>");
-            return;
+            $this->output->writeln("<error>Authentication not set. You have following options: \n * Empty will try to use 'CI_JOB_TOKEN' env var \n * Set cli option '--private-token' </error>");
+
+            exit;
         }
 
         return $authHeader;

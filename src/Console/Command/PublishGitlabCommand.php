@@ -35,17 +35,23 @@ class PublishGitlabCommand extends BaseCommand
             ->setDescription('Uploads a given version to Gitlab')
             ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
-                new InputOption('folder', InputArgument::OPTIONAL, 'Folder to search for files', null),
+                new InputOption('folder', null, InputOption::VALUE_REQUIRED, 'Folder to search for files'),
+                new InputOption('project-id', null, InputOption::VALUE_REQUIRED, 'Gitlab project id'),
+                new InputOption('project-url', null, InputOption::VALUE_REQUIRED, 'Gitlab project url'),
+                new InputOption('private-token', null, InputOption::VALUE_OPTIONAL, 'Gitlab private token', null),
                 new InputOption('package-version', null, InputOption::VALUE_OPTIONAL, 'Version of package to upload, tag/branch', null),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
             ])
             ->setHelp(<<<'EOT'
 The <info>publish-gitlab</info> will search in 'files' for a given 'version' to upload.
 
-The config accepts the following keys:
+The config accepts the following options:
 
 - <info>"folder"</info>: where to to search for files.
-- <info>"version"</info>: version to upload, upload all found if empty.
+- <info>"project-id"</info>: Gitlab project id.
+- <info>"project-url"</info>: Gitlab project url.
+- <info>"private-token"</info>: Gitlab private auth token.
+- <info>"package-version"</info>: version to upload, upload all found if empty.
 EOT
             );
     }
@@ -57,7 +63,6 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $verbose = $input->getOption('verbose');
         $skipErrors = (bool) $input->getOption('skip-errors');
         $configFile = $input->getArgument('file');
         $io = $this->getIO();
@@ -77,18 +82,11 @@ EOT
             $config = $file->read();
         }
 
-
-        var_dump($input->getArgument('folder'));
-
-        if (!$outputDir = $input->getArgument('folder')) {
+        if (!$outputDir = $input->getOption('folder')) {
             $outputDir = $config['output-dir'] ?? null;
         }
 
-        var_dump($outputDir);
-
-        $publisher = new GitlabPublisher($output, $outputDir, $skipErrors, $input);
-
-        // load auth.json authentication information and pass it to the io interface
+        $publisher = new GitlabPublisher($output, $outputDir, $config, $skipErrors, $input);
 
         return 0;
     }
