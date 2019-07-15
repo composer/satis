@@ -25,7 +25,8 @@
         "php": "^7.2",
         "composer/composer": "^1.8.5",
         "symfony/console": "^4.2",
-        "twig/twig": "^2.8"
+        "twig/twig": "^2.8",
+        "guzzlehttp/guzzle": "^6.3"
     },
     "autoload": {
         "psr-4": { "Composer\\Satis\\": "src" }
