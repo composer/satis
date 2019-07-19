@@ -67,8 +67,6 @@ class GitlabPublisher extends Publisher
 
         $composer = reset($composer);
 
-        var_dump($composer['name']);
-
         $packageName = urlencode($composer['name']);
         $apiUrl = $this->getProjectUrl() . '/api/v4/projects/' . $this->input->getOption('project-id') . "/packages/composer/" . $packageName;
 
@@ -79,7 +77,7 @@ class GitlabPublisher extends Publisher
                 'body' => json_encode([
                     'name' => $composer['name'],
                     'version' => $composer['version'],
-                    'version_data' => $composer['version_normalized'],
+                    'version_data' => $composer,
                     'attachments' => $attachments,
                 ])
             ]
