@@ -854,10 +854,7 @@ class PackageSelection
             if ('dev-' === substr($parsedBranch, 0, 4) || '9999999-dev' === $parsedBranch) {
                 $normalizedVersions[] = 'dev-' . $version;
             } else {
-                $prefix = substr($version, 0, 1) === 'v' ? 'v' : '';
-                $versionToBuild = $prefix . preg_replace('{(\.9{7})+}', '.x', $parsedBranch);
-                $versionToBuild = preg_replace('/^v/', '$1', $versionToBuild);
-                $normalizedVersions[] = substr($versionToBuild, 0, 5);
+                $normalizedVersions[] = $version;
             }
         }
 
