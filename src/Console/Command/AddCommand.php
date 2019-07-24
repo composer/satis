@@ -35,6 +35,7 @@ class AddCommand extends BaseCommand
                 new InputArgument('url', InputArgument::REQUIRED, 'VCS repository URL'),
                 new InputArgument('file', InputArgument::OPTIONAL, 'JSON file to use', './satis.json'),
                 new InputOption('type', null, InputOption::VALUE_OPTIONAL, 'VCS driver (see https://getcomposer.org/doc/05-repositories.md#git-alternatives)', 'vcs'),
+                new InputOption('name', null, InputOption::VALUE_OPTIONAL, 'The name of the repository, will be added to satis.json', null),
             ])
             ->setHelp(<<<'EOT'
 The <info>add</info> command adds given repository URL to the json file
@@ -53,6 +54,7 @@ EOT
         $configFile = $input->getArgument('file');
         $repositoryUrl = $input->getArgument('url');
         $vcsDriver = $input->getOption('type');
+        $repositoryName = $input->getOption('name');
 
         if (preg_match('{^https?://}i', $configFile)) {
             $output->writeln('<error>Unable to write to remote file ' . $configFile . '</error>');
@@ -80,13 +82,25 @@ EOT
 
         foreach ($config['repositories'] as $repository) {
             if (isset($repository['url']) && $repository['url'] == $repositoryUrl) {
-                $output->writeln('<error>Repository already added to the file</error>');
+                $output->writeln('<error>Repository url already added to the file</error>');
 
                 return 4;
             }
+
+            if (isset($repository['name']) && $repository['name'] == $repositoryName) {
+                $output->writeln('<error>Repository name already added to the file</error>');
+
+                return 5;
+            }
         }
 
-        $config['repositories'][] = ['type' => $vcsDriver, 'url' => $repositoryUrl];
+        $repositoryConfig = ['type' => $vcsDriver, 'url' => $repositoryUrl];
+
+        if (!empty($repositoryName)) {
+            $repositoryConfig['name'] = $repositoryName;
+        }
+
+        $config['repositories'][] = $repositoryConfig;
 
         $file->write($config);
 
