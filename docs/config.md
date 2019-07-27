@@ -79,7 +79,7 @@ Hash of package name (keys) and version constraint (values) that should be inclu
 Configuration for creating package archives.
 
 directory
-: The directory in wich to output the archives.
+: The directory in which to output the archives.
 
 format
 : The archive format to use.
