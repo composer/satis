@@ -244,9 +244,9 @@ and Subversion) your packages, add the following to your `satis.json`:
  * `absolute-directory`: optional, a _local_ directory where the dist files are
    dumped instead of `output-dir`/`directory`
  * `whitelist`: optional, if set as a list of package names, satis will only
-   dump the dist files of these packages
+   dump the dist files of these packages (use `*` for wildcard matching)
  * `blacklist`: optional, if set as a list of package names, satis will not
-   dump the dist files of these packages
+   dump the dist files of these packages (use `*` for wildcard matching)
  * `checksum`: optional, `true` by default, when disabled (`false`) satis will
    not provide the sha1 checksum for the dist files
 

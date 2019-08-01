@@ -93,11 +93,11 @@ absolute-directory
 prefix-url
 : Hostname (and path) to prefix when generating source url for the archive (defaults to **homepage**).
 
-white-list
-: List of whitelisted packages (only matching packages will be output).
+whitelist
+: List of whitelisted packages (only matching packages will be output). A `*` can be used for wildcard matching.
 
-black-list
-: List of blacklisted packages (matching packages will be skipped).
+blacklist
+: List of blacklisted packages (matching packages will be skipped). A `*` can be used for wildcard matching.
 
 checksum
 : Whether or not to generate checksum values.
