@@ -1,66 +1,65 @@
-import $ from 'jquery';
+import $ from 'jquery'
 
 class PackageFilter {
-    constructor(input, list, listItem) {
-        this.input = $(input);
-        this.list = $(list);
-        this.listItemSelector = listItem;
-        this.packages = this.list.find(listItem);
-        this.inputTimeout = null;
+  constructor(input, list, listItem) {
+    this.input = $(input)
+    this.list = $(list)
+    this.listItemSelector = listItem
+    this.packages = this.list.find(listItem)
+    this.inputTimeout = null
+    this.readHash = this.readHash.bind(this)
+    this.updateHash = this.updateHash.bind(this)
+    this.filterPackages = this.filterPackages.bind(this)
 
-        this.readHash = this.readHash.bind(this);
-        this.updateHash = this.updateHash.bind(this);
-        this.filterPackages = this.filterPackages.bind(this);
+    this.init()
+  }
 
-        this.init();
+  readHash() {
+    let hash = window.decodeURIComponent(window.location.hash.substr(1))
+
+    if (hash.length > 0) {
+      this.input.val(hash)
+      this.filterPackages()
     }
+  }
 
-    readHash() {
-        let hash = window.decodeURIComponent(window.location.hash.substr(1));
+  updateHash() {
+    window.location.hash = window.encodeURIComponent(this.input.val())
+  }
 
-        if (hash.length > 0) {
-            this.input.val(hash);
-            this.filterPackages();
-        }
-    };
+  filterPackages() {
+    let needle = this.input.val().toLowerCase()
+    let closestSelector = this.listItemSelector
 
-    updateHash() {
-        window.location.hash = window.encodeURIComponent(this.input.val());
-    };
+    this.list.hide()
 
-    filterPackages() {
-        var needle = this.input.val().toLowerCase(),
-            closestSelector = this.listItemSelector;
+    this.packages.each(function () {
+      $(this).closest(closestSelector).toggle(
+        $(this).text().toLowerCase().indexOf(needle) !== -1
+      )
+    })
 
-        this.list.hide();
+    this.list.show()
+  }
 
-        this.packages.each(function () {
-            $(this).closest(closestSelector).toggle(
-                $(this).text().toLowerCase().indexOf(needle) !== -1
-            );
-        });
+  init() {
+    var instance = this
 
-        this.list.show();
-    };
+    instance.input.keyup(function () {
+      instance.updateHash()
+      window.clearTimeout(instance.inputTimeout)
+      instance.inputTimeout = window.setTimeout(instance.filterPackages, 350)
+    })
 
-    init() {
-        var instance = this;
-
-        instance.input.keyup(function () {
-            instance.updateHash();
-            window.clearTimeout(instance.inputTimeout);
-            instance.inputTimeout = window.setTimeout(instance.filterPackages, 350);
-        });
-
-        $(window).keyup(function (event) {
-            if (event.keyCode === 27) { // "ESC" keyCode
-                instance.input.val('');
-                instance.filterPackages();
-            }
-        });
-
-        instance.readHash();
+    $(window).keyup(function (event) {
+      if (event.keyCode === 27) { // "ESC" keyCode
+      instance.input.val('')
+      instance.filterPackages()
     }
+  })
+
+  instance.readHash()
+}
 }
 
-export default PackageFilter;
+export default PackageFilter
