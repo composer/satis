@@ -4,8 +4,8 @@
 # unignored directories
 !bin
 !res
-!views
 !src
+!views
 
 # unignored files
 !composer.json
