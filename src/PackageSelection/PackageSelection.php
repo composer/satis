@@ -789,19 +789,23 @@ class PackageSelection
      */
     private function filterPackages(array $repositories): array
     {
-        $package = $this->packagesFilter;
+        $packages = $this->packagesFilter;
 
-        return array_filter($repositories, function ($repository) use ($package) {
-            if (!($repository instanceof ConfigurableRepositoryInterface)) {
-                return false;
+        return array_filter(
+            $repositories,
+            function ($repository) use ($packages) {
+                if (!($repository instanceof ConfigurableRepositoryInterface)) {
+                    return false;
+                }
+
+                $config = $repository->getRepoConfig();
+
+                if (!isset($config['name']) || !in_array($config['name'], $packages)) {
+                    return false;
+                }
+
+                return true;
             }
-            $config = $repository->getRepoConfig();
-
-            if (!isset($config['name']) || $config['name'] !== $package[0]) {
-                return false;
-            }
-
-            return true;
-        });
+        );
     }
 }
