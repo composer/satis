@@ -55,10 +55,18 @@ class PackageSelectionLoadTest extends TestCase
 
         $this->root = $this->setFileSystem();
 
-        $this->selection = new PackageSelection(new NullOutput(), vfsStream::url('build'), [
-            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
-            'require' => ['vendor/name' => '*'],
-        ], false);
+        $this->selection = new PackageSelection(
+            new NullOutput(),
+            vfsStream::url('build'),
+            [
+                'repositories' => [
+                    ['type' => 'composer', 'url' => 'http://localhost:54715']
+                ],
+                'require' => ['vendor/name' => '*'],
+            ],
+            false
+        );
+
         $this->selection->setPackagesFilter(['vendor/name']);
     }
 
