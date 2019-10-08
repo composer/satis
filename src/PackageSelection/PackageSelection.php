@@ -628,8 +628,7 @@ class PackageSelection
                 if (!$isRoot && $this->onlyBestCandidates) {
                     $selector = new VersionSelector($pool);
                     $matches = [$selector->findBestCandidate($name, $link->getConstraint()->getPrettyString())];
-                }
-                else {
+                } else {
                     $matches = $pool->whatProvides($name, $link->getConstraint(), true);
                 }
 
@@ -662,7 +661,7 @@ class PackageSelection
                 $uniqueName = $package->getUniqueName();
                 // add matching package if not yet selected
                 if (!isset($this->selected[$uniqueName])) {
-                    if (false === $isRoot || $this->onlyDependencies === false) {
+                    if (false === $isRoot || false === $this->onlyDependencies) {
                         if ($verbose) {
                             $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                         }
@@ -796,6 +795,7 @@ class PackageSelection
     private function filterPackages(array $repositories)
     {
         $package = $this->packagesFilter;
+
         return array_filter($repositories, function ($repository) use ($package) {
             if (!($repository instanceof ConfigurableRepositoryInterface)) {
                 return false;
@@ -805,6 +805,7 @@ class PackageSelection
             if (!isset($config['name']) || $config['name'] !== $package[0]) {
                 return false;
             }
+
             return true;
         });
     }
