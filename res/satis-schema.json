@@ -122,11 +122,11 @@
         },
         "blacklist": {
             "type": "object",
-            "description": "Packages and versions to exclude as blacklisted.",
+            "description": "This is a hash of package name (keys) and version constraints (values) to exclude after selecting packages.",
             "minProperties": 1,
             "additionalProperties": {
                 "type": "string",
-                "description": "A valid version constraint."
+                "description": "A valid version constraint"
             }
         },
         "require-all": {
