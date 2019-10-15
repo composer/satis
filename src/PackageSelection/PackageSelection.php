@@ -546,11 +546,11 @@ class PackageSelection
     /**
      * Removes selected packages which are blacklisted in configuration.
      *
-     * @param Pool $pool for computing constraint matches.
+     * @param Pool $pool
      *
-     * @return Array of packages that were blacklisted.
+     * @return PackageInterface[]
      */
-    private function pruneBlacklisted($pool, $verbose)
+    private function pruneBlacklisted($pool, $verbose): array
     {
         $blacklisted = [];
         if ($this->hasBlacklist()) {
