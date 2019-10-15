@@ -28,6 +28,7 @@ use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Semver\Constraint\EmptyConstraint;
+use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -84,6 +85,9 @@ class PackageSelection
     /** @var array A list of packages marked as abandoned */
     private $abandoned = [];
 
+    /** @var array A list of blacklisted package/constraints. */
+    private $blacklist = [];
+
     /** @var array|bool Patterns from strip-hosts. */
     private $stripHosts = false;
 
@@ -111,6 +115,11 @@ class PackageSelection
     public function hasRepositoryFilter(): bool
     {
         return null !== $this->repositoryFilter;
+    }
+
+    public function hasBlacklist(): bool
+    {
+        return count($this->blacklist) > 0;
     }
 
     public function setPackagesFilter(array $packagesFilter = []): void
@@ -186,6 +195,8 @@ class PackageSelection
         }
 
         $this->setSelectedAsAbandoned();
+
+        $this->pruneBlacklisted($pool, $verbose);
 
         ksort($this->selected, SORT_STRING);
 
@@ -306,6 +317,7 @@ class PackageSelection
         $this->minimumStability = $config['minimum-stability'] ?? 'dev';
         $this->minimumStabilityPerPackage = $config['minimum-stability-per-package'] ?? [];
         $this->abandoned = $config['abandoned'] ?? [];
+        $this->blacklist = $config['blacklist'] ?? [];
 
         $this->stripHosts = $this->createStripHostsPatterns($config['strip-hosts'] ?? false);
         $this->archiveEndpoint = isset($config['archive']['directory']) ? ($config['archive']['prefix-url'] ?? $config['homepage']) . '/' : null;
@@ -532,6 +544,36 @@ class PackageSelection
     }
 
     /**
+     * Removes selected packages which are blacklisted in configuration.
+     *
+     * @param Pool $pool for computing constraint matches.
+     *
+     * @return Array of packages that were blacklisted.
+     */
+    private function pruneBlacklisted($pool, $verbose)
+    {
+        $blacklisted = [];
+        if ($this->hasBlacklist()) {
+            $parser = new VersionParser();
+            foreach ($this->selected as $selectedKey => $package) {
+                foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
+                    $constraint = $parser->parseConstraints($blacklistConstraint);
+                    if ($pool::MATCH === $pool->match($package, $blacklistName, $constraint, FALSE)) {
+                       if ($verbose) {
+                          $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                       }
+                       $blacklisted[$selectedKey] = $package;
+                       unset($this->selected[$selectedKey]);
+                    }
+                }
+            }
+        }
+        return $blacklisted;
+    }
+
+    /**
+     * Gets a list of filtered Links.
+     *
      * @param Composer $composer
      *
      * @return Link[]

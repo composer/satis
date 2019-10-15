@@ -135,6 +135,10 @@ If true, will only resolve and add dependencies, not the root projects listed in
 
 Useful with require-dependencies, returns a minimal set of dependencies resulting in a constrained package list.
 
+### blacklist
+
+Define a list of packages and versions to suppress in the final packages list. Takes the same format as the `require` section.
+
 ### require-dependency-filter
 
 If false, will include versions matching a dependency.
