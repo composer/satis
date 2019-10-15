@@ -19,6 +19,7 @@ use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
+use Composer\DependencyResolver\Pool;
 use Composer\Repository\ArrayRepository;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
@@ -212,6 +213,59 @@ class PackageSelectionTest extends TestCase
         $method->invokeArgs($builder, []);
 
         $this->assertEquals($expected, $property->getValue($builder));
+    }
+
+    public function dataPruneBlacklisted(): array
+    {
+        $package0 = new Package('vendor/name', '1.0.0.0', '1.0');
+        $package1 = new Package('vendor/name', '1.1.0.0', '1.1');
+        $package2 = new Package('vendor/name', '1.2.0.0', '1.2');
+        $packageOther = new Package('vendor/other', '1.0.0.0', '1.0');
+
+        $data = [];
+        $selected = [$package0, $package1, $package2, $packageOther];
+
+        $data['Blacklist Whole Project'] = [
+            [$packageOther],
+            $selected,
+            ['vendor/name' => '*'],
+        ];
+
+        $data['Blacklist One Package'] = [
+            [$package0, $package2, $packageOther],
+            $selected,
+            ['vendor/name' => '1.1'],
+        ];
+
+        $data['Blacklist Newer Packages'] = [
+            [$package0, $package1, $packageOther],
+            $selected,
+            ['vendor/name' => '>1.1'],
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataPruneBlacklisted
+     */
+    public function testPruneBlacklisted(array $expected, array $selected, array $config)
+    {
+        $pool = new Pool();
+        $builder = new PackageSelection(new NullOutput(), 'build', [
+            'blacklist' => $config,
+        ], false);
+        $reflection = new \ReflectionClass(get_class($builder));
+
+        $property = $reflection->getProperty('selected');
+        $property->setAccessible(true);
+        $property->setValue($builder, $selected);
+
+        $method = $reflection->getMethod('pruneBlacklisted');
+        $method->setAccessible(true);
+        $method->invokeArgs($builder, [$pool, false]);
+
+        $this->assertEquals(array_values($expected), array_values($property->getValue($builder)));
     }
 
     public function dataSelect(): array
