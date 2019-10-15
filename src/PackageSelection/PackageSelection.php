@@ -547,6 +547,7 @@ class PackageSelection
      * Removes selected packages which are blacklisted in configuration.
      *
      * @param Pool $pool
+     * @param bool $verbose
      *
      * @return PackageInterface[]
      */
