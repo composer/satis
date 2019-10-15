@@ -120,6 +120,15 @@
                 "description": "A valid Package name"
             }
         },
+        "blacklist": {
+            "type": "object",
+            "description": "Packages and versions to exclude as blacklisted.",
+            "minProperties": 1,
+            "additionalProperties": {
+                "type": "string",
+                "description": "A valid version constraint."
+            }
+        },
         "require-all": {
             "type": "boolean",
             "description": "If true, selects all versions of all packages in the repositories defined."
