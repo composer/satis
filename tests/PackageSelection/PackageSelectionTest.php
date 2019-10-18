@@ -21,6 +21,7 @@ use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\DependencyResolver\Pool;
 use Composer\Repository\ArrayRepository;
+use Composer\Semver\Constraint\Constraint;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -764,5 +765,54 @@ class PackageSelectionTest extends TestCase
         }
 
         $this->assertEquals($expected, $sources);
+    }
+
+    public function testOnlyBestCandidates()
+    {
+        $pool = new Pool();
+        $repository = new ArrayRepository();
+
+        $packageA0 = new Package('vendor/a', '1.0.0.0', '1.0');
+        $packageA1 = new Package('vendor/a', '1.1.0.0', '1.1');
+        $packageB0 = new Package('vendor/b', '1.0.0.0', '1.0');
+        $packageB1 = new Package('vendor/b', '1.1.0.0', '1.1');
+        $packageB2 = new Package('vendor/b', '1.2.0.0', '1.2');
+        $packageC0 = new Package('vendor/c', '1.0.0.0', '1.0');
+        $packageC1 = new Package('vendor/c', '1.1.0.0', '1.1');
+
+        $constraint1 = new Constraint('=', '1.1');
+        $link1 = new Link('vendor/a', 'vendor/b', $constraint1);
+        $packageA0->setRequires([$link1]);
+
+        $constraint2 = new Constraint('<=', '1.1');
+        $link2 = new Link('vendor/b', 'vendor/c', $constraint2);
+        $packageB1->setRequires([$link2]);
+
+        $repository->addPackage($packageA0);
+        $repository->addPackage($packageA1);
+        $repository->addPackage($packageB0);
+        $repository->addPackage($packageB1);
+        $repository->addPackage($packageB2);
+        $repository->addPackage($packageC0);
+        $repository->addPackage($packageC1);
+        $pool->addRepository($repository);
+
+        $rootConstraint = new Constraint('=', '1.0');
+        $rootLink = new Link('top', 'vendor/a', $rootConstraint);
+
+        $config = [
+          'only-best-candidates' => TRUE,
+          'require-dependencies' => TRUE,
+        ];
+        $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
+        $reflection = new \ReflectionClass(get_class($builder));
+        $method = $reflection->getMethod('selectLinks');
+        $method->setAccessible(true);
+        $method->invokeArgs($builder, [$pool, [$rootLink], FALSE, FALSE]);
+
+        $property = $reflection->getProperty('selected');
+        $property->setAccessible(true);
+
+        $this->assertEquals(array_values([$packageA0, $packageB1, $packageC1]), array_values($property->getValue($builder)));
     }
 }
