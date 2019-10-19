@@ -39,22 +39,24 @@ class GitlabPublisher extends Publisher
     public function uploadFilesToGitlab() {
         $files = $this->findFilesToUpload();
 
-        $this->output->writeln("\n<options=bold,underscore>About to Publish following files ...</>");
+        $json = '';
+        $attachments = [];
+
         foreach ($files as $file) {
-            $this->output->writeln("\t$file");
 
             if (preg_match('/.json$/', $file, $fileMatches)) {
-                preg_match('/version-(.*).json$/', $file, $packageVersion);
                 $composer = new JsonFile($file);
                 $composer = $composer->read();
+                $json = json_decode(file_get_contents($file), true);
+            } else {
+                // Build attachments to send
+                $this->output->writeln("<options=bold,underscore>Uploading</> $file");
+                $attachments[] = [
+                    'contents' => base64_encode(file_get_contents($file)),
+                    'filename' => basename($file),
+                    'length' => filesize($file)
+                ];
             }
-
-            // Build attachments to send
-            $attachments[] = [
-                'contents' => base64_encode(file_get_contents($file)),
-                'filename' => basename($file),
-                'length' => filesize($file)
-            ];
         }
 
         /**
@@ -64,9 +66,7 @@ class GitlabPublisher extends Publisher
             'timeout' => 20.0,
         ]);
 
-
         $composer = reset($composer);
-
         $packageName = urlencode($composer['name']);
         $apiUrl = $this->getProjectUrl() . '/api/v4/projects/' . $this->input->getOption('project-id') . "/packages/composer/" . $packageName;
 
@@ -78,13 +78,14 @@ class GitlabPublisher extends Publisher
                     'name' => $composer['name'],
                     'version' => $composer['version'],
                     'version_data' => $composer,
+                    'json' => json_encode($json[array_key_first($json)]),
                     'attachments' => $attachments,
                 ])
             ]
         );
 
         if ($response->getStatusCode() == 200) {
-            $this->output->writeln('<info>Package ' . $composer['name'] . ' published ...</info>');
+            $this->output->writeln('<info>Package ' . $composer['name'] . ' ' . $composer['version'] . ' published ...</info>');
         }
     }
 
