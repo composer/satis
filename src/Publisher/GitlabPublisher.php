@@ -47,7 +47,6 @@ class GitlabPublisher extends Publisher
             if (preg_match('/.json$/', $file, $fileMatches)) {
                 $composer = new JsonFile($file);
                 $composer = $composer->read();
-                $json = json_decode(file_get_contents($file), true);
             } else {
                 // Build attachments to send
                 $this->output->writeln("<options=bold,underscore>Uploading</> $file");
@@ -77,8 +76,7 @@ class GitlabPublisher extends Publisher
                 'body' => json_encode([
                     'name' => $composer['name'],
                     'version' => $composer['version'],
-                    'version_data' => $composer,
-                    'json' => json_encode($json[array_key_first($json)]),
+                    'json' => $composer,
                     'attachments' => $attachments,
                 ])
             ]
