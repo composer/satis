@@ -76,7 +76,7 @@ class GitlabPublisher extends Publisher
                 'body' => json_encode([
                     'name' => $composer['name'],
                     'version' => $composer['version'],
-                    'json' => $composer,
+                    'json' => json_encode($composer),
                     'attachments' => $attachments,
                 ])
             ]
