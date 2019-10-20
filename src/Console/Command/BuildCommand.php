@@ -23,6 +23,7 @@ use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\Console\Application;
 use Composer\Satis\PackageSelection\PackageSelection;
+use Composer\Satis\Publisher\GitlabPublisher;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
 use Seld\JsonLint\JsonParser;
@@ -169,6 +170,9 @@ EOT
         if (null === $outputDir) {
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
         }
+
+        $filesCleanup = GitlabPublisher::findFilesToUpload($outputDir);
+        GitlabPublisher::deleteFiles($filesCleanup);
 
         /** @var $application Application */
         $application = $this->getApplication();

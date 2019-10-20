@@ -37,7 +37,7 @@ class GitlabPublisher extends Publisher
     }
 
     public function uploadFilesToGitlab() {
-        $files = $this->findFilesToUpload();
+        $files = $this->findFilesToUpload($this->outputDir);
 
         $json = '';
         $attachments = [];
@@ -93,9 +93,9 @@ class GitlabPublisher extends Publisher
      * @param string $uploadDir
      * @return array $files
      */
-    private function findFilesToUpload()
+    public function findFilesToUpload($outputDir)
     {
-        $dirs = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->outputDir));
+        $dirs = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($outputDir));
         $files = array();
 
         foreach ($dirs as $file) {
@@ -108,6 +108,15 @@ class GitlabPublisher extends Publisher
             }
         }
         return $files;
+    }
+
+    /**
+     * @param array $files
+     */
+    public function deleteFiles($files) {
+        foreach ($files as $file) {
+            unlink($file);
+        }
     }
 
     private function getProjectUrl() {
