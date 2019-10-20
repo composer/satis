@@ -64,7 +64,6 @@ class GitlabPublisher extends Publisher
             'timeout' => 20.0,
         ]);
 
-        $composer = reset($composer);
         $packageName = urlencode($composer['name']);
         $apiUrl = $this->getProjectUrl() . '/api/v4/projects/' . $this->input->getOption('project-id') . "/packages/composer/" . $packageName;
 
