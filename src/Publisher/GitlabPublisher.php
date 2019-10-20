@@ -93,7 +93,7 @@ class GitlabPublisher extends Publisher
      * @param string $uploadDir
      * @return array $files
      */
-    public function findFilesToUpload($outputDir)
+    public static function findFilesToUpload($outputDir)
     {
         $dirs = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($outputDir));
         $files = array();
@@ -113,7 +113,7 @@ class GitlabPublisher extends Publisher
     /**
      * @param array $files
      */
-    public function deleteFiles($files) {
+    public static function deleteFiles($files) {
         foreach ($files as $file) {
             unlink($file);
         }
