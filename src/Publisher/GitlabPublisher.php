@@ -39,14 +39,13 @@ class GitlabPublisher extends Publisher
     public function uploadFilesToGitlab() {
         $files = $this->findFilesToUpload($this->outputDir);
 
-        $json = '';
+        $composer = '';
         $attachments = [];
 
         foreach ($files as $file) {
 
             if (preg_match('/.json$/', $file, $fileMatches)) {
-                $composer = new JsonFile($file);
-                $composer = $composer->read();
+                $composer = file_get_contents($file);
             } else {
                 // Build attachments to send
                 $this->output->writeln("<options=bold,underscore>Uploading</> $file");
@@ -76,7 +75,7 @@ class GitlabPublisher extends Publisher
                 'body' => json_encode([
                     'name' => $composer['name'],
                     'version' => $composer['version'],
-                    'json' => json_encode($composer),
+                    'json' => $composer,
                     'attachments' => $attachments,
                 ])
             ]
