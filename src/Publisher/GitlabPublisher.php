@@ -95,6 +95,9 @@ class GitlabPublisher extends Publisher
      */
     public static function findFilesToUpload($outputDir)
     {
+        if(!is_dir($outputDir)) {
+            mkdir($outputDir, 0777, true);
+        }
         $dirs = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($outputDir));
         $files = array();
 
