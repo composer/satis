@@ -45,7 +45,7 @@ class GitlabPublisher extends Publisher
         foreach ($files as $file) {
 
             if (preg_match('/.json$/', $file, $fileMatches)) {
-                $composer = file_get_contents($file);
+                $composer = json_decode(file_get_contents($file));
             } else {
                 // Build attachments to send
                 $this->output->writeln("<options=bold,underscore>Uploading</> $file");
@@ -64,6 +64,7 @@ class GitlabPublisher extends Publisher
             'timeout' => 20.0,
         ]);
 
+        $composer = reset($composer);
         $packageName = urlencode($composer['name']);
         $apiUrl = $this->getProjectUrl() . '/api/v4/projects/' . $this->input->getOption('project-id') . "/packages/composer/" . $packageName;
 
