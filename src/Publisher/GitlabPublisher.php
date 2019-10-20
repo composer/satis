@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Publisher;
 
+use Composer\Composer;
 use Composer\Json\JsonFile;
 use GuzzleHttp\Client;
 use Symfony\Component\Console\Input\InputInterface;
@@ -45,7 +46,8 @@ class GitlabPublisher extends Publisher
         foreach ($files as $file) {
 
             if (preg_match('/.json$/', $file, $fileMatches)) {
-                $composer = json_decode(file_get_contents($file));
+                $composer = new JsonFile($file);
+                $composer = $composer->read();
             } else {
                 // Build attachments to send
                 $this->output->writeln("<options=bold,underscore>Uploading</> $file");
@@ -65,6 +67,7 @@ class GitlabPublisher extends Publisher
         ]);
 
         $composer = reset($composer);
+
         $packageName = urlencode($composer['name']);
         $apiUrl = $this->getProjectUrl() . '/api/v4/projects/' . $this->input->getOption('project-id') . "/packages/composer/" . $packageName;
 
