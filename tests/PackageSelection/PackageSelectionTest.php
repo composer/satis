@@ -808,7 +808,7 @@ class PackageSelectionTest extends TestCase
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('selectLinks');
         $method->setAccessible(true);
-        $method->invokeArgs($builder, [$pool, [$rootLink], FALSE, FALSE]);
+        $method->invokeArgs($builder, [$pool, [$rootLink], FALSE, FALSE, null]);
 
         $property = $reflection->getProperty('selected');
         $property->setAccessible(true);

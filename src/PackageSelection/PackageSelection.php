@@ -690,7 +690,7 @@ class PackageSelection
             } elseif (is_a($link, Link::class)) {
                 $name = $link->getTarget();
                 $link_constraint = $link->getConstraint();
-                if ($this->enforceDependencies && array_key_exists($name, $enforced_constraints) && $link_constraint->getPrettyString() != $enforced_constraints[$name]->getPrettyString()) {
+                if ($this->enforceDependencies && $enforced_constraints && array_key_exists($name, $enforced_constraints) && $link_constraint->getPrettyString() != $enforced_constraints[$name]->getPrettyString()) {
                   $link_constraint = new MultiConstraint([$link_constraint,  $enforced_constraints[$name]], true);
                   $this->output->writeln('Enforce constraints on package '.$name. ': '. $link->getConstraint().' -> '.$link_constraint);
                 }
