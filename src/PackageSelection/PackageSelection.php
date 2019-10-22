@@ -669,7 +669,7 @@ class PackageSelection
      *
      * @return Link[]
      */
-    private function selectLinks(Pool $pool, array $links, bool $isRoot, bool $verbose, ConstraintInterface[] $enforced_constraints): array
+    private function selectLinks(Pool $pool, array $links, bool $isRoot, bool $verbose, $enforced_constraints): array
     {
         $depsLinks = $isRoot ? [] : $links;
 
