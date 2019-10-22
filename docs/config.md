@@ -123,6 +123,10 @@ If true, selects all versions of all packages in all repositories defined.
 
 If true, resolve and add all dependencies of each required package.
 
+### enforce-dependencies
+
+If true, honor root requirements when resolving dependencies of required packages.
+
 ### require-dev-dependencies
 
 If true, resolve and add all development dependencies of each required package.

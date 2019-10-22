@@ -29,6 +29,8 @@ use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Semver\VersionParser;
+use Composer\Semver\Constraint\ConstraintInterface;
+use Composer\Semver\Constraint\MultiConstraint;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -63,6 +65,9 @@ class PackageSelection
 
     /** @var bool Filter dependencies if true. */
     private $requireDependencyFilter;
+
+    /** @var bool always honor root requirements if true. */
+    private $enforceDependencies;
 
     /** @var string Minimum stability accepted for Packages in the list. */
     private $minimumStability;
@@ -173,9 +178,19 @@ class PackageSelection
 
         // determine the required packages
         $rootLinks = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
+        $enforced_constraints = null;
+        if ($this->enforceDependencies) {
+          $enforced_constraints = [];
+          foreach($rootLinks as $linkObject) {
+            $enforced_constraints[$linkObject->getTarget()] = $linkObject->getConstraint();
+            if ($verbose) {
+              $this->output->writeln('Enforce root requirements: '.$linkObject->getTarget().':'.$linkObject->getConstraint());
+            }
+          }
+        }
 
         // select the required packages and determine dependencies
-        $depsLinks = $this->selectLinks($pool, $rootLinks, true, $verbose);
+        $depsLinks = $this->selectLinks($pool, $rootLinks, true, $verbose, $enforced_constraints);
 
         if ($this->requireDependencies || $this->requireDevDependencies) {
             // dependencies of required packages might have changed and be part of filtered repos
@@ -191,7 +206,7 @@ class PackageSelection
             }
 
             // select dependencies
-            $this->selectLinks($pool, $depsLinks, false, $verbose);
+            $this->selectLinks($pool, $depsLinks, false, $verbose, $enforced_constraints);
         }
 
         $this->setSelectedAsAbandoned();
@@ -304,6 +319,7 @@ class PackageSelection
 
         $this->requireAll = isset($config['require-all']) && true === $config['require-all'];
         $this->requireDependencies = isset($config['require-dependencies']) && true === $config['require-dependencies'];
+        $this->enforceDependencies = isset($config['enforce-dependencies']) && true === $config['enforce-dependencies'];
         $this->requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
         $this->onlyDependencies = isset($config['only-dependencies']) && true === $config['only-dependencies'];
         $this->onlyBestCandidates = isset($config['only-best-candidates']) && true === $config['only-best-candidates'];
@@ -312,6 +328,9 @@ class PackageSelection
         if (!$this->requireAll && !isset($config['require'])) {
             $this->output->writeln('No explicit requires defined, enabling require-all');
             $this->requireAll = true;
+        }
+        if ($this->requireAll) {
+            $this->enforceDependencies = false;
         }
 
         $this->minimumStability = $config['minimum-stability'] ?? 'dev';
@@ -645,10 +664,12 @@ class PackageSelection
      * @param Link[]|PackageInterface[] $links
      * @param bool $isRoot
      * @param bool $verbose
+     * @param ConstraintInterface[] $enforced_constraints
+
      *
      * @return Link[]
      */
-    private function selectLinks(Pool $pool, array $links, bool $isRoot, bool $verbose): array
+    private function selectLinks(Pool $pool, array $links, bool $isRoot, bool $verbose, ConstraintInterface[] $enforced_constraints): array
     {
         $depsLinks = $isRoot ? [] : $links;
 
@@ -668,11 +689,16 @@ class PackageSelection
                 $matches = [$link];
             } elseif (is_a($link, Link::class)) {
                 $name = $link->getTarget();
+                $link_constraint = $link->getConstraint();
+                if ($this->enforceDependencies && array_key_exists($name, $enforced_constraints) && $link_constraint->getPrettyString() != $enforced_constraints[$name]->getPrettyString()) {
+                  $link_constraint = new MultiConstraint([$link_constraint,  $enforced_constraints[$name]], true);
+                  $this->output->writeln('Enforce constraints on package '.$name. ': '. $link->getConstraint().' -> '.$link_constraint);
+                }
                 if (!$isRoot && $this->onlyBestCandidates) {
                     $selector = new VersionSelector($pool);
-                    $matches = [$selector->findBestCandidate($name, $link->getConstraint()->getPrettyString())];
+                    $matches = [$selector->findBestCandidate($name, $link_constraint->getPrettyString())];
                 } else {
-                    $matches = $pool->whatProvides($name, $link->getConstraint(), true);
+                    $matches = $pool->whatProvides($name, $link_constraint, true);
                 }
 
                 if (0 === \count($matches)) {

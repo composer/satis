@@ -73,6 +73,8 @@ The json config file accepts the following keys:
   required to mirror packagist for example, setting this
   to true will make satis automatically require all of your
   requirements' dependencies.
+- <info>"enforce-dependencies"</info>: if you set to true the option require-dependencies, 
+required dependencies will always honor root requirements.
 - <info>"require-dev-dependencies"</info>: works like require-dependencies
   but requires dev requirements rather than regular ones.
 - <info>"only-dependencies"</info>: only require dependencies - choose this if you want to build

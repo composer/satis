@@ -137,6 +137,10 @@
             "type": "boolean",
             "description": "If true, resolve and add all dependencies of each required package."
         },
+        "enforce-dependencies": {
+            "type": "boolean",
+            "description": "If true, honor root requirements when resolving dependencies of required packages"
+        },
         "require-dev-dependencies": {
             "type": "boolean",
             "description": "If true, resolve and add all Dev dependencies of each required package."
