@@ -154,7 +154,9 @@ class PackageSelection
 
             if (0 === count($repos)) {
                 throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
-            } elseif (count($repos) > 1) {
+            }
+
+            if (count($repos) > 1) {
                 throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
             }
         }
@@ -163,9 +165,17 @@ class PackageSelection
             $repos = $this->filterPackages($repos);
 
             if (0 === count($repos)) {
-                throw new \InvalidArgumentException(sprintf('Specified package name "%s" does not exist.', $this->packagesFilter));
-            } elseif (count($repos) > 1) {
-                throw new \InvalidArgumentException(sprintf('Found more than one package name "%s".', $this->packagesFilter));
+                throw new \InvalidArgumentException(sprintf(
+                    'Could not find any package(s) matching: %s',
+                    implode(', ', $this->packagesFilter)
+                ));
+            }
+
+            if (count($repos) > 1) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Found more than one package matching: %s',
+                    implode(', ', $this->packagesFilter)
+                ));
             }
         }
 
@@ -377,7 +387,7 @@ class PackageSelection
             } else {
                 $mask = (int) $mask;
 
-                if ($mask < 0 || 'ipv4' === $type && $mask > 32 || 'ipv6' === $type && $mask > 128) {
+                if ($mask < 0 || ('ipv4' === $type && $mask > 32) || ('ipv6' === $type && $mask > 128)) {
                     continue;
                 }
             }
@@ -464,10 +474,10 @@ class PackageSelection
             @list($type, $host, $mask) = $pattern;
 
             if ('/local' === $type) {
-                if ('name' === $urltype && 'localhost' === strtolower($url)
-                    || ('ipv4' === $urltype || 'ipv6' === $urltype)
-                    && false === filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE)
-                ) {
+                if (('name' === $urltype && 'localhost' === strtolower($url)) || (
+                    ('ipv4' === $urltype || 'ipv6' === $urltype) &&
+                    false === filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE)
+                )) {
                     return true;
                 }
             } elseif ('/private' === $type) {
