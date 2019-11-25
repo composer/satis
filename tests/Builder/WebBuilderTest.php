@@ -75,7 +75,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigEnvironment');
         $method->setAccessible(true);
 
-        $this->assertInstanceOf('\Twig_Environment', $method->invoke($this->webBuilder));
+        $this->assertInstanceOf('\Twig\Environment', $method->invoke($this->webBuilder));
     }
 
     public function testTwigTemplate()
