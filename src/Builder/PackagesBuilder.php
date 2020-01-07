@@ -183,7 +183,7 @@ class PackagesBuilder extends Builder
 
         if ($path) {
             $this->writeToFile($path, $contents);
-            $this->output->writeln("<info>wrote packages to $path</info>");
+            $this->output->writeln("<info>Wrote packages to $path</info>");
         }
 
         return [
