@@ -8,7 +8,7 @@ Simple static Composer repository generator.
 
 ## Run from source
 
-Satis requires a reasonable recent PHP version, it does not run with unsupported PHP versions.
+Satis requires a recent PHP version, it does not run with unsupported PHP versions. Check the `composer.json` file for details.
 
 - Install satis: `composer create-project composer/satis:dev-master`
 - Build a repository: `php bin/satis build <configuration-file> <output-directory>`
