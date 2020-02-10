@@ -30,15 +30,7 @@ RUN set -eux; \
     openssh \
     openssl \
     zip \
-    unzip; \
-  runDeps="$( \
-    scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
-      | tr ',' '\n' \
-      | sort -u \
-      | awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
-    )"; \
-  apk add --virtual .phpext-rundeps $runDeps; \
-  apk del .build-deps
+    unzip
 
 ENV COMPOSER_HOME /composer
 
