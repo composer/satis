@@ -31,13 +31,6 @@ RUN set -eux; \
     openssl \
     zip \
     unzip; \
-  apk add --no-cache --virtual .build-deps \
-    zlib-dev \
-    libzip-dev; \
-  docker-php-ext-configure \
-    zip --with-libzip; \
-  docker-php-ext-install -j "$(nproc)" \
-    zip; \
   runDeps="$( \
     scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
       | tr ',' '\n' \
