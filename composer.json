@@ -38,7 +38,7 @@
         "ext-json": "*",
         "friendsofphp/php-cs-fixer": "^2.15",
         "mikey179/vfsstream": "^1.6",
-        "phpunit/phpunit": "^7.0||^8.2||^9.0"
+        "phpunit/phpunit": "^8.2||^9.0"
     },
     "autoload-dev": {
         "psr-4": { "Composer\\Satis\\": "tests" }
