@@ -147,7 +147,7 @@
         },
         "only-best-candidates": {
             "type": "boolean",
-            "description": "If true, will only resolve best candidates amongst dependencies."
+            "description": "If true, will attempt to resolve a minimum number of candidates for each dependency."
         },
         "require-dependency-filter": {
             "type": "boolean",

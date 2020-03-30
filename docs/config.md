@@ -133,7 +133,7 @@ If true, will only resolve and add dependencies, not the root projects listed in
 
 ### only-best-candidates
 
-Useful with require-dependencies, returns a minimal set of dependencies resulting in a constrained package list.
+Returns a minimal set of dependencies needed to satisfy the configuration. The resulting satis repository will contain only one or two versions of each project.
 
 ### blacklist
 
