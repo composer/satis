@@ -16,6 +16,8 @@ namespace Composer\Satis\PackageSelection;
 use Composer\Composer;
 use Composer\DependencyResolver\DefaultPolicy;
 use Composer\DependencyResolver\Pool;
+use Composer\DependencyResolver\Request;
+use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
@@ -27,15 +29,15 @@ use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
+use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
-use Symfony\Component\Console\Output\OutputInterface;
 
 class PackageSelection
 {
-    /** @var OutputInterface The output Interface. */
-    protected $output;
+    /** @var IOInterface The output Interface. */
+    protected $io;
 
     /** @var bool Skips Exceptions if true. */
     protected $skipErrors;
@@ -97,9 +99,9 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
-    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
+    public function __construct(IOInterface $io, string $outputDir, array $config, bool $skipErrors)
     {
-        $this->output = $output;
+        $this->io = $io;
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
 
@@ -139,7 +141,7 @@ class PackageSelection
     public function select(Composer $composer, bool $verbose): array
     {
         // run over all packages and store matching ones
-        $this->output->writeln('<info>Scanning packages</info>');
+        $this->io->write('<info>Scanning packages</info>');
 
         $repos = $initialRepos = $composer->getRepositoryManager()->getRepositories();
 
@@ -147,7 +149,7 @@ class PackageSelection
             return BasePackage::$stabilities[$value];
         }, $this->minimumStabilityPerPackage);
 
-        $pool = new Pool($this->minimumStability, $stabilityFlags);
+        $repositorySet = new RepositorySet($this->minimumStability);
 
         if ($this->hasRepositoryFilter()) {
             $repos = $this->filterRepositories($repos);
@@ -179,7 +181,11 @@ class PackageSelection
             }
         }
 
-        $this->addRepositories($pool, $repos);
+        foreach ($repos as $repo) {
+            $repositorySet->addRepository($repo);
+        }
+        $request = new Request();
+        $pool = $repositorySet->createPool($request, $this->io);
 
         // determine the required packages
         $rootLinks = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
@@ -263,7 +269,7 @@ class PackageSelection
             $includedJsonFile = new JsonFile($dirname . '/' . $file);
 
             if (!$includedJsonFile->exists()) {
-                $this->output->writeln(sprintf(
+                $this->io->write(sprintf(
                     '<error>File \'%s\' does not exist, defined in "includes" in \'%s\'</error>',
                     $includedJsonFile->getPath(),
                     $rootJsonFile->getPath()
@@ -320,7 +326,7 @@ class PackageSelection
         $this->requireDependencyFilter = (bool) ($config['require-dependency-filter'] ?? true);
 
         if (!$this->requireAll && !isset($config['require'])) {
-            $this->output->writeln('No explicit requires defined, enabling require-all');
+            $this->io->write('No explicit requires defined, enabling require-all');
             $this->requireAll = true;
         }
 
@@ -359,7 +365,7 @@ class PackageSelection
             } elseif (false !== strpos($entry, ':')) {
                 $type = 'ipv6';
                 if (!defined('AF_INET6')) {
-                    $this->output->writeln('<error>Unable to use IPv6.</error>');
+                    $this->io->write('<error>Unable to use IPv6.</error>');
                     continue;
                 }
             } elseif (0 === preg_match('#[^/.\\d]#', $entry)) {
@@ -376,7 +382,7 @@ class PackageSelection
             $host = @inet_pton($host);
 
             if (false === $host || (int) $mask != $mask) {
-                $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $entry));
+                $this->io->write(sprintf('<error>Invalid subnet "%s"</error>', $entry));
                 continue;
             }
 
@@ -437,7 +443,7 @@ class PackageSelection
                     unset($sources[$index]);
 
                     if (0 === count($sources)) {
-                        $this->output->writeln(sprintf('<error>%s has no source left after applying the strip-hosts filters and will be removed</error>', $package->getUniqueName()));
+                        $this->io->write(sprintf('<error>%s has no source left after applying the strip-hosts filters and will be removed</error>', $package->getUniqueName()));
 
                         unset($this->selected[$uniqueName]);
                     }
@@ -523,27 +529,6 @@ class PackageSelection
         return true;
     }
 
-    /**
-     * @param Pool $pool
-     * @param RepositoryInterface[] $repositories
-     *
-     * @throws \Exception
-     */
-    private function addRepositories(Pool $pool, array $repositories): void
-    {
-        foreach ($repositories as $repository) {
-            try {
-                $pool->addRepository($repository);
-            } catch (\Exception $exception) {
-                if (!$this->skipErrors) {
-                    throw $exception;
-                }
-
-                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
-            }
-        }
-    }
-
     private function setSelectedAsAbandoned(): void
     {
         foreach ($this->selected as $name => $package) {
@@ -571,7 +556,7 @@ class PackageSelection
                     $constraint = $parser->parseConstraints($blacklistConstraint);
                     if ($pool::MATCH === $pool->match($package, $blacklistName, $constraint, FALSE)) {
                        if ($verbose) {
-                          $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                          $this->io->write('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                        }
                        $blacklisted[$selectedKey] = $package;
                        unset($this->selected[$selectedKey]);
@@ -620,8 +605,8 @@ class PackageSelection
         $links = [];
 
         foreach ($repositories as $repository) {
-            if ($repository instanceof ComposerRepository && $repository->hasProviders()) {
-                foreach ($repository->getProviderNames() as $name) {
+            if ($repository instanceof ComposerRepository) {
+                foreach ($repository->getPackageNames() as $name) {
                     $links[] = new Link('__root__', $name, new EmptyConstraint(), 'requires', '*');
                 }
 
@@ -637,7 +622,7 @@ class PackageSelection
 
                 if (BasePackage::$stabilities[$package->getStability()] > BasePackage::$stabilities[$minimumStability]) {
                     if ($verbose) {
-                        $this->output->writeln('Skipped ' . $package->getPrettyName() . ' (' . $package->getStability() . ')');
+                        $this->io->write('Skipped ' . $package->getPrettyName() . ' (' . $package->getStability() . ')');
                     }
 
                     continue;
@@ -686,7 +671,7 @@ class PackageSelection
                 }
 
                 if (0 === \count($matches)) {
-                    $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
+                    $this->io->write('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
                 }
             }
 
@@ -716,7 +701,7 @@ class PackageSelection
                 if (!isset($this->selected[$uniqueName])) {
                     if (false === $isRoot || false === $this->onlyDependencies) {
                         if ($verbose) {
-                            $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                            $this->io->write('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                         }
                         $this->selected[$uniqueName] = $package;
                     }

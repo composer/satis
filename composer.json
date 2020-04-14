@@ -27,7 +27,8 @@
     "bin": ["bin/satis"],
     "require": {
         "php": "^7.3||^8.0",
-        "composer/composer": "^1.9",
+        "composer/semver": "^2.0@dev",
+        "composer/composer": "^2.0@dev",
         "symfony/console": "^4.4||^5.0",
         "twig/twig": "^2.12||^3.0"
     },
@@ -36,7 +37,6 @@
     },
     "require-dev": {
         "ext-json": "*",
-        "friendsofphp/php-cs-fixer": "^2.15",
         "mikey179/vfsstream": "^1.6.7",
         "phpunit/phpunit": "^8.2||^9.0"
     },

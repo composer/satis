@@ -109,6 +109,7 @@ EOT
      */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $this->setIO($this->getApplication()->getIO());
         $verbose = $input->getOption('verbose');
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
@@ -173,7 +174,7 @@ EOT
         /** @var $application Application */
         $application = $this->getApplication();
         $composer = $application->getComposer(true, $config);
-        $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
+        $packageSelection = new PackageSelection($this->getIO(), $outputDir, $config, $skipErrors);
 
         if (null !== $repositoryUrl) {
             $packageSelection->setRepositoryFilter($repositoryUrl, (bool) $input->getOption('repository-strict'));

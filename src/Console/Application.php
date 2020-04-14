@@ -70,6 +70,14 @@ class Application extends BaseApplication
         return $this->composer;
     }
 
+    /**
+     * @return IOInterface
+     */
+    public function getIO()
+    {
+        return $this->io;
+    }
+
     protected function getDefaultCommands(): array
     {
         $commands = array_merge(parent::getDefaultCommands(), [

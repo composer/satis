@@ -15,6 +15,7 @@ namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
 use Composer\Package\Package;
+use Composer\Util\Loop;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use PHPUnit\Framework\TestCase;
