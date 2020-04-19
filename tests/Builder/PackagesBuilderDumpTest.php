@@ -58,10 +58,11 @@ class PackagesBuilderDumpTest extends TestCase
         return [new Package('vendor/name', $versionNormalized, $version)];
     }
 
-    public function testNominalCase(bool $providers = false)
+    public function testNominalCase(bool $providers = false, bool $composer20 = false)
     {
         $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
             'providers' => $providers,
+            'composer-2.0' => $composer20,
             'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
             'require' => ['vendor/name' => '*'],
         ], false);
@@ -97,12 +98,29 @@ class PackagesBuilderDumpTest extends TestCase
             }
 
             $lastIncludedJsonFile = $includeJsonFile;
+
+            if ($composer20) {
+                $this->assertArrayHasKey('metadata-url', $packagesJson);
+                $packageName = key($arrayPackages);
+                foreach (['', '~dev'] as $suffix) {
+                    $includeJson = str_replace('%package%', $packageName.$suffix, $packagesJson['metadata-url']);
+                    $includeJsonFile = 'build/' . $includeJson;
+                    $this->assertTrue(is_file(vfsStream::url($includeJsonFile)), $includeJsonFile.' file must be created');
+                }
+            } else {
+                $this->assertArrayNotHasKey('metadata-url', $packagesJson);
+            }
         }
     }
 
     public function testProviders()
     {
         $this->testNominalCase(true);
+    }
+
+    public function testComposer20()
+    {
+        $this->testNominalCase(false, true);
     }
 
     public function testProvidersUrl()
