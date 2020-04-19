@@ -16,6 +16,7 @@ namespace Composer\Satis\Builder;
 use Composer\Json\JsonFile;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\PackageInterface;
+use Composer\Semver\VersionParser;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PackagesBuilder extends Builder
@@ -75,6 +76,42 @@ class PackagesBuilder extends Builder
             }
         } else {
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, $this->includeFileName);
+        }
+
+        if (isset($this->config['composer-2.0']) && $this->config['composer-2.0']) {
+            $metadataUrl = 'p2/%package%.json';
+            if (!empty($this->config['homepage'])) {
+                $repo['metadata-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $metadataUrl;
+            } else {
+                $repo['metadata-url'] = $metadataUrl;
+            }
+
+            // Dump the packages
+            foreach ($packagesByName as $packageName => $versionPackages) {
+                $stableVersions = [];
+                $devVersions = [];
+                foreach ($versionPackages as $version => $versionConfig) {
+                    if ('stable' === VersionParser::parseStability($versionConfig['version'])) {
+                        $stableVersions[] = $versionConfig;
+                    } else {
+                        $devVersions[] = $versionConfig;
+                    }
+                }
+
+                // Stable versions
+                $dumpPackages = [$packageName => $stableVersions];
+                $this->dumpPackageIncludeJson(
+                    $dumpPackages,
+                    str_replace('%package%', $packageName, $metadataUrl)
+                );
+
+                // Dev versions
+                $dumpPackages = [$packageName => $devVersions];
+                $this->dumpPackageIncludeJson(
+                    $dumpPackages,
+                    str_replace('%package%', $packageName.'~dev', $metadataUrl)
+                );
+            }
         }
 
         $this->dumpPackagesJson($repo);
