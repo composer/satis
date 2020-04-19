@@ -45,6 +45,7 @@ title: Config
   "require-dev-dependencies": true,
   "providers": false,
   "providers-history-size": 0,
+  "composer-2.0": false,
   "output-dir": "output",
   "output-html": true,
   "twig-template": "views/index.html.twig",
@@ -162,6 +163,11 @@ Path to twig template used for generating html output.
 ### providers
 
 If true, output package providers. This will generate a directory per vendor and a json file per package.
+
+### composer-2.0
+
+Output packages by name as specified by [Composer 2.0 format](https://github.com/composer/composer/blob/master/UPGRADE-2.0.md#for-composer-repository-implementors).
+Keep outputing the previous packages format for backward compatibility.
 
 ### pretty-print
 
