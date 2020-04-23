@@ -180,10 +180,6 @@
             "type": "integer",
             "description": "Optional integer to be used for keeping a number of files that would otherwise be pruned."
         },
-        "composer-2.0": {
-            "type": "boolean",
-            "description": "If true, generates the composer 2.0 format"
-        },
         "twig-template": {
             "type": "string",
             "description": "Path to a template for the static web page."

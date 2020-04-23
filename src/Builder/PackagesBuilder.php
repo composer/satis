@@ -47,6 +47,7 @@ class PackagesBuilder extends Builder
             $packagesByName[$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
 
+        // Composer 1.0 format
         $repo = ['packages' => []];
         if (isset($this->config['providers']) && $this->config['providers']) {
             $providersUrl = 'p/%package%$%hash%.json';
@@ -78,40 +79,36 @@ class PackagesBuilder extends Builder
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, $this->includeFileName);
         }
 
-        if (isset($this->config['composer-2.0']) && $this->config['composer-2.0']) {
-            $metadataUrl = 'p2/%package%.json';
-            if (!empty($this->config['homepage'])) {
-                $repo['metadata-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $metadataUrl;
-            } else {
-                $repo['metadata-url'] = $metadataUrl;
-            }
+        // Composer 2.0 format
+        $metadataUrl = 'p2/%package%.json';
+        if (!empty($this->config['homepage'])) {
+            $repo['metadata-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $metadataUrl;
+        } else {
+            $repo['metadata-url'] = $metadataUrl;
+        }
 
-            // Dump the packages
-            foreach ($packagesByName as $packageName => $versionPackages) {
-                $stableVersions = [];
-                $devVersions = [];
-                foreach ($versionPackages as $version => $versionConfig) {
-                    if ('stable' === VersionParser::parseStability($versionConfig['version'])) {
-                        $stableVersions[] = $versionConfig;
-                    } else {
-                        $devVersions[] = $versionConfig;
-                    }
+        foreach ($packagesByName as $packageName => $versionPackages) {
+            $stableVersions = [];
+            $devVersions = [];
+            foreach ($versionPackages as $version => $versionConfig) {
+                if ('stable' === VersionParser::parseStability($versionConfig['version'])) {
+                    $stableVersions[] = $versionConfig;
+                } else {
+                    $devVersions[] = $versionConfig;
                 }
-
-                // Stable versions
-                $dumpPackages = [$packageName => $stableVersions];
-                $this->dumpPackageIncludeJson(
-                    $dumpPackages,
-                    str_replace('%package%', $packageName, $metadataUrl)
-                );
-
-                // Dev versions
-                $dumpPackages = [$packageName => $devVersions];
-                $this->dumpPackageIncludeJson(
-                    $dumpPackages,
-                    str_replace('%package%', $packageName.'~dev', $metadataUrl)
-                );
             }
+
+            // Stable versions
+            $this->dumpPackageIncludeJson(
+                [$packageName => $stableVersions],
+                str_replace('%package%', $packageName, $metadataUrl)
+            );
+
+            // Dev versions
+            $this->dumpPackageIncludeJson(
+                [$packageName => $devVersions],
+                str_replace('%package%', $packageName.'~dev', $metadataUrl)
+            );
         }
 
         $this->dumpPackagesJson($repo);
