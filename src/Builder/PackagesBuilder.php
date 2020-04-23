@@ -91,10 +91,10 @@ class PackagesBuilder extends Builder
             $stableVersions = [];
             $devVersions = [];
             foreach ($versionPackages as $version => $versionConfig) {
-                if ('stable' === VersionParser::parseStability($versionConfig['version'])) {
-                    $stableVersions[] = $versionConfig;
-                } else {
+                if ('dev' === VersionParser::parseStability($versionConfig['version'])) {
                     $devVersions[] = $versionConfig;
+                } else {
+                    $stableVersions[] = $versionConfig;
                 }
             }
 
