@@ -3,7 +3,7 @@
     "description": "Simple Repository Generator",
     "keywords": ["package", "repository", "generator", "static", "composer"],
     "homepage": "https://github.com/composer/satis",
-    "type": "library",
+    "type": "project",
     "license": "MIT",
     "authors": [{
         "name": "Jordi Boggiano",
