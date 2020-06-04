@@ -30,6 +30,7 @@ use Composer\Repository\RepositoryInterface;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
+use PHPUnit\Exception;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PackageSelection
@@ -682,7 +683,11 @@ class PackageSelection
                     $selector = new VersionSelector($pool);
                     $matches = [$selector->findBestCandidate($name, $link->getConstraint()->getPrettyString())];
                 } else {
+                  try {
                     $matches = $pool->whatProvides($name, $link->getConstraint(), true);
+                  } catch (\Exception $exception) {
+                    $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' throw error: '.$exception->getMessage().'</error>');
+                  }
                 }
 
                 if (0 === \count($matches)) {
