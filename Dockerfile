@@ -16,7 +16,7 @@ RUN set -eux; \
     --no-suggest \
     --classmap-authoritative
 
-FROM php:7-cli-alpine
+FROM php:7.4-cli-alpine
 
 MAINTAINER https://github.com/composer/satis
 
