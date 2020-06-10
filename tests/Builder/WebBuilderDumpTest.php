@@ -63,8 +63,8 @@ class WebBuilderDumpTest extends TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/<title>dummy root package<\/title>/', $html);
-        $this->assertRegExp('{<div id="[^"]+" class="card-header[^"]+">\s*<a href="#vendor/name" class="[^"]+">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</div>}si', $html);
+        $this->assertMatchesRegularExpression('/<title>dummy root package<\/title>/', $html);
+        $this->assertMatchesRegularExpression('{<div id="[^"]+" class="card-header[^"]+">\s*<a href="#vendor/name" class="[^"]+">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</div>}si', $html);
         $this->assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
     }
 
@@ -77,7 +77,7 @@ class WebBuilderDumpTest extends TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/<title>A<\/title>/', $html);
+        $this->assertMatchesRegularExpression('/<title>A<\/title>/', $html);
     }
 
     public function testDependencies()
@@ -90,7 +90,7 @@ class WebBuilderDumpTest extends TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/<a href="#dummytest">dummytest<\/a>/', $html);
+        $this->assertMatchesRegularExpression('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
 
     public function dataAbandoned(): array
@@ -125,7 +125,7 @@ class WebBuilderDumpTest extends TestCase
 
         $html = $this->root->getChild('build/index.html')->getContent();
 
-        $this->assertRegExp('/Package is abandoned, you should avoid using it/', $html);
-        $this->assertRegExp($expected, $html);
+        $this->assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
+        $this->assertMatchesRegularExpression($expected, $html);
     }
 }
