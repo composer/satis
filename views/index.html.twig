@@ -70,10 +70,6 @@
         </div>
     </div>
 
-    <div id="package-list">
-        {% for name, package in packages %}{% include 'package.html.twig' %}{% endfor %}
-    </div>
-
     <div id="ft">
         <p class="text-center"><small>This Composer repository is powered by <a href="https://github.com/composer/satis">Satis</a> {{ constant('Composer\\Satis\\Satis::VERSION') }}</small></p>
     </div>
