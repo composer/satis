@@ -231,6 +231,11 @@ class PackagesBuilder extends Builder
      */
     private function writeToFile(string $path, string $contents): void
     {
+        if (file_exists($path) && sha1_file($path) === sha1($contents)) {
+            // The file already contains the expected contents.
+            return;
+        }
+        
         $dir = dirname($path);
         if (!is_dir($dir)) {
             if (file_exists($dir)) {
