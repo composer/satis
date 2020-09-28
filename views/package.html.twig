@@ -92,8 +92,10 @@
                 {{ version.prettyVersion }}
                 {%- elseif version.distType -%}
                 <a href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
-                {%- else -%}
+                {%- elseif version.sourceUrl matches '#^https?:\/\/#' -%}
                 <a href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                {%- else -%}
+                <span title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
                 {%- endif -%}
                 {%- if not loop.last -%}, {% endif -%}
                 {% endfor %}
