@@ -712,6 +712,11 @@ class PackageSelection
                 }
 
                 $uniqueName = $package->getUniqueName();
+                // re-inject metadata because it has been stripped by the VersionParsser
+                if (preg_match('/.+(\+[0-9A-Za-z-]*)$/', $package->getPrettyVersion(), $match)) {
+                    $uniqueName .= $match[1];
+                }
+
                 // add matching package if not yet selected
                 if (!isset($this->selected[$uniqueName])) {
                     if (false === $isRoot || false === $this->onlyDependencies) {
