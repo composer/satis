@@ -563,6 +563,51 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
     }
 
+    public function dataMetadataSupport()
+    {
+        $vendorRepo = new ArrayRepository();
+
+        $vendorRepo->addPackage(new Package('vendor/name', '1.0.0.0', '1.0.0'));
+        $vendorRepo->addPackage(new Package('vendor/name', '1.0.0.0', '1.0.0+metadata-0'));
+        $vendorRepo->addPackage(new Package('vendor/name', '1.0.0.0', '1.0.0+metadata-1'));
+        $vendorRepo->addPackage(new Package('vendor/name', '1.0.0.0', '1.0.0+malformed+metadata'));
+        $vendorRepo->addPackage(new Package('vendor/name', '2.0.0.0', '2.0.0'));
+
+        $data = [];
+
+        $data['packages with metadata'] = [
+            [
+                'vendor/name-1.0.0.0',
+                'vendor/name-1.0.0.0+metadata-0',
+                'vendor/name-1.0.0.0+metadata-1',
+                'vendor/name-2.0.0.0',
+            ],
+            $vendorRepo,
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @dataProvider dataMetadataSupport
+     */
+    public function testMetadataSupport(array $expected, ArrayRepository $repository)
+    {
+        unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
+
+        $composer = (new Factory())->createComposer(new NullIO(), [], true, null, false);
+        $composer->getRepositoryManager()->addRepository($repository);
+        $selection = new PackageSelection(new NullOutput(), 'build', [], false);
+
+        $selectionRef = new \ReflectionClass(\get_class($selection));
+
+        $select = $selectionRef->getMethod('select');
+        $select->setAccessible(true);
+        $result = $select->invokeArgs($selection, [$composer, true]);
+
+        $this->assertEquals($expected, array_keys($result));
+    }
+
     public function dataClean(): array
     {
         $packages = [
