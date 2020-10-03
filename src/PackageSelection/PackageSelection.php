@@ -712,16 +712,22 @@ class PackageSelection
                 }
 
                 $uniqueName = $package->getUniqueName();
-                // re-inject metadata because it has been stripped by the VersionParsser
-                if (preg_match('/.+(\+[0-9A-Za-z-]*)$/', $package->getPrettyVersion(), $match)) {
-                    $uniqueName .= $match[1];
+                $prettyVersion = $package->getPrettyVersion();
+
+                // Check if + character is present, only once according to Semver;
+                // otherwise metadata will stripped as usual
+                if (1 === substr_count($prettyVersion, '+')) {
+                    // re-inject metadata because it has been stripped by the VersionParser
+                    if (preg_match('/.+(\+[0-9A-Za-z-]*)$/', $prettyVersion, $match)) {
+                        $uniqueName .= $match[1];
+                    }
                 }
 
                 // add matching package if not yet selected
                 if (!isset($this->selected[$uniqueName])) {
                     if (false === $isRoot || false === $this->onlyDependencies) {
                         if ($verbose) {
-                            $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                            $this->output->writeln('Selected ' . $package->getPrettyName() . ' (' . $prettyVersion . ')');
                         }
                         $this->selected[$uniqueName] = $package;
                     }
