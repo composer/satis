@@ -22,5 +22,39 @@ if ((!$loader = includeIfExists(__DIR__.'/../vendor/autoload.php')) && (!$loader
     exit(1);
 }
 
+if (function_exists('ini_set')) {
+    // Set user defined memory limit or use Composer's user defined memory limit
+    if ($memoryLimit = getenv('SATIS_MEMORY_LIMIT')) {
+        @ini_set('memory_limit', $memoryLimit);
+    } elseif ($memoryLimit = getenv('COMPOSER_MEMORY_LIMIT')) {
+        @ini_set('memory_limit', $memoryLimit);
+    } else {
+        $memoryInBytes = function ($value) {
+            $unit = strtolower(substr($value, -1, 1));
+            $value = (int) $value;
+            switch($unit) {
+                case 'g':
+                    $value *= 1024;
+                // no break (cumulative multiplier)
+                case 'm':
+                    $value *= 1024;
+                // no break (cumulative multiplier)
+                case 'k':
+                    $value *= 1024;
+            }
+
+            return $value;
+        };
+
+        $memoryLimit = trim(ini_get('memory_limit'));
+        // Increase memory_limit if it is lower than 1.5GB
+        if ($memoryLimit != -1 && $memoryInBytes($memoryLimit) < 1024 * 1024 * 1536) {
+            @ini_set('memory_limit', '1536M');
+        }
+        unset($memoryInBytes);
+    }
+    unset($memoryLimit);
+}
+
 $application = new Composer\Satis\Console\Application();
 $application->run();
