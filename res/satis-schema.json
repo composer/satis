@@ -185,11 +185,13 @@
         },
         "output-html": {
             "type": "boolean",
-            "description": "If true, build a static web page."
+            "description": "If true, build a static web page.",
+            "default": true
         },
         "providers": {
             "type": "boolean",
-            "description": "If true, dump package providers."
+            "description": "If true, dump package providers.",
+            "default": false
         },
         "providers-history-size": {
             "type": "integer",
