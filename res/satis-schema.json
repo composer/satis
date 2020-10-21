@@ -31,7 +31,7 @@
             "type": "object",
             "description": "Options for creating package archives for distribution.",
             "additionalProperties": false,
-            "required": ["directory"],
+            "required": [ "directory" ],
             "properties": {
                 "directory": {
                     "type": "string",
@@ -89,12 +89,12 @@
             }
         },
         "repositories": {
-            "type": ["object", "array"],
+            "type": [ "object", "array" ],
             "description": "A set of additional repositories where packages can be found.",
             "additionalProperties": true
         },
         "repositories-dep": {
-            "type": ["object", "array"],
+            "type": [ "object", "array" ],
             "description": "A set of additional repositories where packages for dependencies can be found.",
             "additionalProperties": true
         },
@@ -117,7 +117,7 @@
             "type": "object",
             "description": "List of packages marked as abandoned for this repository, the mark can be boolean or a package name/URL pointing to a recommended alternative.",
             "additionalProperties": {
-                "type": ["boolean", "string"],
+                "type": [ "boolean", "string" ],
                 "description": "A valid Package name"
             }
         },
@@ -155,7 +155,7 @@
             "description": "If false, will include all versions matching a dependency."
         },
         "strip-hosts": {
-            "type": ["array", "boolean"],
+            "type": [ "array", "boolean" ],
             "description": "List of domains, IPs, CIDR notations, '/local' (=localnet and other reserved) or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.",
             "items": {
                 "type": "string"
@@ -212,7 +212,7 @@
                 "github-protocols": {
                     "type": "array",
                     "description": "A list of protocols to use for github.com clones, in priority order, defaults to [\"git\", \"https\", \"http\"].",
-                    "default": ["git", "https", "http"],
+                    "default": [ "git", "https", "http" ],
                     "items": {
                         "type": "string"
                     }
@@ -228,7 +228,7 @@
                     "additionalProperties": true
                 },
                 "store-auths": {
-                    "type": ["string", "boolean"],
+                    "type": [ "string", "boolean" ],
                     "description": "What to do after prompting for authentication, one of: true (store), false (do not store) or \"prompt\" (ask every time), defaults to prompt.",
                     "default": "prompt"
                 },
@@ -276,18 +276,18 @@
                     "description": "The cache time-to-live for files, defaults to the value of cache-ttl."
                 },
                 "cache-files-maxsize": {
-                    "type": ["string", "integer"],
+                    "type": [ "string", "integer" ],
                     "description": "The cache max size for the files cache, defaults to \"300MiB\".",
                     "default": "300MiB"
                 },
                 "bin-compat": {
                     "type": "string",
-                    "enum": ["auto", "full"],
+                    "enum": [ "auto", "full" ],
                     "description": "The compatibility of the binaries, defaults to \"auto\" (automatically guessed) and can be \"full\" (compatible with both Windows and Unix-based systems).",
                     "default": "auto"
                 },
                 "discard-changes": {
-                    "type": ["string", "boolean"],
+                    "type": [ "string", "boolean" ],
                     "description": "The default style of handling dirty updates, defaults to false and can be any of true, false or \"stash\".",
                     "default": false
                 },
@@ -312,7 +312,7 @@
                 "github-domains": {
                     "type": "array",
                     "description": "A list of domains to use in github mode. This is used for GitHub Enterprise setups, defaults to [\"github.com\"].",
-                    "default": ["github.com"],
+                    "default": [ "github.com" ],
                     "items": {
                         "type": "string"
                     }
@@ -329,7 +329,7 @@
             "description": "a URL that will be called every time a user installs a package."
         },
         "_comment": {
-            "type": ["array", "string"],
+            "type": [ "array", "string" ],
             "description": "A key to store comments in"
         },
         "pretty-print": {
