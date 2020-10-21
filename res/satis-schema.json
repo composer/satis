@@ -83,7 +83,8 @@
                 },
                 "rearchive": {
                     "type": "boolean",
-                    "description": "Create new archives for packages with a tar or zip dist, defaults to true"
+                    "description": "Create new archives for packages with a tar or zip dist, defaults to true",
+                    "default": true
                 }
             }
         },
@@ -162,7 +163,8 @@
         },
         "include-filename": {
             "type": "string",
-            "description": "Specify filename instead of default include/all${SHA1_HASH}.json"
+            "description": "Specify filename instead of default include/all${SHA1_HASH}.json",
+            "default": "include/all${SHA1_HASH}.json"
         },
         "output-dir": {
             "type": "string",
@@ -190,7 +192,8 @@
             "properties": {
                 "process-timeout": {
                     "type": "integer",
-                    "description": "The timeout in seconds for process executions, defaults to 300 (5mins)."
+                    "description": "The timeout in seconds for process executions, defaults to 300 (5mins).",
+                    "default": 300
                 },
                 "use-include-path": {
                     "type": "boolean",
@@ -198,15 +201,18 @@
                 },
                 "preferred-install": {
                     "type": "string",
-                    "description": "The install method Composer will prefer to use, defaults to auto and can be any of source, dist or auto."
+                    "description": "The install method Composer will prefer to use, defaults to auto and can be any of source, dist or auto.",
+                    "default": "auto"
                 },
                 "notify-on-install": {
                     "type": "boolean",
-                    "description": "Composer allows repositories to define a notification URL, so that they get notified whenever a package from that repository is installed. This option allows you to disable that behaviour, defaults to true."
+                    "description": "Composer allows repositories to define a notification URL, so that they get notified whenever a package from that repository is installed. This option allows you to disable that behaviour, defaults to true.",
+                    "default": true
                 },
                 "github-protocols": {
                     "type": "array",
                     "description": "A list of protocols to use for github.com clones, in priority order, defaults to [\"git\", \"https\", \"http\"].",
+                    "default": ["git", "https", "http"],
                     "items": {
                         "type": "string"
                     }
@@ -223,7 +229,8 @@
                 },
                 "store-auths": {
                     "type": ["string", "boolean"],
-                    "description": "What to do after prompting for authentication, one of: true (store), false (do not store) or \"prompt\" (ask every time), defaults to prompt."
+                    "description": "What to do after prompting for authentication, one of: true (store), false (do not store) or \"prompt\" (ask every time), defaults to prompt.",
+                    "default": "prompt"
                 },
                 "platform": {
                     "type": "object",
@@ -232,11 +239,13 @@
                 },
                 "vendor-dir": {
                     "type": "string",
-                    "description": "The location where all packages are installed, defaults to \"vendor\"."
+                    "description": "The location where all packages are installed, defaults to \"vendor\".",
+                    "default": "vendor"
                 },
                 "bin-dir": {
                     "type": "string",
-                    "description": "The location where all binaries are linked, defaults to \"vendor/bin\"."
+                    "description": "The location where all binaries are linked, defaults to \"vendor/bin\".",
+                    "default": "vendor/bin"
                 },
                 "cache-dir": {
                     "type": "string",
@@ -244,19 +253,23 @@
                 },
                 "cache-files-dir": {
                     "type": "string",
-                    "description": "The location where files (zip downloads) are cached, defaults to \"{$cache-dir}/files\"."
+                    "description": "The location where files (zip downloads) are cached, defaults to \"{$cache-dir}/files\".",
+                    "default": "{$cache-dir}/files"
                 },
                 "cache-repo-dir": {
                     "type": "string",
-                    "description": "The location where repo (git/hg repo clones) are cached, defaults to \"{$cache-dir}/repo\"."
+                    "description": "The location where repo (git/hg repo clones) are cached, defaults to \"{$cache-dir}/repo\".",
+                    "default": "{$cache-dir}/repo"
                 },
                 "cache-vcs-dir": {
                     "type": "string",
-                    "description": "The location where vcs info (git clones, github api calls, etc. when reading vcs repos) are cached, defaults to \"{$cache-dir}/vcs\"."
+                    "description": "The location where vcs info (git clones, github api calls, etc. when reading vcs repos) are cached, defaults to \"{$cache-dir}/vcs\".",
+                    "default": "{$cache-dir}/vcs"
                 },
                 "cache-ttl": {
                     "type": "integer",
-                    "description": "The default cache time-to-live, defaults to 15552000 (6 months)."
+                    "description": "The default cache time-to-live, defaults to 15552000 (6 months).",
+                    "default": "15552000"
                 },
                 "cache-files-ttl": {
                     "type": "integer",
@@ -264,16 +277,19 @@
                 },
                 "cache-files-maxsize": {
                     "type": ["string", "integer"],
-                    "description": "The cache max size for the files cache, defaults to \"300MiB\"."
+                    "description": "The cache max size for the files cache, defaults to \"300MiB\".",
+                    "default": "300MiB"
                 },
                 "bin-compat": {
                     "type": "string",
                     "enum": ["auto", "full"],
-                    "description": "The compatibility of the binaries, defaults to \"auto\" (automatically guessed) and can be \"full\" (compatible with both Windows and Unix-based systems)."
+                    "description": "The compatibility of the binaries, defaults to \"auto\" (automatically guessed) and can be \"full\" (compatible with both Windows and Unix-based systems).",
+                    "default": "auto"
                 },
                 "discard-changes": {
                     "type": ["string", "boolean"],
-                    "description": "The default style of handling dirty updates, defaults to false and can be any of true, false or \"stash\"."
+                    "description": "The default style of handling dirty updates, defaults to false and can be any of true, false or \"stash\".",
+                    "default": false
                 },
                 "autoloader-suffix": {
                     "type": "string",
@@ -285,22 +301,26 @@
                 },
                 "prepend-autoloader": {
                     "type": "boolean",
-                    "description": "If false, the composer autoloader will not be prepended to existing autoloaders, defaults to true."
+                    "description": "If false, the composer autoloader will not be prepended to existing autoloaders, defaults to true.",
+                    "default": true
                 },
                 "classmap-authoritative": {
                     "type": "boolean",
-                    "description": "If true, the composer autoloader will not scan the filesystem for classes that are not found in the class map, defaults to false."
+                    "description": "If true, the composer autoloader will not scan the filesystem for classes that are not found in the class map, defaults to false.",
+                    "default": false
                 },
                 "github-domains": {
                     "type": "array",
                     "description": "A list of domains to use in github mode. This is used for GitHub Enterprise setups, defaults to [\"github.com\"].",
+                    "default": ["github.com"],
                     "items": {
                         "type": "string"
                     }
                 },
                 "github-expose-hostname": {
                     "type": "boolean",
-                    "description": "Defaults to true. If set to false, the OAuth tokens created to access the github API will have a date instead of the machine hostname."
+                    "description": "Defaults to true. If set to false, the OAuth tokens created to access the github API will have a date instead of the machine hostname.",
+                    "default": true
                 }
             }
         },
@@ -314,7 +334,8 @@
         },
         "pretty-print": {
             "type": "boolean",
-            "description": "Defaults to true. When false, the JSON_PRETTY_PRINT option will not be used on encoding."
+            "description": "Defaults to true. When false, the JSON_PRETTY_PRINT option will not be used on encoding.",
+            "default": true
         }
     }
 }
