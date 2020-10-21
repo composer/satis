@@ -49,7 +49,8 @@
                 },
                 "skip-dev": {
                     "type": "boolean",
-                    "description": "If true, will not create downloads for branches."
+                    "description": "If true, will not create downloads for branches.",
+                    "default": false
                 },
                 "whitelist": {
                     "type": "array",
@@ -72,15 +73,18 @@
                 },
                 "checksum": {
                     "type": "boolean",
-                    "description": "If false, will not provide the sha1 checksum for the dist files."
+                    "description": "If false, will not provide the sha1 checksum for the dist files.",
+                    "default": true
                 },
                 "ignore-filters": {
                     "type": "boolean",
-                    "description": "Ignore filters when looking for files in the package."
+                    "description": "Ignore filters when looking for files in the package.",
+                    "default": false
                 },
                 "override-dist-type": {
                     "type": "boolean",
-                    "description": "If true, archive format will be used to substitute dist type when generating archive file name."
+                    "description": "If true, archive format will be used to substitute dist type when generating archive file name.",
+                    "default": false
                 },
                 "rearchive": {
                     "type": "boolean",
