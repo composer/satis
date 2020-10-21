@@ -39,8 +39,9 @@
                 },
                 "format": {
                     "type": "string",
+                    "enum": [ "zip", "tar" ],
                     "description": "Archive format.",
-                    "pattern": "^zip|tar$"
+                    "default": "zip"
                 },
                 "absolute-directory": {
                     "type": "string",
