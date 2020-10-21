@@ -168,8 +168,8 @@
         },
         "include-filename": {
             "type": "string",
-            "description": "Specify filename instead of default include/all${SHA1_HASH}.json",
-            "default": "include/all${SHA1_HASH}.json"
+            "description": "Specify filename instead of default include/all$%hash%.json",
+            "default": "include/all$%hash%.json"
         },
         "output-dir": {
             "type": "string",
@@ -185,7 +185,8 @@
         },
         "providers-history-size": {
             "type": "integer",
-            "description": "Optional integer to be used for keeping a number of files that would otherwise be pruned."
+            "description": "Optional integer to be used for keeping a number of files that would otherwise be pruned.",
+            "default": 0
         },
         "twig-template": {
             "type": "string",
