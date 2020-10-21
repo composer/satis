@@ -31,7 +31,7 @@
             "type": "object",
             "description": "Options for creating package archives for distribution.",
             "additionalProperties": false,
-            "required": ["directory"],
+            "required": [ "directory" ],
             "properties": {
                 "directory": {
                     "type": "string",
@@ -39,8 +39,9 @@
                 },
                 "format": {
                     "type": "string",
+                    "enum": [ "zip", "tar" ],
                     "description": "Archive format.",
-                    "pattern": "^zip|tar$"
+                    "default": "zip"
                 },
                 "absolute-directory": {
                     "type": "string",
@@ -48,7 +49,8 @@
                 },
                 "skip-dev": {
                     "type": "boolean",
-                    "description": "If true, will not create downloads for branches."
+                    "description": "If true, will not create downloads for branches.",
+                    "default": false
                 },
                 "whitelist": {
                     "type": "array",
@@ -71,15 +73,18 @@
                 },
                 "checksum": {
                     "type": "boolean",
-                    "description": "If false, will not provide the sha1 checksum for the dist files."
+                    "description": "If false, will not provide the sha1 checksum for the dist files.",
+                    "default": true
                 },
                 "ignore-filters": {
                     "type": "boolean",
-                    "description": "Ignore filters when looking for files in the package."
+                    "description": "Ignore filters when looking for files in the package.",
+                    "default": false
                 },
                 "override-dist-type": {
                     "type": "boolean",
-                    "description": "If true, archive format will be used to substitute dist type when generating archive file name."
+                    "description": "If true, archive format will be used to substitute dist type when generating archive file name.",
+                    "default": false
                 },
                 "rearchive": {
                     "type": "boolean",
@@ -89,18 +94,19 @@
             }
         },
         "repositories": {
-            "type": ["object", "array"],
+            "type": [ "object", "array" ],
             "description": "A set of additional repositories where packages can be found.",
             "additionalProperties": true
         },
         "repositories-dep": {
-            "type": ["object", "array"],
+            "type": [ "object", "array" ],
             "description": "A set of additional repositories where packages for dependencies can be found.",
             "additionalProperties": true
         },
         "minimum-stability": {
             "type": "string",
             "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable.",
+            "default": "dev",
             "enum": [ "dev", "alpha", "beta", "rc", "RC", "stable" ]
         },
         "minimum-stability-per-package": {
@@ -117,7 +123,7 @@
             "type": "object",
             "description": "List of packages marked as abandoned for this repository, the mark can be boolean or a package name/URL pointing to a recommended alternative.",
             "additionalProperties": {
-                "type": ["boolean", "string"],
+                "type": [ "boolean", "string" ],
                 "description": "A valid Package name"
             }
         },
@@ -132,39 +138,46 @@
         },
         "require-all": {
             "type": "boolean",
-            "description": "If true, selects all versions of all packages in the repositories defined."
+            "description": "If true, selects all versions of all packages in the repositories defined.",
+            "default": false
         },
         "require-dependencies": {
             "type": "boolean",
-            "description": "If true, resolve and add all dependencies of each required package."
+            "description": "If true, resolve and add all dependencies of each required package.",
+            "default": false
         },
         "require-dev-dependencies": {
             "type": "boolean",
-            "description": "If true, resolve and add all Dev dependencies of each required package."
+            "description": "If true, resolve and add all Dev dependencies of each required package.",
+            "default": false
         },
         "only-dependencies": {
             "type": "boolean",
-            "description": "If true, will not require the root dependencies only their dependencies."
+            "description": "If true, will not require the root dependencies only their dependencies.",
+            "default": false
         },
         "only-best-candidates": {
             "type": "boolean",
-            "description": "If true, will attempt to resolve a minimum number of candidates for each dependency."
+            "description": "If true, will attempt to resolve a minimum number of candidates for each dependency.",
+            "default": false
         },
         "require-dependency-filter": {
             "type": "boolean",
-            "description": "If false, will include all versions matching a dependency."
+            "description": "If false, will include all versions matching a dependency.",
+            "default": true
         },
         "strip-hosts": {
-            "type": ["array", "boolean"],
+            "type": [ "array", "boolean" ],
             "description": "List of domains, IPs, CIDR notations, '/local' (=localnet and other reserved) or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.",
+            "default": false,
             "items": {
                 "type": "string"
             }
         },
         "include-filename": {
             "type": "string",
-            "description": "Specify filename instead of default include/all${SHA1_HASH}.json",
-            "default": "include/all${SHA1_HASH}.json"
+            "description": "Specify filename instead of default include/all$%hash%.json",
+            "default": "include/all$%hash%.json"
         },
         "output-dir": {
             "type": "string",
@@ -172,15 +185,18 @@
         },
         "output-html": {
             "type": "boolean",
-            "description": "If true, build a static web page."
+            "description": "If true, build a static web page.",
+            "default": true
         },
         "providers": {
             "type": "boolean",
-            "description": "If true, dump package providers."
+            "description": "If true, dump package providers.",
+            "default": false
         },
         "providers-history-size": {
             "type": "integer",
-            "description": "Optional integer to be used for keeping a number of files that would otherwise be pruned."
+            "description": "Optional integer to be used for keeping a number of files that would otherwise be pruned.",
+            "default": 0
         },
         "twig-template": {
             "type": "string",
@@ -212,7 +228,7 @@
                 "github-protocols": {
                     "type": "array",
                     "description": "A list of protocols to use for github.com clones, in priority order, defaults to [\"git\", \"https\", \"http\"].",
-                    "default": ["git", "https", "http"],
+                    "default": [ "git", "https", "http" ],
                     "items": {
                         "type": "string"
                     }
@@ -228,7 +244,7 @@
                     "additionalProperties": true
                 },
                 "store-auths": {
-                    "type": ["string", "boolean"],
+                    "type": [ "string", "boolean" ],
                     "description": "What to do after prompting for authentication, one of: true (store), false (do not store) or \"prompt\" (ask every time), defaults to prompt.",
                     "default": "prompt"
                 },
@@ -276,18 +292,18 @@
                     "description": "The cache time-to-live for files, defaults to the value of cache-ttl."
                 },
                 "cache-files-maxsize": {
-                    "type": ["string", "integer"],
+                    "type": [ "string", "integer" ],
                     "description": "The cache max size for the files cache, defaults to \"300MiB\".",
                     "default": "300MiB"
                 },
                 "bin-compat": {
                     "type": "string",
-                    "enum": ["auto", "full"],
+                    "enum": [ "auto", "full" ],
                     "description": "The compatibility of the binaries, defaults to \"auto\" (automatically guessed) and can be \"full\" (compatible with both Windows and Unix-based systems).",
                     "default": "auto"
                 },
                 "discard-changes": {
-                    "type": ["string", "boolean"],
+                    "type": [ "string", "boolean" ],
                     "description": "The default style of handling dirty updates, defaults to false and can be any of true, false or \"stash\".",
                     "default": false
                 },
@@ -312,7 +328,7 @@
                 "github-domains": {
                     "type": "array",
                     "description": "A list of domains to use in github mode. This is used for GitHub Enterprise setups, defaults to [\"github.com\"].",
-                    "default": ["github.com"],
+                    "default": [ "github.com" ],
                     "items": {
                         "type": "string"
                     }
@@ -329,7 +345,7 @@
             "description": "a URL that will be called every time a user installs a package."
         },
         "_comment": {
-            "type": ["array", "string"],
+            "type": [ "array", "string" ],
             "description": "A key to store comments in"
         },
         "pretty-print": {
