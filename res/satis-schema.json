@@ -106,6 +106,7 @@
         "minimum-stability": {
             "type": "string",
             "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable.",
+            "default": "dev",
             "enum": [ "dev", "alpha", "beta", "rc", "RC", "stable" ]
         },
         "minimum-stability-per-package": {
@@ -137,31 +138,38 @@
         },
         "require-all": {
             "type": "boolean",
-            "description": "If true, selects all versions of all packages in the repositories defined."
+            "description": "If true, selects all versions of all packages in the repositories defined.",
+            "default": false
         },
         "require-dependencies": {
             "type": "boolean",
-            "description": "If true, resolve and add all dependencies of each required package."
+            "description": "If true, resolve and add all dependencies of each required package.",
+            "default": false
         },
         "require-dev-dependencies": {
             "type": "boolean",
-            "description": "If true, resolve and add all Dev dependencies of each required package."
+            "description": "If true, resolve and add all Dev dependencies of each required package.",
+            "default": false
         },
         "only-dependencies": {
             "type": "boolean",
-            "description": "If true, will not require the root dependencies only their dependencies."
+            "description": "If true, will not require the root dependencies only their dependencies.",
+            "default": false
         },
         "only-best-candidates": {
             "type": "boolean",
-            "description": "If true, will attempt to resolve a minimum number of candidates for each dependency."
+            "description": "If true, will attempt to resolve a minimum number of candidates for each dependency.",
+            "default": false
         },
         "require-dependency-filter": {
             "type": "boolean",
-            "description": "If false, will include all versions matching a dependency."
+            "description": "If false, will include all versions matching a dependency.",
+            "default": true
         },
         "strip-hosts": {
             "type": [ "array", "boolean" ],
             "description": "List of domains, IPs, CIDR notations, '/local' (=localnet and other reserved) or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.",
+            "default": false,
             "items": {
                 "type": "string"
             }
