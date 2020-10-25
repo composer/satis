@@ -87,11 +87,11 @@ class PackageSelection
 
     /** @var array A list of blacklisted package/constraints. */
     private $blacklist = [];
-    
+
     /** @var array|null A list of package types. If set only packages with one of these types will be selected  */
     private $includeTypes;
-	
-	/** @var array A list of package types that will not be selected */
+
+    /** @var array A list of package types that will not be selected */
     private $excludeTypes = [];
 
     /** @var array|bool Patterns from strip-hosts. */
@@ -127,11 +127,11 @@ class PackageSelection
     {
         return count($this->blacklist) > 0;
     }
-	
-	public function hasTypeFilter(): bool
-	{
-		return $this->includeTypes !== null || count($this->excludeTypes) > 0;
-	}
+
+    public function hasTypeFilter(): bool
+    {
+        return $this->includeTypes !== null || count($this->excludeTypes) > 0;
+    }
 
     public function setPackagesFilter(array $packagesFilter = []): void
     {
@@ -609,28 +609,26 @@ class PackageSelection
         if ($this->hasTypeFilter()) {
             foreach ($this->selected as $selectedKey => $package) {
                 if($this->includeTypes !== null && !in_array($package->getType(), $this->includeTypes)) {
-	                if ($verbose) {
-		                $this->output->writeln(
-		                	'Excluded ' . $package->getPrettyName()
-			                . ' (' . $package->getPrettyVersion() . ') because '
-			                . $package->getType() . ' was not in the array of types to include.'
-		                );
-	                }
-	                $excluded[$selectedKey] = $package;
-	                unset($this->selected[$selectedKey]);
+                    if ($verbose) {
+                        $this->output->writeln(
+                            'Excluded ' . $package->getPrettyName()
+                            . ' (' . $package->getPrettyVersion() . ') because '
+                            . $package->getType() . ' was not in the array of types to include.'
+                        );
+                    }
+                    $excluded[$selectedKey] = $package;
+                    unset($this->selected[$selectedKey]);
                 }
-                elseif (in_array($package->getType(), $this->excludeTypes))
-                {
-	                if ($verbose)
-	                {
-		                $this->output->writeln(
-			                'Excluded ' . $package->getPrettyName()
-			                . ' (' . $package->getPrettyVersion() . ') because '
-			                . $package->getType() . ' was in the array of types to exclude.'
-		                );
-	                }
-	                $excluded[$selectedKey] = $package;
-	                unset($this->selected[$selectedKey]);
+                elseif (in_array($package->getType(), $this->excludeTypes)) {
+                    if ($verbose) {
+                        $this->output->writeln(
+                            'Excluded ' . $package->getPrettyName()
+                            . ' (' . $package->getPrettyVersion() . ') because '
+                            . $package->getType() . ' was in the array of types to exclude.'
+                        );
+                    }
+                    $excluded[$selectedKey] = $package;
+                    unset($this->selected[$selectedKey]);
                 }
             }
         }

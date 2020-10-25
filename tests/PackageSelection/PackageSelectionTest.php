@@ -554,9 +554,9 @@ class PackageSelectionTest extends TestCase
                 $packages['gamma4'],
             ],
             [
-	            'include-types' => [
-		            'library'
-	            ],
+                'include-types' => [
+                    'library'
+                ],
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -576,10 +576,10 @@ class PackageSelectionTest extends TestCase
                 $packages['delta'],
             ],
             [
-	            'include-types' => [
-		            'library',
-		            'project'
-	            ],
+                'include-types' => [
+                    'library',
+                    'project'
+                ],
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -599,9 +599,9 @@ class PackageSelectionTest extends TestCase
                 $packages['eta'],
             ],
             [
-	            'exclude-types' => [
-		            'project'
-	            ],
+                'exclude-types' => [
+                    'project'
+                ],
                 'repositories' => [
                     $repo['everything'],
                 ],
@@ -620,10 +620,10 @@ class PackageSelectionTest extends TestCase
                 $packages['eta'],
             ],
             [
-	            'exclude-types' => [
-		            'project',
-		            'custom-type',
-	            ],
+                'exclude-types' => [
+                    'project',
+                    'custom-type',
+                ],
                 'repositories' => [
                     $repo['everything'],
                 ],
