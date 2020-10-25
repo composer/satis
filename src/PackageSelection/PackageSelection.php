@@ -603,7 +603,7 @@ class PackageSelection
      *
      * @return PackageInterface[]
      */
-    private function pruneByType($verbose): array
+    private function pruneByType(bool $verbose): array
     {
         $excluded = [];
         if ($this->hasTypeFilter()) {
@@ -618,8 +618,7 @@ class PackageSelection
                     }
                     $excluded[$selectedKey] = $package;
                     unset($this->selected[$selectedKey]);
-                }
-                elseif (in_array($package->getType(), $this->excludeTypes)) {
+                } elseif (in_array($package->getType(), $this->excludeTypes)) {
                     if ($verbose) {
                         $this->output->writeln(
                             'Excluded ' . $package->getPrettyName()
@@ -632,6 +631,7 @@ class PackageSelection
                 }
             }
         }
+        
         return $excluded;
     }
 
