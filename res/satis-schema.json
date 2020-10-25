@@ -136,6 +136,22 @@
                 "description": "A valid version constraint"
             }
         },
+        "include-types": {
+            "type": ["array", "null"],
+            "description": "An array of composer types. When an array is provided only packages with this type will be selected by Satis.",
+            "default": null,
+            "items": {
+                "type": "string"
+            }
+        },
+        "exclude-types": {
+            "type": ["array"],
+            "description": "An array of composer types. Any packages with a type in this array will not be selected by Satis.",
+            "default": [],
+            "items": {
+                "type": "string"
+            }
+        },
         "require-all": {
             "type": "boolean",
             "description": "If true, selects all versions of all packages in the repositories defined.",
