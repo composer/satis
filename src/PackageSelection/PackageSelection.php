@@ -88,6 +88,12 @@ class PackageSelection
     /** @var array A list of blacklisted package/constraints. */
     private $blacklist = [];
 
+    /** @var array|null A list of package types. If set only packages with one of these types will be selected  */
+    private $includeTypes;
+
+    /** @var array A list of package types that will not be selected */
+    private $excludeTypes = [];
+
     /** @var array|bool Patterns from strip-hosts. */
     private $stripHosts = false;
 
@@ -120,6 +126,11 @@ class PackageSelection
     public function hasBlacklist(): bool
     {
         return count($this->blacklist) > 0;
+    }
+
+    public function hasTypeFilter(): bool
+    {
+        return $this->includeTypes !== null || count($this->excludeTypes) > 0;
     }
 
     public function setPackagesFilter(array $packagesFilter = []): void
@@ -207,6 +218,7 @@ class PackageSelection
         $this->setSelectedAsAbandoned();
 
         $this->pruneBlacklisted($pool, $verbose);
+        $this->pruneByType($verbose);
 
         ksort($this->selected, SORT_STRING);
 
@@ -328,6 +340,8 @@ class PackageSelection
         $this->minimumStabilityPerPackage = $config['minimum-stability-per-package'] ?? [];
         $this->abandoned = $config['abandoned'] ?? [];
         $this->blacklist = $config['blacklist'] ?? [];
+        $this->includeTypes = $config['include-types'] ?? null;
+        $this->excludeTypes = $config['exclude-types'] ?? [];
 
         $this->stripHosts = $this->createStripHostsPatterns($config['strip-hosts'] ?? false);
         $this->archiveEndpoint = isset($config['archive']['directory']) ? ($config['archive']['prefix-url'] ?? $config['homepage']) . '/' : null;
@@ -580,6 +594,45 @@ class PackageSelection
             }
         }
         return $blacklisted;
+    }
+
+    /**
+     * Removes packages with types that don't match the configuration
+     *
+     * @param bool $verbose
+     *
+     * @return PackageInterface[]
+     */
+    private function pruneByType(bool $verbose): array
+    {
+        $excluded = [];
+        if ($this->hasTypeFilter()) {
+            foreach ($this->selected as $selectedKey => $package) {
+                if($this->includeTypes !== null && !in_array($package->getType(), $this->includeTypes)) {
+                    if ($verbose) {
+                        $this->output->writeln(
+                            'Excluded ' . $package->getPrettyName()
+                            . ' (' . $package->getPrettyVersion() . ') because '
+                            . $package->getType() . ' was not in the array of types to include.'
+                        );
+                    }
+                    $excluded[$selectedKey] = $package;
+                    unset($this->selected[$selectedKey]);
+                } elseif (in_array($package->getType(), $this->excludeTypes)) {
+                    if ($verbose) {
+                        $this->output->writeln(
+                            'Excluded ' . $package->getPrettyName()
+                            . ' (' . $package->getPrettyVersion() . ') because '
+                            . $package->getType() . ' was in the array of types to exclude.'
+                        );
+                    }
+                    $excluded[$selectedKey] = $package;
+                    unset($this->selected[$selectedKey]);
+                }
+            }
+        }
+        
+        return $excluded;
     }
 
     /**

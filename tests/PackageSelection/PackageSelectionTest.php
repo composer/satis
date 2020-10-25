@@ -283,30 +283,37 @@ class PackageSelectionTest extends TestCase
             'beta' => [
                 'name' => 'vendor/project-beta',
                 'version' => '1.2.3.0',
+                'type' => 'library',
             ],
             'beta-dev' => [
                 'name' => 'vendor/project-beta',
                 'version' => '1.2.3.1-dev',
+                'type' => 'library',
             ],
             'gamma1' => [
                 'name' => 'vendor/project-gamma',
                 'version' => '1.2.3.0',
+                'type' => 'project',
             ],
             'gamma2' => [
                 'name' => 'vendor/project-gamma',
                 'version' => '2.3.4.0',
+                'type' => 'project',
             ],
             'gamma3' => [
                 'name' => 'vendor/project-gamma',
                 'version' => '3.4.5.0',
+                'type' => 'library',
             ],
             'gamma4' => [
                 'name' => 'vendor/project-gamma',
                 'version' => '4.5.6.0',
+                'type' => 'library',
             ],
             'delta' => [
                 'name' => 'vendor/project-delta',
                 'version' => '1.2.3.0',
+                'type' => 'project',
                 'require' => [
                     'vendor/project-alpha' => '^1',
                     'vendor/project-gamma' => '^1',
@@ -315,6 +322,7 @@ class PackageSelectionTest extends TestCase
             'epsilon' => [
                 'name' => 'vendor/project-epsilon',
                 'version' => '1.2.3.0',
+                'type' => 'custom-type',
                 'require' => [
                     'vendor/project-alpha' => '^1',
                 ],
@@ -325,6 +333,7 @@ class PackageSelectionTest extends TestCase
             'zeta' => [
                 'name' => 'vendor/project-zeta',
                 'version' => '1.2.3.0',
+                'type' => 'another-custom-type',
                 'require' => [
                     'vendor/project-epsilon' => '^1',
                 ],
@@ -332,6 +341,7 @@ class PackageSelectionTest extends TestCase
             'eta' => [
                 'name' => 'vendor/project-eta',
                 'version' => '1.2.3.0',
+                'type' => 'another-custom-type',
                 'require' => [
                     'vendor/project-gamma' => '>=1',
                 ],
@@ -530,6 +540,92 @@ class PackageSelectionTest extends TestCase
                 'require' => [
                     'vendor/project-alpha' => '*',
                     'vendor/project-beta' => '*',
+                ],
+            ],
+        ];
+
+        $data['Filter just libraries'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['beta'],
+                $packages['beta-dev'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+            ],
+            [
+                'include-types' => [
+                    'library'
+                ],
+                'repositories' => [
+                    $repo['everything'],
+                ],
+            ],
+        ];
+
+        $data['Filter just libraries and projects'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['beta'],
+                $packages['beta-dev'],
+                $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+                $packages['delta'],
+            ],
+            [
+                'include-types' => [
+                    'library',
+                    'project'
+                ],
+                'repositories' => [
+                    $repo['everything'],
+                ],
+            ],
+        ];
+
+        $data['Filter exclude projects'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['beta'],
+                $packages['beta-dev'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+                $packages['epsilon'],
+                $packages['zeta'],
+                $packages['eta'],
+            ],
+            [
+                'exclude-types' => [
+                    'project'
+                ],
+                'repositories' => [
+                    $repo['everything'],
+                ],
+            ],
+        ];
+
+        $data['Filter exclude projects, custom'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['beta'],
+                $packages['beta-dev'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+                $packages['zeta'],
+                $packages['eta'],
+            ],
+            [
+                'exclude-types' => [
+                    'project',
+                    'custom-type',
+                ],
+                'repositories' => [
+                    $repo['everything'],
                 ],
             ],
         ];

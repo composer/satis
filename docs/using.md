@@ -324,9 +324,14 @@ is set to true.
    [archive](#downloads) instead. See docs on [config schema] for more details.
  * `notify-batch`: optional, specify a URL that will be called every time a
    user installs a package. See [notify-batch].
+ * `include-types`: optional, an array of [composer types]. When provided 
+   only packages with this type will be selected by Satis. 
+ * `exclude-types`: optional, an array of [composer types]. Any packages 
+   with a type in this array will not be selected by Satis. 
 
 [ssh2 context options]: https://secure.php.net/manual/en/wrappers.ssh2.php#refsect1-wrappers.ssh2-options
 [ssl context options]: https://secure.php.net/manual/en/context.ssl.php
 [Twig]: https://twig.sensiolabs.org/
 [config schema]: https://getcomposer.org/doc/04-schema.md#config
 [notify-batch]: https://getcomposer.org/doc/05-repositories.md#notify-batch
+[composer types]: https://getcomposer.org/doc/04-schema.md#type
