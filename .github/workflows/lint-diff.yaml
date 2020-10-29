@@ -17,6 +17,5 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         VALIDATE_ALL_CODEBASE: false
         VALIDATE_PHP_BUILTIN: true
-        VALIDATE_MARKDOWN: true
         VALIDATE_JSON: true
         VALIDATE_YAML: true
