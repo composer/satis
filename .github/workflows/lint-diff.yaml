@@ -1,11 +1,6 @@
-name: PHP Lint
+name: PHP Lint (diff)
 
-on:
-  push:
-    paths-include:
-    - 'bin/**'
-    - 'src/**'
-    - 'tests/**'
+on: push
 
 jobs:
 
