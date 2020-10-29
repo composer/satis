@@ -60,7 +60,7 @@ class PackageSelectionLoadTest extends TestCase
             vfsStream::url('build'),
             [
                 'repositories' => [
-                    ['type' => 'composer', 'url' => 'http://localhost:54715']
+                    ['type' => 'composer', 'url' => 'http://localhost:54715'],
                 ],
                 'require' => ['vendor/name' => '*'],
             ],

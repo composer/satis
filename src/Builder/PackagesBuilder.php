@@ -235,18 +235,14 @@ class PackagesBuilder extends Builder
             // The file already contains the expected contents.
             return;
         }
-        
+
         $dir = dirname($path);
         if (!is_dir($dir)) {
             if (file_exists($dir)) {
-                throw new \UnexpectedValueException(
-                    $dir . ' exists and is not a directory.'
-                );
+                throw new \UnexpectedValueException($dir . ' exists and is not a directory.');
             }
             if (!@mkdir($dir, 0777, true)) {
-                throw new \UnexpectedValueException(
-                    $dir . ' does not exist and could not be created.'
-                );
+                throw new \UnexpectedValueException($dir . ' does not exist and could not be created.');
             }
         }
 

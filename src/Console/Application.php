@@ -50,11 +50,8 @@ class Application extends BaseApplication
     }
 
     /**
-     * @param bool $required
      * @param array|string|null $config
      *  Either a configuration array or a filename to read from, if null it will read from the default filename
-     *
-     * @return Composer
      */
     public function getComposer(bool $required = true, $config = null): Composer
     {

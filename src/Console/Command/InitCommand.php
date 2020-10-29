@@ -118,9 +118,7 @@ EOT
 
         $this->prompt($input, $output, 'Home page', 'homepage', function ($value) {
             if (!preg_match('/https?:\/\/.+/', $value)) {
-                throw new \InvalidArgumentException(
-                    'Enter a valid URL it will be used for building your repository'
-                );
+                throw new \InvalidArgumentException('Enter a valid URL it will be used for building your repository');
             }
 
             return $value;

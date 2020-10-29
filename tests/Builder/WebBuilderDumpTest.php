@@ -114,7 +114,6 @@ class WebBuilderDumpTest extends TestCase
      * @dataProvider dataAbandoned
      *
      * @param bool|string $abandoned
-     * @param string $expected
      */
     public function testAbandoned($abandoned, string $expected)
     {

@@ -17,13 +17,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 abstract class Builder implements BuilderInterface
 {
-    /** @var OutputInterface $output The output Interface. */
+    /** @var OutputInterface The output Interface. */
     protected $output;
-    /** @var string $outputDir The directory where to build. */
+    /** @var string The directory where to build. */
     protected $outputDir;
-    /** @var array $config The parameters from ./satis.json. */
+    /** @var array The parameters from ./satis.json. */
     protected $config;
-    /** @var bool $skipErrors Skips Exceptions if true. */
+    /** @var bool Skips Exceptions if true. */
     protected $skipErrors;
 
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)

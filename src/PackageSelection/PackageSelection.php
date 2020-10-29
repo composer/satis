@@ -88,7 +88,7 @@ class PackageSelection
     /** @var array A list of blacklisted package/constraints. */
     private $blacklist = [];
 
-    /** @var array|null A list of package types. If set only packages with one of these types will be selected  */
+    /** @var array|null A list of package types. If set only packages with one of these types will be selected */
     private $includeTypes;
 
     /** @var array A list of package types that will not be selected */
@@ -130,7 +130,7 @@ class PackageSelection
 
     public function hasTypeFilter(): bool
     {
-        return $this->includeTypes !== null || count($this->excludeTypes) > 0;
+        return null !== $this->includeTypes || count($this->excludeTypes) > 0;
     }
 
     public function setPackagesFilter(array $packagesFilter = []): void
@@ -176,17 +176,11 @@ class PackageSelection
             $repos = $this->filterPackages($repos);
 
             if (0 === count($repos)) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Could not find any package(s) matching: %s',
-                    implode(', ', $this->packagesFilter)
-                ));
+                throw new \InvalidArgumentException(sprintf('Could not find any package(s) matching: %s', implode(', ', $this->packagesFilter)));
             }
 
             if (count($repos) > 1) {
-                throw new \InvalidArgumentException(sprintf(
-                    'Found more than one package matching: %s',
-                    implode(', ', $this->packagesFilter)
-                ));
+                throw new \InvalidArgumentException(sprintf('Found more than one package matching: %s', implode(', ', $this->packagesFilter)));
             }
         }
 
@@ -521,8 +515,6 @@ class PackageSelection
      * @param int[] $addr2 Chunked addr
      * @param int $len Length of the test
      * @param int $chunklen Length of each chunk
-     *
-     * @return bool
      */
     private function matchAddr($addr1, $addr2, $len = 0, $chunklen = 32): bool
     {
@@ -538,7 +530,6 @@ class PackageSelection
     }
 
     /**
-     * @param Pool $pool
      * @param RepositoryInterface[] $repositories
      *
      * @throws \Exception
@@ -583,23 +574,22 @@ class PackageSelection
             foreach ($this->selected as $selectedKey => $package) {
                 foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
                     $constraint = $parser->parseConstraints($blacklistConstraint);
-                    if ($pool::MATCH === $pool->match($package, $blacklistName, $constraint, FALSE)) {
-                       if ($verbose) {
-                          $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
-                       }
-                       $blacklisted[$selectedKey] = $package;
-                       unset($this->selected[$selectedKey]);
+                    if ($pool::MATCH === $pool->match($package, $blacklistName, $constraint, false)) {
+                        if ($verbose) {
+                            $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                        }
+                        $blacklisted[$selectedKey] = $package;
+                        unset($this->selected[$selectedKey]);
                     }
                 }
             }
         }
+
         return $blacklisted;
     }
 
     /**
      * Removes packages with types that don't match the configuration
-     *
-     * @param bool $verbose
      *
      * @return PackageInterface[]
      */
@@ -608,7 +598,7 @@ class PackageSelection
         $excluded = [];
         if ($this->hasTypeFilter()) {
             foreach ($this->selected as $selectedKey => $package) {
-                if($this->includeTypes !== null && !in_array($package->getType(), $this->includeTypes)) {
+                if (null !== $this->includeTypes && !in_array($package->getType(), $this->includeTypes)) {
                     if ($verbose) {
                         $this->output->writeln(
                             'Excluded ' . $package->getPrettyName()
@@ -631,14 +621,12 @@ class PackageSelection
                 }
             }
         }
-        
+
         return $excluded;
     }
 
     /**
      * Gets a list of filtered Links.
-     *
-     * @param Composer $composer
      *
      * @return Link[]
      */
@@ -663,8 +651,6 @@ class PackageSelection
 
     /**
      * @param RepositoryInterface[] $repositories
-     * @param string $minimumStability
-     * @param bool $verbose
      *
      * @return Link[]|PackageInterface[]
      */
@@ -704,10 +690,7 @@ class PackageSelection
     }
 
     /**
-     * @param Pool $pool
      * @param Link[]|PackageInterface[] $links
-     * @param bool $isRoot
-     * @param bool $verbose
      *
      * @return Link[]
      */
@@ -810,8 +793,6 @@ class PackageSelection
     }
 
     /**
-     * @param Composer $composer
-     *
      * @return RepositoryInterface[]
      */
     private function getDepRepos(Composer $composer): array
@@ -832,8 +813,6 @@ class PackageSelection
     }
 
     /**
-     * @param RepositoryInterface $repo
-     *
      * @return PackageInterface[]
      */
     private function getPackages(RepositoryInterface $repo): array
@@ -852,9 +831,6 @@ class PackageSelection
     }
 
     /**
-     * @param PackageInterface $package
-     * @param bool $isRoot
-     *
      * @return Link[]
      */
     private function getRequired(PackageInterface $package, bool $isRoot): array

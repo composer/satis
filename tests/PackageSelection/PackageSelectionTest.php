@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Composer\Satis\PackageSelection;
 
 use Composer\Config;
+use Composer\DependencyResolver\Pool;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
-use Composer\DependencyResolver\Pool;
 use Composer\Repository\ArrayRepository;
 use Composer\Semver\Constraint\Constraint;
 use PHPUnit\Framework\TestCase;
@@ -555,7 +555,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'include-types' => [
-                    'library'
+                    'library',
                 ],
                 'repositories' => [
                     $repo['everything'],
@@ -578,7 +578,7 @@ class PackageSelectionTest extends TestCase
             [
                 'include-types' => [
                     'library',
-                    'project'
+                    'project',
                 ],
                 'repositories' => [
                     $repo['everything'],
@@ -600,7 +600,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'exclude-types' => [
-                    'project'
+                    'project',
                 ],
                 'repositories' => [
                     $repo['everything'],
@@ -942,14 +942,14 @@ class PackageSelectionTest extends TestCase
         $rootLink = new Link('top', 'vendor/a', $rootConstraint);
 
         $config = [
-          'only-best-candidates' => TRUE,
-          'require-dependencies' => TRUE,
+          'only-best-candidates' => true,
+          'require-dependencies' => true,
         ];
         $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('selectLinks');
         $method->setAccessible(true);
-        $method->invokeArgs($builder, [$pool, [$rootLink], FALSE, FALSE]);
+        $method->invokeArgs($builder, [$pool, [$rootLink], false, false]);
 
         $property = $reflection->getProperty('selected');
         $property->setAccessible(true);
