@@ -2,9 +2,6 @@
 
 Simple static Composer repository generator.
 
-[![Build Status](https://travis-ci.org/composer/satis.svg?branch=master)](https://travis-ci.org/composer/satis)
-[![codecov](https://codecov.io/gh/composer/satis/branch/master/graph/badge.svg)](https://codecov.io/gh/composer/satis)
-
 
 ## Run from source
 
