@@ -25,12 +25,14 @@ RUN set -eux; \
     bash \
     curl \
     git \
-    subversion \
+    libzip-dev \
     mercurial \
     openssh \
     openssl \
-    zip \
-    unzip
+    subversion \
+    unzip \
+    zip; \
+  docker-php-ext-install zip
 
 ENV COMPOSER_HOME /composer
 
