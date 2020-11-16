@@ -36,7 +36,7 @@ class ArchiveBuilder extends Builder
         $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
         $basedir = $helper->getDirectory($this->outputDir);
         $this->output->writeln(sprintf("<info>Creating local downloads in '%s'</info>", $basedir));
-        $endpoint = $this->config['archive']['prefix-url'] ?? $this->config['homepage'];
+        $endpoint = $this->config['archive']['prefix-url'] ?? $this->config['homepage'] ?? '';
         $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();

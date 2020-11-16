@@ -338,7 +338,7 @@ class PackageSelection
         $this->excludeTypes = $config['exclude-types'] ?? [];
 
         $this->stripHosts = $this->createStripHostsPatterns($config['strip-hosts'] ?? false);
-        $this->archiveEndpoint = isset($config['archive']['directory']) ? ($config['archive']['prefix-url'] ?? $config['homepage']) . '/' : null;
+        $this->archiveEndpoint = isset($config['archive']['directory']) ? ($config['archive']['prefix-url'] ?? $config['homepage'] ?? '') . '/' : null;
 
         $this->homepage = $config['homepage'] ?? null;
     }

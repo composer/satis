@@ -75,7 +75,7 @@ EOT
 
         $prefix = sprintf(
             '%s/%s/',
-            $config['archive']['prefix-url'] ?? $config['homepage'],
+            $config['archive']['prefix-url'] ?? $config['homepage'] ?? '',
             $config['archive']['directory']
         );
 

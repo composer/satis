@@ -3,7 +3,7 @@
     "name": "Repository Configuration",
     "type": "object",
     "additionalProperties": false,
-    "required": [ "name", "homepage" ],
+    "required": [ "name" ],
     "properties": {
         "name": {
             "type": "string",
@@ -15,7 +15,7 @@
         },
         "homepage": {
             "type": "string",
-            "description": "Homepage URL for the Repository.",
+            "description": "Homepage URL for the Repository, required when generating html output.",
             "format": "uri"
         },
         "require": {
