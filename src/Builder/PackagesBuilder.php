@@ -87,6 +87,12 @@ class PackagesBuilder extends Builder
             $repo['metadata-url'] = $metadataUrl;
         }
 
+        if (!empty($this->config['available-package-patterns'])) {
+            $repo['available-package-patterns'] = $this->config['available-package-patterns'];
+        } else {
+            $repo['available-packages'] = array_keys($packagesByName);
+        }
+
         foreach ($packagesByName as $packageName => $versionPackages) {
             $stableVersions = [];
             $devVersions = [];

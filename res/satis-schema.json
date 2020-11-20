@@ -195,6 +195,13 @@
             "description": "Specify filename instead of default include/all$%hash%.json",
             "default": "include/all$%hash%.json"
         },
+        "available-package-patterns": {
+            "type": "array",
+            "description": "Composer v2 feature. List of patterns like 'vendor/*' for packages available, recommended with many packages. If not set, 'available-packages' will be set with ALL package names.",
+            "items": {
+                "type": "string"
+            }
+        },
         "output-dir": {
             "type": "string",
             "description": "The directory where the static Repository is built."
