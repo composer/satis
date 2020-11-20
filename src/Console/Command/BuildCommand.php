@@ -85,8 +85,8 @@ The json config file accepts the following keys:
   has an html page as well or not.
 - <info>"name"</info>: for html output, this defines the name of the
   repository.
-- <info>"homepage"</info>: for html output, this defines the home URL
-  of the repository (where you will host it).
+- <info>"homepage"</info>: for html output and urls in meta data files, this defines the home URL
+  of the repository (where you will host it). Build command allows this to be overloaded in SATIS_HOMEPAGE environment variable.
 - <info>"twig-template"</info>: Location of twig template to use for
   building the html output.
 - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
@@ -168,6 +168,11 @@ EOT
 
         if (null === $outputDir) {
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
+        }
+
+        if ($homepage = getenv('SATIS_HOMEPAGE')) {
+            $config['homepage'] = $homepage;
+            $output->writeln(sprintf('<notice>Homepage config used from env SATIS_HOMEPAGE: %s</notice>', $homepage));
         }
 
         /** @var $application Application */
