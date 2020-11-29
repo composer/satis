@@ -176,11 +176,7 @@ class PackageSelection
             $repos = $this->filterPackages($repos);
 
             if (0 === count($repos)) {
-                throw new \InvalidArgumentException(sprintf('Could not find any package(s) matching: %s', implode(', ', $this->packagesFilter)));
-            }
-
-            if (count($repos) > 1) {
-                throw new \InvalidArgumentException(sprintf('Found more than one package matching: %s', implode(', ', $this->packagesFilter)));
+                throw new \InvalidArgumentException(sprintf('Could not find any repositories config with "name" matching your package(s) filter: %s', implode(', ', $this->packagesFilter)));
             }
         }
 
@@ -886,13 +882,14 @@ class PackageSelection
 
         return array_filter(
             $repositories,
-            function ($repository) use ($packages) {
+            static function ($repository) use ($packages) {
                 if (!($repository instanceof ConfigurableRepositoryInterface)) {
                     return false;
                 }
 
                 $config = $repository->getRepoConfig();
 
+                // We need name to be set on repo config as it would otherwise be too slow on remote repos (VCS, ..)
                 if (!isset($config['name']) || !in_array($config['name'], $packages)) {
                     return false;
                 }
