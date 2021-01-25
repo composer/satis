@@ -40,9 +40,7 @@ on given json file (satis.json is used by default) and the
 newest json file in the include directory of the given output-dir.
 
 In your satis.json (or other name you give), you must define
-"archive" argument. You also need to define "homepage"* if you don't use archive "prefix-url".
-
-* "homepage" may be overloaded using SATIS_HOMEPAGE environment variable.
+"archive" argument. You also need to define "homepage" argument or "SATIS_HOMEPAGE" environment variable if you don't use archive "prefix-url" argument.
 EOT
             );
     }
