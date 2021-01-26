@@ -80,7 +80,7 @@ EOT
 
         $prefix = sprintf(
             '%s/%s/',
-            $config['archive']['prefix-url'] ?? getenv('SATIS_HOMEPAGE') ?? $config['homepage'],
+            $config['archive']['prefix-url'] ?? getenv('SATIS_HOMEPAGE') ?: $config['homepage'],
             $config['archive']['directory']
         );
 
