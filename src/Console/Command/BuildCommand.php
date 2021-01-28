@@ -175,7 +175,7 @@ EOT
             $output->writeln(sprintf('<notice>Homepage config used from env SATIS_HOMEPAGE: %s</notice>', $homepage));
         }
 
-        /** @var $application Application */
+        /** @var Application $application */
         $application = $this->getApplication();
         $composer = $application->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);

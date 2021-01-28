@@ -845,9 +845,9 @@ class PackageSelection
     }
 
     /**
-     * @param RepositoryInterface|ConfigurableRepositoryInterface[] $repositories
+     * @param RepositoryInterface[]|ConfigurableRepositoryInterface[] $repositories
      *
-     * @return RepositoryInterface|ConfigurableRepositoryInterface[]
+     * @return RepositoryInterface[]|ConfigurableRepositoryInterface[]
      */
     private function filterRepositories(array $repositories): array
     {
@@ -855,26 +855,22 @@ class PackageSelection
 
         return array_filter(
             $repositories,
-            function ($repository) use ($url) {
+            static function ($repository) use ($url) {
                 if (!($repository instanceof ConfigurableRepositoryInterface)) {
                     return false;
                 }
 
                 $config = $repository->getRepoConfig();
 
-                if (!isset($config['url']) || $config['url'] !== $url) {
-                    return false;
-                }
-
-                return true;
+                return !(!isset($config['url']) || $config['url'] !== $url);
             }
         );
     }
 
     /**
-     * @param RepositoryInterface|ConfigurableRepositoryInterface[] $repositories
+     * @param RepositoryInterface[]|ConfigurableRepositoryInterface[] $repositories
      *
-     * @return RepositoryInterface|ConfigurableRepositoryInterface[]
+     * @return RepositoryInterface[]|ConfigurableRepositoryInterface[]
      */
     private function filterPackages(array $repositories): array
     {

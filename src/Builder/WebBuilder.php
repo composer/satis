@@ -116,13 +116,13 @@ class WebBuilder extends Builder
     /**
      * Gets a list of packages grouped by name with a list of versions.
      *
-     * @param PackageInterface[] $packages List of packages to dump
+     * @param PackageInterface[] $ungroupedPackages List of packages to dump
      *
      * @return array Grouped list of packages with versions
      */
-    private function getMappedPackageList(array $packages): array
+    private function getMappedPackageList(array $ungroupedPackages): array
     {
-        $groupedPackages = $this->groupPackagesByName($packages);
+        $groupedPackages = $this->groupPackagesByName($ungroupedPackages);
 
         $mappedPackages = [];
         foreach ($groupedPackages as $name => $packages) {
@@ -165,7 +165,7 @@ class WebBuilder extends Builder
      */
     private function getHighestVersion(array $packages): ?PackageInterface
     {
-        /** @var $highestVersion PackageInterface|null */
+        /** @var PackageInterface|null $highestVersion */
         $highestVersion = null;
         foreach ($packages as $package) {
             if (null === $highestVersion || version_compare($package->getVersion(), $highestVersion->getVersion(), '>=')) {
