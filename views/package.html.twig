@@ -33,6 +33,11 @@
             <dt class="{{ col1_class }}"></dt>
             <dd class="{{ col2_class }}"></dd>
 
+        {% if package.highest.type %}
+            <dt class="{{ col1_class }}">Type</dt>
+            <dd class="{{ col2_class }}">{{ package.highest.type }}</dd>
+        {% endif %}
+
         {% if package.highest.keywords %}
             <dt class="{{ col1_class }}">Keywords</dt>
             <dd class="{{ col2_class }}">
