@@ -18,6 +18,7 @@ use Composer\Satis\Builder\WebBuilder;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 use Twig\Environment;
+use Twig\Extra\Html\HtmlExtension;
 use Twig\Loader\ArrayLoader;
 
 /**
@@ -60,6 +61,7 @@ class WebBuilderTest extends TestCase
     public function testTwigEnvironment()
     {
         $twig = new Environment(new ArrayLoader([]));
+        $twig->addExtension(new HtmlExtension());
         $this->webBuilder->setTwigEnvironment($twig);
 
         $reflection = new \ReflectionClass($this->webBuilder);
