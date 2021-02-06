@@ -17,6 +17,7 @@ use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
 use Twig\Environment;
+use Twig\Extra\Html\HtmlExtension;
 use Twig\Loader\FilesystemLoader;
 
 class WebBuilder extends Builder
@@ -80,6 +81,7 @@ class WebBuilder extends Builder
             $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new FilesystemLoader($templateDir);
             $this->twig = new Environment($loader);
+            $this->twig->addExtension(new HtmlExtension());
         }
 
         return $this->twig;
