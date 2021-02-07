@@ -17,6 +17,7 @@ use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
 use Twig\Environment;
+use Twig\Extension\DebugExtension;
 use Twig\Extra\Html\HtmlExtension;
 use Twig\Loader\FilesystemLoader;
 
@@ -77,11 +78,16 @@ class WebBuilder extends Builder
     {
         if (null === $this->twig) {
             $twigTemplate = $this->config['twig-template'] ?? null;
-
             $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new FilesystemLoader($templateDir);
-            $this->twig = new Environment($loader);
+            $options = getenv('SATIS_TWIG_DEBUG') ? ['debug' => true] : [];
+
+            $this->twig = new Environment($loader, $options);
             $this->twig->addExtension(new HtmlExtension());
+
+            if (getenv('SATIS_TWIG_DEBUG')) {
+                $this->twig->addExtension(new DebugExtension());
+            }
         }
 
         return $this->twig;
