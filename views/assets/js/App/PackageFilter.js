@@ -1,11 +1,8 @@
-import $ from 'jquery'
-
 class PackageFilter {
   constructor(input, list, listItem) {
-    this.input = $(input)
-    this.list = $(list)
-    this.listItemSelector = listItem
-    this.packages = this.list.find(listItem)
+    this.input = document.querySelector(input)
+    this.list = document.querySelector(list)
+    this.packages = Array.prototype.slice.call(this.list.querySelectorAll(listItem))
     this.inputTimeout = null
     this.readHash = this.readHash.bind(this)
     this.updateHash = this.updateHash.bind(this)
@@ -18,42 +15,40 @@ class PackageFilter {
     let hash = window.decodeURIComponent(window.location.hash.substr(1))
 
     if (hash.length > 0) {
-      this.input.val(hash)
+      this.input.value = hash
       this.filterPackages()
     }
   }
 
   updateHash() {
-    window.location.hash = window.encodeURIComponent(this.input.val())
+    window.location.hash = window.encodeURIComponent(this.input.value)
   }
 
   filterPackages() {
-    let needle = this.input.val().toLowerCase()
-    let closestSelector = this.listItemSelector
+    let needle = this.input.value.toLowerCase()
 
-    this.list.hide()
+    this.list.style.display = "none"
 
-    this.packages.each(function () {
-      $(this).closest(closestSelector).toggle(
-        $(this).text().toLowerCase().indexOf(needle) !== -1
-      )
+    this.packages.forEach(function (elem) {
+      let displayPackage = elem.textContent.toLowerCase().indexOf(needle) !== -1
+      elem.style.display = displayPackage ? "block" : "none"
     })
 
-    this.list.show()
+    this.list.style.display = "block"
   }
 
   init() {
     var instance = this
 
-    instance.input.keyup(function () {
+    instance.input.addEventListener("keyup", function () {
       instance.updateHash()
       window.clearTimeout(instance.inputTimeout)
       instance.inputTimeout = window.setTimeout(instance.filterPackages, 350)
     })
 
-    $(window).keyup(function (event) {
-      if (event.keyCode === 27) { // "ESC" keyCode
-      instance.input.val('')
+    document.addEventListener("keyup", function (event) {
+      if (event.code === 27) { // "ESC" keyCode
+      instance.input.value = ""
       instance.filterPackages()
     }
   })
