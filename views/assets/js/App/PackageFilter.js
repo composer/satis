@@ -2,7 +2,9 @@ class PackageFilter {
   constructor(input, list, listItem) {
     this.input = document.querySelector(input)
     this.list = document.querySelector(list)
-    this.packages = Array.prototype.slice.call(this.list.querySelectorAll(listItem))
+    this.packages = Array.prototype.slice.call(
+      this.list.querySelectorAll(listItem)
+    )
     this.inputTimeout = null
     this.readHash = this.readHash.bind(this)
     this.updateHash = this.updateHash.bind(this)
@@ -30,9 +32,10 @@ class PackageFilter {
     this.list.style.display = "none"
 
     this.packages.forEach(function (elem) {
-      let displayPackage = elem.textContent.toLowerCase().indexOf(needle) !== -1
+      let displayPackage =
+        elem.textContent.toLowerCase().indexOf(needle) !== -1
       elem.style.display = displayPackage ? "block" : "none"
-    })
+    });
 
     this.list.style.display = "block"
   }
@@ -47,14 +50,15 @@ class PackageFilter {
     })
 
     document.addEventListener("keyup", function (event) {
-      if (event.code === 27) { // "ESC" keyCode
-      instance.input.value = ""
-      instance.filterPackages()
-    }
-  })
+      if (event.code === 27) {
+        // "ESC" keyCode
+        instance.input.value = ""
+        instance.filterPackages()
+      }
+    });
 
-  instance.readHash()
-}
+    instance.readHash()
+  }
 }
 
 export default PackageFilter
