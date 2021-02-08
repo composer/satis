@@ -1,5 +1,5 @@
-import { formatDistanceToNow } from 'date-fns'
-import { enUS } from 'date-fns/locale'
+import formatDistanceToNow from 'date-fns/formatDistanceToNow'
+import enUS from 'date-fns/locale/en-US'
 
 class DateDistance {
   static calculate(elements) {
