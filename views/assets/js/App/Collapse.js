@@ -54,6 +54,7 @@ class Collapse {
 
       const naturalHeight = element.getBoundingClientRect().height;
       element.dataset.naturalHeight = naturalHeight;
+      element.style.overflow = "hidden";
       element.style.maxHeight = initiallyVisible ? naturalHeight + "px" : 0;
       element.style.transition = "max-height 0.25s";
       element.setAttribute(
