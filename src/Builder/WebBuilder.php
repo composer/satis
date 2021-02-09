@@ -29,6 +29,18 @@ class WebBuilder extends Builder
     private $dependencies;
     /** @var Environment */
     private $twig;
+    /** @var string[string] The labels for the fields to toggle on the front end */
+    private $fieldsToToggle = [
+        'description' => 'Description',
+        'type' => 'Type',
+        'keywords' => 'Keywords',
+        'homepage' => 'Homepage',
+        'license' => 'License',
+        'authors' => 'Authors',
+        'support' => 'Support',
+        'releases' => 'Releases',
+        'required-by' => 'Required by',
+    ];
 
     public function dump(array $packages): void
     {
@@ -55,6 +67,7 @@ class WebBuilder extends Builder
             'keywords' => $this->rootPackage->getKeywords(),
             'packages' => $mappedPackages,
             'dependencies' => $this->dependencies,
+            'fieldsToToggle' => $this->fieldsToToggle,
         ]);
 
         file_put_contents($this->outputDir . '/index.html', $content);

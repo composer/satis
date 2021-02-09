@@ -34,7 +34,7 @@
     </header>
 
     <form class="my-3">
-        <div class="form-group">
+        <div class="input-group">
             <label for="search" class="sr-only">Filter packages</label>
             <input type="text"
                 id="search"
@@ -42,6 +42,39 @@
                 placeholder="Filter packages"
                 autocomplete="off"
                 autofocus>
+            <div class="input-group-append">
+                <button
+                    id="toggle-fields-form"
+                    class="btn btn-outline-secondary d-none"
+                    type="button"
+                    aria-pressed="false"
+                    data-toggle="collapse"
+                    data-target="#toggle-fields"
+                >Toggle Fields</button>
+            </div>
+        </div>
+    </form>
+    <form class="my-3 collapse" id="toggle-fields" aria-expanded="false">
+        <div class="form-group">
+            <p class="h6">Fields to display on packages:</p>
+            <div class="form-check form-check-inline">
+                <button
+                    id="toggle-field-all"
+                    class="btn btn-sm btn-primary"
+                    type="reset"
+                    disabled>Show All</button>
+            </div>
+            {% for fieldName, label in fieldsToToggle %}
+            <div class="form-check form-check-inline">
+                <input
+                    id="toggle-field-{{ fieldName }}"
+                    class="form-check-input toggle-field"
+                    type="checkbox"
+                    value="{{ fieldName }}"
+                    checked>
+                <label class="form-check-label" for="toggle-field-{{ fieldName }}">{{ label }}</label>
+            </div>
+            {% endfor %}
         </div>
     </form>
 

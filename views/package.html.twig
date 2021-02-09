@@ -26,7 +26,7 @@
 
     <div class="card-body">
         {% if package.highest.description %}
-        <p>{{ package.highest.description }}</p>
+        <p class="field-description">{{ package.highest.description }}</p>
         {% endif %}
 
         <dl class="{{ row_class }}">
@@ -34,13 +34,13 @@
             <dd class="{{ col2_class }}"></dd>
 
         {% if package.highest.type %}
-            <dt class="{{ col1_class }}">Type</dt>
-            <dd class="{{ col2_class }}">{{ package.highest.type }}</dd>
+            <dt class="{{ col1_class }} field-type">Type</dt>
+            <dd class="{{ col2_class }} field-type">{{ package.highest.type }}</dd>
         {% endif %}
 
         {% if package.highest.keywords %}
-            <dt class="{{ col1_class }}">Keywords</dt>
-            <dd class="{{ col2_class }}">
+            <dt class="{{ col1_class }} field-keywords">Keywords</dt>
+            <dd class="{{ col2_class }} field-keywords">
                 {% for keyword in package.highest.keywords|sort %}
                 <span class="badge badge-secondary">{{ keyword }}</span>
                 {% endfor %}
@@ -48,20 +48,20 @@
         {% endif %}
 
         {% if package.highest.homepage %}
-            <dt class="{{ col1_class }}">Homepage</dt>
-            <dd class="{{ col2_class }}">
+            <dt class="{{ col1_class }} field-homepage">Homepage</dt>
+            <dd class="{{ col2_class }} field-homepage">
                 <a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a>
             </dd>
         {% endif %}
 
         {% if package.highest.license %}
-            <dt class="{{ col1_class }}">License</dt>
-            <dd class="{{ col2_class }}">{{ package.highest.license|join(', ') }}</dd>
+            <dt class="{{ col1_class }} field-license">License</dt>
+            <dd class="{{ col2_class }} field-license">{{ package.highest.license|join(', ') }}</dd>
         {% endif %}
 
         {% if package.highest.authors %}
-            <dt class="{{ col1_class }}">Authors</dt>
-            <dd class="{{ col2_class }}">
+            <dt class="{{ col1_class }} field-authors">Authors</dt>
+            <dd class="{{ col2_class }} field-authors">
                 {% for author in package.highest.authors %}
                     {%- if author.homepage -%}
                         <a href="{{ author.homepage }}">{{ author.name }}</a>
@@ -74,8 +74,8 @@
         {% endif %}
 
         {% if package.highest.support %}
-            <dt class="{{ col1_class }}">Support</dt>
-            <dd class="{{ col2_class }}">
+            <dt class="{{ col1_class }} field-support">Support</dt>
+            <dd class="{{ col2_class }} field-support">
                 <ul class="list-unstyled m-0">
                     {% for support_type, support_url in package.highest.support %}
                     <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
@@ -84,8 +84,8 @@
             </dd>
         {% endif %}
 
-            <dt class="{{ col1_class }}">Releases</dt>
-            <dd class="{{ col2_class }}">
+            <dt class="{{ col1_class }} field-releases">Releases</dt>
+            <dd class="{{ col2_class }} field-releases">
                 {% for version in package.versions %}
 
                 {% set branch_alias = attribute(version.extra['branch-alias'], version.prettyVersion) %}
@@ -109,8 +109,8 @@
         {% set package_dependencies = attribute(dependencies, name) %}
 
         {% if package_dependencies and package_dependencies|length %}
-            <dt class="{{ col1_class }}">Required by</dt>
-            <dd class="{{ col2_class }}">
+            <dt class="{{ col1_class }} field-required-by">Required by</dt>
+            <dd class="{{ col2_class }} field-required-by">
                 <ul class="list-unstyled m-0">
                     {% for dependency in package_dependencies %}
                     <li><a href="#{{ dependency }}">{{ dependency }}</a></li>
