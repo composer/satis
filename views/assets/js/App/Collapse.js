@@ -48,8 +48,7 @@ class Collapse {
 
     // Keep track of the natural heights of the collapsed elements
     this.collapsibleElements.forEach(function (element) {
-      const initiallyVisible =
-        Array.prototype.indexOf.call(element.classList, "show") !== -1;
+      const initiallyVisible = element.classList.contains("show");
       element.classList.add("show");
 
       const naturalHeight = element.getBoundingClientRect().height;

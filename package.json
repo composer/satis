@@ -3,8 +3,8 @@
     "@symfony/webpack-encore": "^1.0.5",
     "bootstrap": "^4.6.0",
     "date-fns": "^2.17.0",
-    "node-sass": "^5.0.0",
     "popper.js": "^1.14.3",
+    "sass": "^1.32.6",
     "sass-loader": "^10.0.0"
   },
   "license": "MIT",
