@@ -3,7 +3,7 @@
 {% set col2_class = 'col-sm-9 col-md-10' %}
 
 <div class="card {% if package.abandoned %}border-danger{% else %}border-primary{% endif %} mb-3">
-    <div id="{{ package.highest.name }}" class="card-header {% if package.abandoned %}bg-danger{% else %}bg-primary{% endif %}">
+    <div id="{{ package.highest.name }}" class="card-header field-name filter-by {% if package.abandoned %}bg-danger{% else %}bg-primary{% endif %}">
         <a href="#{{ package.highest.name }}" class="text-white">
             <svg class="octicon-link" width="16" height="16">
                 <use xlink:href="#octicon-link"></use>
@@ -26,7 +26,7 @@
 
     <div class="card-body">
         {% if package.highest.description %}
-        <p class="field-description">{{ package.highest.description }}</p>
+        <p class="field-description filter-by">{{ package.highest.description }}</p>
         {% endif %}
 
         <dl class="{{ row_class }}">
@@ -35,12 +35,12 @@
 
         {% if package.highest.type %}
             <dt class="{{ col1_class }} field-type">Type</dt>
-            <dd class="{{ col2_class }} field-type">{{ package.highest.type }}</dd>
+            <dd class="{{ col2_class }} field-type filter-by">{{ package.highest.type }}</dd>
         {% endif %}
 
         {% if package.highest.keywords %}
             <dt class="{{ col1_class }} field-keywords">Keywords</dt>
-            <dd class="{{ col2_class }} field-keywords">
+            <dd class="{{ col2_class }} field-keywords filter-by">
                 {% for keyword in package.highest.keywords|sort %}
                 <span class="badge badge-secondary">{{ keyword }}</span>
                 {% endfor %}
@@ -49,19 +49,19 @@
 
         {% if package.highest.homepage %}
             <dt class="{{ col1_class }} field-homepage">Homepage</dt>
-            <dd class="{{ col2_class }} field-homepage">
+            <dd class="{{ col2_class }} field-homepage filter-by">
                 <a href="{{ package.highest.homepage }}">{{ package.highest.homepage }}</a>
             </dd>
         {% endif %}
 
         {% if package.highest.license %}
             <dt class="{{ col1_class }} field-license">License</dt>
-            <dd class="{{ col2_class }} field-license">{{ package.highest.license|join(', ') }}</dd>
+            <dd class="{{ col2_class }} field-license filter-by">{{ package.highest.license|join(', ') }}</dd>
         {% endif %}
 
         {% if package.highest.authors %}
             <dt class="{{ col1_class }} field-authors">Authors</dt>
-            <dd class="{{ col2_class }} field-authors">
+            <dd class="{{ col2_class }} field-authors filter-by">
                 {% for author in package.highest.authors %}
                     {%- if author.homepage -%}
                         <a href="{{ author.homepage }}">{{ author.name }}</a>
@@ -75,7 +75,7 @@
 
         {% if package.highest.support %}
             <dt class="{{ col1_class }} field-support">Support</dt>
-            <dd class="{{ col2_class }} field-support">
+            <dd class="{{ col2_class }} field-support filter-by">
                 <ul class="list-unstyled m-0">
                     {% for support_type, support_url in package.highest.support %}
                     <li>{{ support_type|capitalize }}: <a href="{{ support_url }}">{{ support_url }}</a></li>
@@ -85,7 +85,7 @@
         {% endif %}
 
             <dt class="{{ col1_class }} field-releases">Releases</dt>
-            <dd class="{{ col2_class }} field-releases">
+            <dd class="{{ col2_class }} field-releases filter-by">
                 {% for version in package.versions %}
 
                 {% set branch_alias = attribute(version.extra['branch-alias'], version.prettyVersion) %}
@@ -110,7 +110,7 @@
 
         {% if package_dependencies and package_dependencies|length %}
             <dt class="{{ col1_class }} field-required-by">Required by</dt>
-            <dd class="{{ col2_class }} field-required-by">
+            <dd class="{{ col2_class }} field-required-by filter-by">
                 <ul class="list-unstyled m-0">
                     {% for dependency in package_dependencies %}
                     <li><a href="#{{ dependency }}">{{ dependency }}</a></li>

@@ -39,7 +39,18 @@
 @import "~bootstrap/scss/print";
 
 pre.file {
-    border-left: 2px solid $primary;
-    background-color: $light;
-    padding: map-get($spacers, 2);
+  border-left: 2px solid $primary;
+  background-color: $light;
+  padding: map-get($spacers, 2);
+}
+
+.toggle-settings {
+  svg {
+    fill: currentColor;
+    pointer-events: none;
+    transition: transform 0.25s;
+  }
+  &.active svg {
+    transform: rotate(45deg);
+  }
 }
