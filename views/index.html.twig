@@ -36,45 +36,99 @@
     <form class="my-3">
         <div class="input-group">
             <label for="search" class="sr-only">Filter packages</label>
-            <input type="text"
+            <input type="search"
                 id="search"
                 class="form-control"
                 placeholder="Filter packages"
                 autocomplete="off"
                 autofocus>
+            <select class="custom-select filter-field">
+                <option value="all" selected disabled hidden>Filter by..</option>
+                <option value="all">All fields</option>
+                <optgroup label="Specific field...">
+                    <option value="name">Name</option>
+                    {% for fieldName, label in fieldsToToggle %}
+                    <option value="{{ fieldName }}">{{ label }}</option>
+                    {% endfor %}
+                </optgroup>
+            </select>
             <div class="input-group-append">
                 <button
-                    id="toggle-fields-form"
-                    class="btn btn-outline-secondary d-none"
+                    class="btn btn-outline-secondary d-none toggle-settings"
                     type="button"
                     aria-pressed="false"
+                    aria-label="Toggle settings"
+                    title="Toggle settings"
                     data-toggle="collapse"
-                    data-target="#toggle-fields"
-                >Toggle Fields</button>
+                    data-target=".settings"
+                >
+                    <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" role="img">
+                        <path d="M11.998 7.66A4.339 4.339 0 007.661 12a4.342 4.342 0 004.337 4.34A4.33 4.33 0 0016.323 12a4.327 4.327 0 00-4.325-4.34zm8.697 6.833l-.782 1.883 1.395 2.739.184.362-1.933 1.933-3.173-1.498-1.883.773-.956 2.927-.122.388h-2.733l-1.183-3.303-1.883-.777-2.743 1.391-.362.181-1.933-1.932 1.497-3.174-.776-1.882-2.921-.954L0 13.425v-2.732L3.306 9.51l.775-1.88-1.39-2.745-.183-.36 1.93-1.93L7.615 4.09l1.88-.778.956-2.924.123-.388h2.732l1.183 3.307 1.879.778 2.744-1.392.365-.184 1.931 1.93-1.496 3.172.773 1.885 2.93.955.385.123v2.73l-3.305 1.189z"/>
+                    </svg>
+                </button>
             </div>
         </div>
     </form>
-    <form class="my-3 collapse" id="toggle-fields" aria-expanded="false">
-        <div class="form-group">
-            <p class="h6">Fields to display on packages:</p>
-            <div class="form-check form-check-inline">
-                <button
-                    id="toggle-field-all"
-                    class="btn btn-sm btn-primary"
-                    type="reset"
-                    disabled>Show All</button>
+    <form class="my-3 card collapse settings" aria-expanded="false">
+        <div class="card-body">
+            <div class="form-group">
+                <p class="h6">Default package &quot;filter by&quot; field:</p>
+                <div class="form-check form-check-inline">
+                    <input
+                        id="package-filter-last"
+                        class="form-check-input"
+                        type="radio"
+                        name="default-filter"
+                        value="all"
+                        checked>
+                    <label class="form-check-label" for="package-filter-last">Search in all fields</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        id="package-filter-recent"
+                        class="form-check-input"
+                        type="radio"
+                        name="default-filter"
+                        value="recent">
+                    <label class="form-check-label" for="package-filter-recent">Most recently selected field</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input
+                        id="package-filter-custom"
+                        class="form-check-input"
+                        type="radio"
+                        name="default-filter"
+                        value="custom">
+                    <label class="form-check-label" for="package-filter-custom">Use this field:</label>
+                    <select class="custom-select ml-2 default-filter-field">
+                        <option value="all" selected disabled hidden>Select field...</option>
+                        <option value="name">Name</option>
+                        {% for fieldName, label in fieldsToToggle %}
+                        <option value="{{ fieldName }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
             </div>
-            {% for fieldName, label in fieldsToToggle %}
-            <div class="form-check form-check-inline">
-                <input
-                    id="toggle-field-{{ fieldName }}"
-                    class="form-check-input toggle-field"
-                    type="checkbox"
-                    value="{{ fieldName }}"
-                    checked>
-                <label class="form-check-label" for="toggle-field-{{ fieldName }}">{{ label }}</label>
+            <div class="form-group mb-0">
+                <p class="h6">Fields to display on packages:</p>
+                <div class="form-check form-check-inline">
+                    <button
+                        id="toggle-field-all"
+                        class="btn btn-sm btn-primary"
+                        disabled>Show All</button>
+                </div>
+                {% for fieldName, label in fieldsToToggle %}
+                <div class="form-check form-check-inline">
+                    <input
+                        id="toggle-field-{{ fieldName }}"
+                        class="form-check-input toggle-field"
+                        type="checkbox"
+                        value="{{ fieldName }}"
+                        checked>
+                    <label class="form-check-label" for="toggle-field-{{ fieldName }}">{{ label }}</label>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </form>
 
