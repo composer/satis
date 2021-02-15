@@ -1,22 +1,22 @@
-const Encore = require("@symfony/webpack-encore")
+const Encore = require("@symfony/webpack-encore");
 
-Encore
-  .addEntry("app", "./views/assets/js/app.js")
+Encore.addEntry("app", "./views/assets/js/app.js")
   .addStyleEntry("style", "./views/assets/css/style.scss")
   .cleanupOutputBeforeBuild()
   .disableSingleRuntimeChunk()
   .enableSassLoader()
+  .enableEslintLoader()
   .enableSourceMaps(!Encore.isProduction())
   .setOutputPath("views/build/")
-  .setPublicPath("/build")
+  .setPublicPath("/build");
 
-const config = Encore.getWebpackConfig()
+const config = Encore.getWebpackConfig();
 
 // Set IE11-friendly defaults
 // https://webpack.js.org/configuration/output/#outputenvironment
-config.output.environment = config.output.environment || {}
-config.output.environment.arrowFunction = false
-config.output.environment.const = false
-config.output.environment.destructuring = false
+config.output.environment = config.output.environment || {};
+config.output.environment.arrowFunction = false;
+config.output.environment.const = false;
+config.output.environment.destructuring = false;
 
-module.exports = config
+module.exports = config;

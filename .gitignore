@@ -5,4 +5,5 @@
 /.phpunit.result.cache
 /composer.phar
 /phpunit.xml
+/clover.xml
 /satis.phar

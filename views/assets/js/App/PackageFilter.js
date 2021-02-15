@@ -68,7 +68,7 @@ class PackageFilter {
       // Get content either from specific fields, or the whole package
       const filterableContent = this.filterByValue
         ? elem.querySelector(".field-" + this.filterByValue + ".filter-by")
-            ?.textContent || ""
+            .textContent
         : elem.textContent;
 
       // Does the search term exist within the given content?

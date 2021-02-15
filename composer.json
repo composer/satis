@@ -48,5 +48,8 @@
         "branch-alias": {
             "dev-main": "2.0-dev"
         }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
     }
 }
