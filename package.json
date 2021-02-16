@@ -3,7 +3,7 @@
     "@symfony/webpack-encore": "^1.1.0",
     "bootstrap": "^4.6.0",
     "date-fns": "^2.17.0",
-    "eslint-loader": "^4.0.2",
+    "eslint-webpack-plugin": "^2.5.1",
     "husky": "^5.0.9",
     "lint-staged": "^10.5.4",
     "prettier": "^2.2.1",

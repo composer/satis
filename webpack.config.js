@@ -1,11 +1,12 @@
 const Encore = require("@symfony/webpack-encore");
+const ESLintPlugin = require("eslint-webpack-plugin");
 
 Encore.addEntry("app", "./views/assets/js/app.js")
   .addStyleEntry("style", "./views/assets/css/style.scss")
   .cleanupOutputBeforeBuild()
   .disableSingleRuntimeChunk()
   .enableSassLoader()
-  .enableEslintLoader()
+  .addPlugin(new ESLintPlugin())
   .enableSourceMaps(!Encore.isProduction())
   .setOutputPath("views/build/")
   .setPublicPath("/build");
