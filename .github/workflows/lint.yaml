@@ -1,6 +1,6 @@
-name: PHP Lint (full)
+name: Lint
 
-on: pull_request
+on: push
 
 jobs:
 
@@ -8,8 +8,12 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
+
     - name: Checkout
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
     - name: Lint Code Base
       uses: github/super-linter@v3
       env:
@@ -19,3 +23,8 @@ jobs:
         VALIDATE_PHP_BUILTIN: true
         VALIDATE_JSON: true
         VALIDATE_YAML: true
+        VALIDATE_JAVASCRIPT: true
+        LINTER_RULES_PATH: /
+        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
+        JAVASCRIPT_DEFAULT_STYLE: prettier
+        YAML_CONFIG_FILE: .yamllint
