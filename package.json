@@ -12,6 +12,9 @@
   },
   "license": "MIT",
   "private": true,
+  "engines": {
+    "npm": ">=7.0"
+  },
   "scripts": {
     "prepare": "husky install",
     "dev-server": "encore dev-server",
