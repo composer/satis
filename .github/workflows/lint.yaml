@@ -4,27 +4,30 @@ on: push
 
 jobs:
 
-  lint:
-    name: Lint
+  javascript:
+    name: Javascript
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm ci
+      - run: npm run eslint
+      - run: npm run prettier:ci
 
-    - name: Checkout
-      uses: actions/checkout@v2
-      with:
-        fetch-depth: 0
+  php:
+    name: PHP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.0'
+      - run: find . -type f -name '*.php' -exec php -l {} \;
 
-    - name: Lint Code Base
-      uses: github/super-linter@v3
-      env:
-        DEFAULT_BRANCH: main
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        VALIDATE_ALL_CODEBASE: true
-        VALIDATE_PHP_BUILTIN: true
-        VALIDATE_JSON: true
-        VALIDATE_YAML: true
-        VALIDATE_JAVASCRIPT: true
-        LINTER_RULES_PATH: /
-        JAVASCRIPT_ES_CONFIG_FILE: .eslintrc.json
-        JAVASCRIPT_DEFAULT_STYLE: prettier
-        YAML_CONFIG_FILE: .yamllint
+  yaml:
+    name: Yaml
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ibiqlik/action-yamllint@v3
