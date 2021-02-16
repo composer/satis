@@ -12,6 +12,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
+      - run: npm --version
       - run: npm ci
       - run: npm run eslint
       - run: npm run prettier:ci
