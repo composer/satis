@@ -42,7 +42,7 @@
             <dt class="{{ col1_class }} field-keywords">Keywords</dt>
             <dd class="{{ col2_class }} field-keywords filter-by">
                 {% for keyword in package.highest.keywords|sort %}
-                <span class="badge badge-secondary">{{ keyword }}</span>
+                <span class="badge badge-info">{{ keyword }}</span>
                 {% endfor %}
             </dd>
         {% endif %}
@@ -85,7 +85,7 @@
         {% endif %}
 
             <dt class="{{ col1_class }} field-releases">Releases</dt>
-            <dd class="{{ col2_class }} field-releases filter-by">
+            <dd class="{{ col2_class }} field-releases filter-by" data-package-name="{{ package.highest.name }}">
                 {% for version in package.versions %}
 
                 {% set branch_alias = attribute(version.extra['branch-alias'], version.prettyVersion) %}
@@ -96,13 +96,12 @@
                 {%- if package.highest.type == 'metapackage' -%}
                 {{ version.prettyVersion }}
                 {%- elseif version.distType -%}
-                <a href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                <a class="badge badge-pill badge-secondary" href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- elseif version.sourceUrl matches '#^https?:\/\/#' -%}
-                <a href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                <a class="badge badge-pill badge-secondary"  href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
-                <span title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
+                <span class="badge badge-pill badge-secondary"  title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
                 {%- endif -%}
-                {%- if not loop.last -%}, {% endif -%}
                 {% endfor %}
             </dd>
 
