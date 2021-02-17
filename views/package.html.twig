@@ -94,13 +94,13 @@
                 {%- endif -%}
 
                 {%- if package.highest.type == 'metapackage' -%}
-                {{ version.prettyVersion }}
+                <span class="badge badge-pill badge-secondary" tabindex="0">{{ version.prettyVersion }}</span>
                 {%- elseif version.distType -%}
                 <a class="badge badge-pill badge-secondary" href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- elseif version.sourceUrl matches '#^https?:\/\/#' -%}
-                <a class="badge badge-pill badge-secondary"  href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                <a class="badge badge-pill badge-secondary" href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
-                <span class="badge badge-pill badge-secondary"  title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
+                <span class="badge badge-pill badge-secondary" tabindex="0" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
                 {%- endif -%}
                 {% endfor %}
             </dd>

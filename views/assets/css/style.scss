@@ -55,6 +55,10 @@ pre.file {
   }
 }
 
+// Copy code snippets
+.field-releases .badge {
+  cursor: pointer;
+}
 .copy-snippet {
   &__button svg {
     fill: currentColor;
