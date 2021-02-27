@@ -261,6 +261,11 @@
                     "description": "A hash of domain name => github API oauth tokens, typically {\"github.com\":\"<token>\"}.",
                     "additionalProperties": true
                 },
+                "gitlab-token": {
+                    "type": "object",
+                    "description": "A hash of domain name => gitlab API tokens, typically {\"gitlab.com\":\"<token>\"}.",
+                    "additionalProperties": true
+                },
                 "http-basic": {
                     "type": "object",
                     "description": "A hash of domain name => {\"username\": \"...\", \"password\": \"...\"}.",
