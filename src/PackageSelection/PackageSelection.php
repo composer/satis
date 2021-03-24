@@ -746,6 +746,12 @@ class PackageSelection
                 $uniqueName = $package->getUniqueName();
                 $prettyVersion = $package->getPrettyVersion();
 
+                if (!is_string($prettyVersion)) {
+                    $this->output->writeln('<notice>Skipping ' . $package->getPrettyName() . ' (' . $prettyVersion . ') due to invalid version type</notice>');
+
+                    continue;
+                }
+
                 // Check if + character is present, only once according to Semver;
                 // otherwise metadata will stripped as usual
                 if (1 === substr_count($prettyVersion, '+')) {
