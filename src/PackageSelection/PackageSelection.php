@@ -27,6 +27,7 @@ use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
+use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\EmptyConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
@@ -158,8 +159,6 @@ class PackageSelection
             return BasePackage::$stabilities[$value];
         }, $this->minimumStabilityPerPackage);
 
-        $pool = new Pool($this->minimumStability, $stabilityFlags);
-
         if ($this->hasRepositoryFilter()) {
             $repos = $this->filterRepositories($repos);
 
@@ -180,27 +179,33 @@ class PackageSelection
             }
         }
 
-        $this->addRepositories($pool, $repos);
+        $repositorySet = new RepositorySet($this->minimumStability, $stabilityFlags);
+        $this->addRepositories($repositorySet, $repos);
 
         // determine the required packages
         $rootLinks = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
 
+        $pool = $repositorySet->createPoolWithAllPackages();
+        $packages = array_unique(array_map(static fn (PackageInterface $package) => $package->getName(), $pool->getPackages()));
         // select the required packages and determine dependencies
         $depsLinks = $this->selectLinks($pool, $rootLinks, true, $verbose);
 
         if ($this->requireDependencies || $this->requireDevDependencies) {
+            $repositorySet = new RepositorySet($this->minimumStability, $stabilityFlags);
+            $this->addRepositories($repositorySet, $repos);
             // dependencies of required packages might have changed and be part of filtered repos
             if ($this->hasRepositoryFilter() && true !== $this->repositoryFilterDep) {
-                $this->addRepositories($pool, \array_filter($initialRepos, function ($r) use ($repos) {
+                $this->addRepositories($repositorySet, \array_filter($initialRepos, function ($r) use ($repos) {
                     return false === \in_array($r, $repos);
                 }));
             }
 
             // additional repositories for dependencies
             if (!$this->hasRepositoryFilter() || true !== $this->repositoryFilterDep) {
-                $this->addRepositories($pool, $this->getDepRepos($composer));
+                $this->addRepositories($repositorySet, $this->getDepRepos($composer));
             }
 
+            $pool = $repositorySet->createPoolForPackages($packages);
             // select dependencies
             $this->selectLinks($pool, $depsLinks, false, $verbose);
         }
@@ -530,11 +535,11 @@ class PackageSelection
      *
      * @throws \Exception
      */
-    private function addRepositories(Pool $pool, array $repositories): void
+    private function addRepositories(RepositorySet $repositorySet, array $repositories): void
     {
         foreach ($repositories as $repository) {
             try {
-                $pool->addRepository($repository);
+                $repositorySet->addRepository($repository);
             } catch (\Exception $exception) {
                 if (!$this->skipErrors) {
                     throw $exception;

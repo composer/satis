@@ -43,7 +43,7 @@ class ArchiveBuilder extends Builder
         /* @var DownloadManager $downloadManager */
         $downloadManager = $this->composer->getDownloadManager();
         /* @var ArchiveManager $archiveManager */
-        $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
+        $archiveManager = $this->composer->getArchiveManager();
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
