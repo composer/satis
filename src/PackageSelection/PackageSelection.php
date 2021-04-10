@@ -185,10 +185,8 @@ class PackageSelection
         // determine the required packages
         $rootLinks = $this->requireAll ? $this->getAllLinks($repos, $this->minimumStability, $verbose) : $this->getFilteredLinks($composer);
 
-        $pool = $repositorySet->createPoolWithAllPackages();
-        $packages = array_unique(array_map(static fn (PackageInterface $package) => $package->getName(), $pool->getPackages()));
         // select the required packages and determine dependencies
-        $depsLinks = $this->selectLinks($pool, $rootLinks, true, $verbose);
+        $depsLinks = $this->selectLinks($repositorySet, $rootLinks, true, $verbose);
 
         if ($this->requireDependencies || $this->requireDevDependencies) {
             $repositorySet = new RepositorySet($this->minimumStability, $stabilityFlags);
@@ -205,14 +203,13 @@ class PackageSelection
                 $this->addRepositories($repositorySet, $this->getDepRepos($composer));
             }
 
-            $pool = $repositorySet->createPoolForPackages($packages);
             // select dependencies
-            $this->selectLinks($pool, $depsLinks, false, $verbose);
+            $this->selectLinks($repositorySet, $depsLinks, false, $verbose);
         }
 
         $this->setSelectedAsAbandoned();
 
-        $this->pruneBlacklisted($pool, $verbose);
+        $this->pruneBlacklisted($repositorySet, $verbose);
         $this->pruneByType($verbose);
 
         ksort($this->selected, SORT_STRING);
@@ -562,20 +559,21 @@ class PackageSelection
     /**
      * Removes selected packages which are blacklisted in configuration.
      *
-     * @param Pool $pool
+     * @param RepositorySet $repositorySet
      * @param bool $verbose
      *
      * @return PackageInterface[]
      */
-    private function pruneBlacklisted($pool, $verbose): array
+    private function pruneBlacklisted(RepositorySet $repositorySet, $verbose): array
     {
         $blacklisted = [];
         if ($this->hasBlacklist()) {
             $parser = new VersionParser();
+            $pool = $repositorySet->createPoolWithAllPackages();
             foreach ($this->selected as $selectedKey => $package) {
                 foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
                     $constraint = $parser->parseConstraints($blacklistConstraint);
-                    if ($pool->match($package, $blacklistName, $constraint, false)) {
+                    if ($pool->match($package, $blacklistName, $constraint)) {
                         if ($verbose) {
                             $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                         }
@@ -660,6 +658,7 @@ class PackageSelection
         $links = [];
 
         foreach ($repositories as $repository) {
+            // @fixme methods are private since Composer 2.
             if ($repository instanceof ComposerRepository && $repository->hasProviders()) {
                 foreach ($repository->getProviderNames() as $name) {
                     $links[] = new Link('__root__', $name, new EmptyConstraint(), 'requires', '*');
@@ -695,7 +694,7 @@ class PackageSelection
      *
      * @return Link[]
      */
-    private function selectLinks(Pool $pool, array $links, bool $isRoot, bool $verbose): array
+    private function selectLinks(RepositorySet $repositorySet, array $links, bool $isRoot, bool $verbose): array
     {
         $depsLinks = $isRoot ? [] : $links;
 
@@ -716,11 +715,11 @@ class PackageSelection
             } elseif (is_a($link, Link::class)) {
                 $name = $link->getTarget();
                 if (!$isRoot && $this->onlyBestCandidates) {
-                    $selector = new VersionSelector($pool);
+                    $selector = new VersionSelector($repositorySet);
                     $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
                     $matches = $match ? [$match] : [];
                 } else {
-                    $matches = $pool->whatProvides($name, $link->getConstraint(), true);
+                    $matches = $repositorySet->createPoolForPackage($link->getTarget())->whatProvides($name, $link->getConstraint());
                 }
 
                 if (0 === \count($matches)) {
@@ -734,6 +733,7 @@ class PackageSelection
                     $package = $package->getId();
                 });
                 $m = [];
+                $pool = $repositorySet->createPoolWithAllPackages();
                 foreach ($policies as $policy) {
                     $pm = $policy->selectPreferredPackages($pool, [], $matches);
                     if (isset($pm[0])) {

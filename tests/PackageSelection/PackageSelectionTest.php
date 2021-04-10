@@ -21,6 +21,7 @@ use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Repository\ArrayRepository;
+use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\Constraint;
 use Composer\Semver\Constraint\MatchAllConstraint;
 use PHPUnit\Framework\TestCase;
@@ -253,7 +254,7 @@ class PackageSelectionTest extends TestCase
      */
     public function testPruneBlacklisted(array $expected, array $selected, array $config)
     {
-        $pool = new Pool();
+        $repositorySet = new RepositorySet();
         $builder = new PackageSelection(new NullOutput(), 'build', [
             'blacklist' => $config,
         ], false);
@@ -265,7 +266,7 @@ class PackageSelectionTest extends TestCase
 
         $method = $reflection->getMethod('pruneBlacklisted');
         $method->setAccessible(true);
-        $method->invokeArgs($builder, [$pool, false]);
+        $method->invokeArgs($builder, [$repositorySet, false]);
 
         $this->assertEquals(array_values($expected), array_values($property->getValue($builder)));
     }
@@ -349,10 +350,21 @@ class PackageSelectionTest extends TestCase
             ],
         ];
 
-        $repo['everything'] = [
+        $repo['alpha'] = [
             'type' => 'package',
-            'url' => 'example.org/everything',
-            'package' => \array_values($packages),
+            'url' => 'example.org/project-alpha',
+            'package' => [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+            ],
+        ];
+        $repo['beta'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-beta',
+            'package' => [
+                $packages['beta'],
+                $packages['beta-dev'],
+            ],
         ];
         $repo['gamma'] = [
             'type' => 'package',
@@ -369,6 +381,34 @@ class PackageSelectionTest extends TestCase
             'url' => 'example.org/project-delta',
             'package' => $packages['delta'],
         ];
+        $repo['epsilon'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-epsilon',
+            'package' => [
+                $packages['epsilon'],
+            ],
+        ];
+        $repo['epsilon'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-epsilon',
+            'package' => [
+                $packages['epsilon'],
+            ],
+        ];
+        $repo['zeta'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-zeta',
+            'package' => [
+                $packages['zeta'],
+            ],
+        ];
+        $repo['eta'] = [
+            'type' => 'package',
+            'url' => 'example.org/project-eta',
+            'package' => [
+                $packages['eta'],
+            ],
+        ];
 
         foreach ($packages as &$p) {
             $p = $p['name'] . '-' . $p['version'];
@@ -379,9 +419,7 @@ class PackageSelectionTest extends TestCase
         $data['Require-all'] = [
             $packages,
             [
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
             ],
         ];
 
@@ -395,9 +433,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'minimum-stability' => 'stable',
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-alpha' => '>=1',
                     'vendor/project-gamma' => '>=1',
@@ -413,9 +449,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'minimum-stability' => 'stable',
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-delta' => '>=1',
                 ],
@@ -431,9 +465,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'minimum-stability' => 'stable',
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-epsilon' => '>=1',
                 ],
@@ -451,9 +483,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'minimum-stability' => 'stable',
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-epsilon' => '*',
                     'vendor/project-zeta' => '*',
@@ -473,9 +503,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'minimum-stability' => 'stable',
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-zeta' => '>=1',
                 ],
@@ -492,9 +520,7 @@ class PackageSelectionTest extends TestCase
             ],
             [
                 'minimum-stability' => 'stable',
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-eta' => '>=1',
                 ],
@@ -517,9 +543,7 @@ class PackageSelectionTest extends TestCase
                     $repo['gamma'],
                     $repo['delta'],
                 ],
-                'repositories-dep' => [
-                    $repo['everything'],
-                ],
+                'repositories-dep' => array_values($repo),
                 'require-dependencies' => true,
             ],
         ];
@@ -535,9 +559,7 @@ class PackageSelectionTest extends TestCase
                 'minimum-stability-per-package' => [
                     'vendor/project-alpha' => 'dev',
                 ],
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
                 'require' => [
                     'vendor/project-alpha' => '*',
                     'vendor/project-beta' => '*',
@@ -558,9 +580,7 @@ class PackageSelectionTest extends TestCase
                 'include-types' => [
                     'library',
                 ],
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
             ],
         ];
 
@@ -581,9 +601,7 @@ class PackageSelectionTest extends TestCase
                     'library',
                     'project',
                 ],
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
             ],
         ];
 
@@ -603,9 +621,7 @@ class PackageSelectionTest extends TestCase
                 'exclude-types' => [
                     'project',
                 ],
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
             ],
         ];
 
@@ -625,9 +641,7 @@ class PackageSelectionTest extends TestCase
                     'project',
                     'custom-type',
                 ],
-                'repositories' => [
-                    $repo['everything'],
-                ],
+                'repositories' => array_values($repo),
             ],
         ];
 
@@ -647,12 +661,9 @@ class PackageSelectionTest extends TestCase
         $selection->setRepositoryFilter($filterRepo);
         $selection->setPackagesFilter($filterPackages ?? []);
 
-        $selectionRef = new \ReflectionClass(\get_class($selection));
+        $selection->select($composer, true);
 
-        $select = $selectionRef->getMethod('select');
-        $select->setAccessible(true);
-        $select->invokeArgs($selection, [$composer, true]);
-
+        $selectionRef = new \ReflectionClass(PackageSelection::class);
         $selected = $selectionRef->getProperty('selected');
         $selected->setAccessible(true);
 
@@ -911,7 +922,6 @@ class PackageSelectionTest extends TestCase
 
     public function testOnlyBestCandidates()
     {
-        $pool = new Pool();
         $repository = new ArrayRepository();
 
         $packageA0 = new Package('vendor/a', '1.0.0.0', '1.0');
@@ -937,7 +947,8 @@ class PackageSelectionTest extends TestCase
         $repository->addPackage($packageB2);
         $repository->addPackage($packageC0);
         $repository->addPackage($packageC1);
-        $pool->addRepository($repository);
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository($repository);
 
         $rootConstraint = new Constraint('=', '1.0');
         $rootLink = new Link('top', 'vendor/a', $rootConstraint, new MatchAllConstraint());
@@ -950,7 +961,7 @@ class PackageSelectionTest extends TestCase
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('selectLinks');
         $method->setAccessible(true);
-        $method->invokeArgs($builder, [$pool, [$rootLink], false, false]);
+        $method->invokeArgs($builder, [$repositorySet, [$rootLink], false, false]);
 
         $property = $reflection->getProperty('selected');
         $property->setAccessible(true);
