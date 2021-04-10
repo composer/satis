@@ -22,6 +22,7 @@ use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Repository\ArrayRepository;
 use Composer\Semver\Constraint\Constraint;
+use Composer\Semver\Constraint\MatchAllConstraint;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -104,8 +105,8 @@ class PackageSelectionTest extends TestCase
     public function dataGetRequired(): array
     {
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
-        $link = new Link('test', 'name');
-        $devLink = new Link('devTest', 'name');
+        $link = new Link('test', 'name', new MatchAllConstraint());
+        $devLink = new Link('devTest', 'name', new MatchAllConstraint());
         $package->setRequires([$link]);
         $package->setDevRequires([$devLink]);
 
@@ -922,11 +923,11 @@ class PackageSelectionTest extends TestCase
         $packageC1 = new Package('vendor/c', '1.1.0.0', '1.1');
 
         $constraint1 = new Constraint('=', '1.1');
-        $link1 = new Link('vendor/a', 'vendor/b', $constraint1);
+        $link1 = new Link('vendor/a', 'vendor/b', $constraint1, new MatchAllConstraint());
         $packageA0->setRequires([$link1]);
 
         $constraint2 = new Constraint('<=', '1.1');
-        $link2 = new Link('vendor/b', 'vendor/c', $constraint2);
+        $link2 = new Link('vendor/b', 'vendor/c', $constraint2, new MatchAllConstraint());
         $packageB1->setRequires([$link2]);
 
         $repository->addPackage($packageA0);
@@ -939,7 +940,7 @@ class PackageSelectionTest extends TestCase
         $pool->addRepository($repository);
 
         $rootConstraint = new Constraint('=', '1.0');
-        $rootLink = new Link('top', 'vendor/a', $rootConstraint);
+        $rootLink = new Link('top', 'vendor/a', $rootConstraint, new MatchAllConstraint());
 
         $config = [
           'only-best-candidates' => true,
