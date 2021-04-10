@@ -575,7 +575,7 @@ class PackageSelection
             foreach ($this->selected as $selectedKey => $package) {
                 foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
                     $constraint = $parser->parseConstraints($blacklistConstraint);
-                    if ($pool::MATCH === $pool->match($package, $blacklistName, $constraint, false)) {
+                    if ($pool->match($package, $blacklistName, $constraint, false)) {
                         if ($verbose) {
                             $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                         }
