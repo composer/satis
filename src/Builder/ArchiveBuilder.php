@@ -172,7 +172,7 @@ class ArchiveBuilder extends Builder
         if ($overrideDistType) {
             $originalDistType = $package->getDistType();
             $package->setDistType($format);
-            $packageName = $overriddenPackageName = $archiveManager->getPackageFilename($package);
+            $packageName = $archiveManager->getPackageFilename($package);
             $package->setDistType($originalDistType);
         } else {
             $packageName = $archiveManager->getPackageFilename($package);
