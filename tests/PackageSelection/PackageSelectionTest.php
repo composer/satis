@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Composer\Satis\PackageSelection;
 
 use Composer\Config;
-use Composer\DependencyResolver\Pool;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
@@ -388,13 +387,6 @@ class PackageSelectionTest extends TestCase
                 $packages['epsilon'],
             ],
         ];
-        $repo['epsilon'] = [
-            'type' => 'package',
-            'url' => 'example.org/project-epsilon',
-            'package' => [
-                $packages['epsilon'],
-            ],
-        ];
         $repo['zeta'] = [
             'type' => 'package',
             'url' => 'example.org/project-zeta',
@@ -479,6 +471,8 @@ class PackageSelectionTest extends TestCase
                 $packages['alpha'],
                 $packages['epsilon'],
                 $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
                 $packages['gamma4'],
             ],
             [
@@ -516,6 +510,8 @@ class PackageSelectionTest extends TestCase
             [
                 $packages['eta'],
                 $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
                 $packages['gamma4'],
             ],
             [

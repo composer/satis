@@ -658,9 +658,8 @@ class PackageSelection
         $links = [];
 
         foreach ($repositories as $repository) {
-            // @fixme methods are private since Composer 2.
-            if ($repository instanceof ComposerRepository && $repository->hasProviders()) {
-                foreach ($repository->getProviderNames() as $name) {
+            if ($repository instanceof ComposerRepository) {
+                foreach ($repository->getPackageNames() as $name) {
                     $links[] = new Link('__root__', $name, new EmptyConstraint(), 'requires', '*');
                 }
 
@@ -698,13 +697,6 @@ class PackageSelection
     {
         $depsLinks = $isRoot ? [] : $links;
 
-        $policies = [
-            new DefaultPolicy(true, false),
-            new DefaultPolicy(false, false),
-            new DefaultPolicy(true, true),
-            new DefaultPolicy(false, true),
-        ];
-
         reset($links);
 
         while (null !== key($links)) {
@@ -725,22 +717,6 @@ class PackageSelection
                 if (0 === \count($matches)) {
                     $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
                 }
-            }
-
-            if (!$isRoot && $this->requireDependencyFilter && \count($matches) > 1) {
-                // filter matches like Composer's installer
-                \array_walk($matches, function (&$package) {
-                    $package = $package->getId();
-                });
-                $m = [];
-                $pool = $repositorySet->createPoolWithAllPackages();
-                foreach ($policies as $policy) {
-                    $pm = $policy->selectPreferredPackages($pool, [], $matches);
-                    if (isset($pm[0])) {
-                        $m[] = $pool->packageById($pm[0]);
-                    }
-                }
-                $matches = $m;
             }
 
             foreach ($matches as $package) {
