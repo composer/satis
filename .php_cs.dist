@@ -36,7 +36,6 @@ return (new PhpCsFixer\Config('satis'))
         'ordered_imports' => true,
         'phpdoc_align' => false,
         'phpdoc_order' => true,
-        'phpdoc_align' => false,
         'phpdoc_summary' => false,
         'simplified_null_return' => false,
         'ternary_to_null_coalescing' => true,
