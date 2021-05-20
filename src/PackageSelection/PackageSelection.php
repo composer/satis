@@ -712,7 +712,8 @@ class PackageSelection
                 $name = $link->getTarget();
                 if (!$isRoot && $this->onlyBestCandidates) {
                     $selector = new VersionSelector($pool);
-                    $matches = [$selector->findBestCandidate($name, $link->getConstraint()->getPrettyString())];
+                    $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
+                    $matches = $match ? [ $match ] : [];
                 } else {
                     $matches = $pool->whatProvides($name, $link->getConstraint(), true);
                 }
