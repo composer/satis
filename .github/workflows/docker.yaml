@@ -1,11 +1,6 @@
 name: Docker
 
-on:
-  push:
-    paths:
-    - .github/workflows/docker.yaml
-    - 'Dockerfile'
-    - 'php-cli.ini'
+on: [push, pull_request]
 
 jobs:
 
