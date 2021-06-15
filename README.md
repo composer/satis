@@ -83,6 +83,7 @@ See the list of [contributors][] who participate(d) in this project.
 ## Examples
 
 - [eventum/composer] - A simple static set of packages hosted in GitHub Pages
+- [satis.spatie.be] - A brief guide to setting up and securing a Satis repository
 
 
 ## License
@@ -93,9 +94,7 @@ Satis is licensed under the MIT License - see the [LICENSE][] file for details
 [documentation]: https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md
 [Contributor Code of Conduct]: https://www.contributor-covenant.org/version/2/0/code_of_conduct/
 [contributors]: https://github.com/composer/satis/contributors
-[satis-go]: https://github.com/benschw/satis-go
 [satisfy]: https://github.com/ludofleury/satisfy
-[satis-control-panel]: https://github.com/realshadow/satis-control-panel
-[composer-satis-builder]: https://github.com/AOEpeople/composer-satis-builder
 [LICENSE]: https://github.com/composer/satis/blob/master/LICENSE
 [eventum/composer]: https://github.com/eventum/composer
+[satis.spatie.be]: https://alexvanderbist.com/2021/setting-up-and-securing-a-private-composer-repository/
