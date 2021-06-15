@@ -77,13 +77,7 @@ See the list of [contributors][] who participate(d) in this project.
 
 ## Community Tools
 
-- [satis-go][] - A simple web server for managing Satis configuration and
-    hosting the generated Composer repository.
 - [satisfy][] - Symfony based composer repository manager with a simple web UI.
-- [satis-control-panel][] - Simple web UI for managing your Satis Repository
-    with optional CI integration.
-- [composer-satis-builder][] - Simple tool for updating the Satis configuration
-    (satis.json) "require" key on the basis of the project composer.json.
 
 
 ## Examples
