@@ -91,7 +91,7 @@ Satis is licensed under the MIT License - see the [LICENSE][] file for details
 
 
 [documentation]: https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md
-[Contributor Code of Conduct]: http://contributor-covenant.org/version/1/4/
+[Contributor Code of Conduct]: https://www.contributor-covenant.org/version/2/0/code_of_conduct/
 [contributors]: https://github.com/composer/satis/contributors
 [satis-go]: https://github.com/benschw/satis-go
 [satisfy]: https://github.com/ludofleury/satisfy
