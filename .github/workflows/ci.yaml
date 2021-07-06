@@ -3,6 +3,7 @@ name: Tests
 on: [push, pull_request]
 
 jobs:
+
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -10,47 +11,27 @@ jobs:
       matrix:
         php: [8.1, 8.0, 7.4, 7.3]
         stability: [prefer-lowest, prefer-stable]
-
     name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Setup PHP
+      - uses: actions/checkout@v2
+      - name: setup php
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
           extensions: mbstring
           coverage: xdebug
-
-      - name: Setup problem matchers
+      - name: setup problem matchers
         run: |
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
-
-      - name: Get composer cache directory
+      - name: get composer cache directory
         id: composer-cache
         run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-
-      - name: Cache dependencies
+      - name: restore cached dependencies
         uses: actions/cache@v2
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ matrix.php }}-${{ matrix.stability }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ matrix.php }}-${{ matrix.stability }}-composer-
-
-      - name: Install dependencies
-        run: |
-          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
-          composer --working-dir=tools/php-cs-fixer install
-          composer --working-dir=tools/phpstan install
-
-      - name: Execute phpunit
-        run: composer run test
-
-      - name: Execute php-cs-fixer
-        run: composer run php-cs-fixer
-
-      - name: Execute phpstan
-        run: composer run test
+      - run: composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+      - run: composer run test

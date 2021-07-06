@@ -1,11 +1,10 @@
-name: Lint
+name: lint
 
 on: [push, pull_request]
 
 jobs:
 
   javascript:
-    name: Javascript
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -17,18 +16,38 @@ jobs:
       - run: npm run eslint
       - run: npm run prettier:ci
 
-  php:
-    name: PHP
+  php-cs-fixer:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: shivammathur/setup-php@v2
+      - name: setup php
+        uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.0'
-      - run: find . -type f -name '*.php' -exec php -l {} \;
+          php-version: 8.0
+          extensions: mbstring
+      - name: install dependencies
+        run: |
+          composer install
+          composer --working-dir=tools/php-cs-fixer install
+      - run: composer run php-cs-fixer
+
+  phpstan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: setup php
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.0
+          extensions: mbstring
+          coverage: xdebug
+      - name: install dependencies
+        run: |
+          composer install
+          composer --working-dir=tools/phpstan install
+      - run: composer run phpstan
 
   yaml:
-    name: Yaml
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
