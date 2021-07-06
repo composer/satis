@@ -1,30 +1,19 @@
-name: Docker
+name: docker
 
 on: [push, pull_request]
 
 jobs:
 
-  build:
-
-    name: Build
+  docker:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-
     steps:
-
-    - name: Checkout
-      uses: actions/checkout@v2
-
-    - name: Build
-      run: docker build --pull --no-cache --tag composer/satis .
-
-    - name: Registry login
-      if: github.ref == 'refs/heads/main'
+    - uses: actions/checkout@v2
+    - run: docker build --pull --no-cache --tag composer/satis .
+    - if: github.ref == 'refs/heads/main'
       uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-    - name: Push tag(s)
-      if: github.ref == 'refs/heads/main'
+    - if: github.ref == 'refs/heads/main'
       run: docker push composer/satis
