@@ -122,7 +122,7 @@ EOT
         $io->loadConfiguration($this->getConfiguration());
 
         if (preg_match('{^https?://}i', $configFile)) {
-            $rfs = new RemoteFilesystem($io);
+            $rfs = new RemoteFilesystem($io, $this->getConfiguration());
             $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
             $config = JsonFile::parseJson($contents, $configFile);
         } else {

@@ -18,6 +18,7 @@ use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
 use Composer\Repository\VcsRepository;
+use Composer\Util\HttpDownloader;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -118,7 +119,8 @@ EOT
         $io = new NullIO();
         $config = Factory::createConfig();
         $io->loadConfiguration($config);
-        $repository = new VcsRepository(['url' => $repositoryUrl, 'type' => $type], $io, $config);
+        $downloader = new HttpDownloader($io, $config);
+        $repository = new VcsRepository(['url' => $repositoryUrl, 'type' => $type], $io, $config, $downloader);
 
         if (!($driver = $repository->getDriver())) {
             return false;
