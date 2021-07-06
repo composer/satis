@@ -2,7 +2,9 @@
 /bin/
 /docs/
 /res/
+/resultCaches/
 /tests/
+/tools/
 /vendor/
 /views/build/
 /box.json
