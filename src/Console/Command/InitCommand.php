@@ -35,10 +35,11 @@ class InitCommand extends BaseCommand
                 new InputOption('name', null, InputOption::VALUE_REQUIRED, 'Repository name'),
                 new InputOption('homepage', null, InputOption::VALUE_REQUIRED, 'Home page'),
             ])
-            ->setHelp(<<<'EOT'
-The <info>init</info> generates configuration file (satis.json is used by default).
-You will need to run <comment>build</comment> command to build repository.
-EOT
+            ->setHelp(
+                <<<'EOT'
+                The <info>init</info> generates configuration file (satis.json is used by default).
+                You will need to run <comment>build</comment> command to build repository.
+                EOT
             )
         ;
     }
