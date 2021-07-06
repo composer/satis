@@ -1,4 +1,4 @@
-FROM composer:1 AS build
+FROM composer:latest AS build
 
 WORKDIR /satis
 
@@ -16,7 +16,7 @@ RUN set -eux ; \
     --no-suggest \
     --classmap-authoritative
 
-FROM php:7-cli-alpine
+FROM php:8-cli-alpine
 
 RUN set -eux ; \
   apk add --no-cache --upgrade \
