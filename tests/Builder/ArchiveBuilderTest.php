@@ -20,7 +20,7 @@ use Composer\Downloader\DownloadManager;
 use Composer\Json\JsonFile;
 use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
-use Composer\Package\PackageInterface;
+use Composer\Package\CompletePackageInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Filesystem\Filesystem;
@@ -77,24 +77,18 @@ class ArchiveBuilderTest extends TestCase
             )
         );
 
-        $archiveManager = $this->getMockBuilder(ArchiveManager::class)->disableOriginalConstructor()->getMock();
-        $archiveManager->method('getPackageFilename')->will(
-            $this->returnCallback(
-                \Closure::bind(function (PackageInterface $package) {
-                    return ArchiveManager::getPackageFilename($package);
-                }, $archiveManager)
-            )
-        );
-        $archiveManager->method('archive')->will(
-            $this->returnCallback(
-                \Closure::bind(function (PackageInterface $package, $format, $targetDir) {
-                    $target = $targetDir.'/'.ArchiveManager::getPackageFilename($package).'.'.$format;
-                    touch($target);
+        $archiveManager = new class() extends ArchiveManager {
+            public function __construct()
+            {
+            }
+            public function archive(CompletePackageInterface $package, $format, $targetDir, $fileName = null, $ignoreFilters = false)
+            {
+                $target = $targetDir.'/'.$this->getPackageFilename($package).'.'.$format;
+                touch($target);
 
-                    return $target;
-                }, $archiveManager)
-            )
-        );
+                return $target;
+            }
+        };
 
         $this->composer = new Composer();
         $this->composer->setConfig($composerConfig);

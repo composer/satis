@@ -14,8 +14,6 @@ declare(strict_types=1);
 namespace Composer\Satis\PackageSelection;
 
 use Composer\Composer;
-use Composer\DependencyResolver\DefaultPolicy;
-use Composer\DependencyResolver\Pool;
 use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
@@ -28,7 +26,7 @@ use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Repository\RepositorySet;
-use Composer\Semver\Constraint\EmptyConstraint;
+use Composer\Semver\Constraint\MatchAllConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -472,6 +470,7 @@ class PackageSelection
             $urltype = 'name';
         }
 
+        $urlunpack = null;
         if ('ipv4' === $urltype || 'ipv6' === $urltype) {
             $urlunpack = unpack('N*', @inet_pton($url));
         }
@@ -659,7 +658,7 @@ class PackageSelection
         foreach ($repositories as $repository) {
             if ($repository instanceof ComposerRepository) {
                 foreach ($repository->getPackageNames() as $name) {
-                    $links[] = new Link('__root__', $name, new EmptyConstraint(), 'requires', '*');
+                    $links[] = new Link('__root__', $name, new MatchAllConstraint(), 'requires', '*');
                 }
 
                 continue;
@@ -700,7 +699,7 @@ class PackageSelection
 
         while (null !== key($links)) {
             $link = current($links);
-
+            $matches = [];
             if (is_a($link, PackageInterface::class)) {
                 $matches = [$link];
             } elseif (is_a($link, Link::class)) {
