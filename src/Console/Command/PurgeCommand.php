@@ -34,14 +34,14 @@ class PurgeCommand extends BaseCommand
                 new InputArgument('dry-run', InputArgument::OPTIONAL, 'Dry run, allows to inspect what might be deleted', null),
             ])
             ->setHelp(
-<<<'EOT'
-The <info>purge</info> command deletes useless archive files, depending
-on given json file (satis.json is used by default) and the
-newest json file in the include directory of the given output-dir.
+                <<<'EOT'
+                The <info>purge</info> command deletes useless archive files, depending
+                on given json file (satis.json is used by default) and the
+                newest json file in the include directory of the given output-dir.
 
-In your satis.json (or other name you give), you must define
-"archive" argument. You also need to define "homepage" argument or "SATIS_HOMEPAGE" environment variable if you don't use archive "prefix-url" argument.
-EOT
+                In your satis.json (or other name you give), you must define
+                "archive" argument. You also need to define "homepage" argument or "SATIS_HOMEPAGE" environment variable if you don't use archive "prefix-url" argument.
+                EOT
             );
     }
 

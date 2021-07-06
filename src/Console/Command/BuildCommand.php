@@ -49,58 +49,58 @@ class BuildCommand extends BaseCommand
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
             ])
-            ->setHelp(<<<'EOT'
-The <info>build</info> command reads the given json file
-(satis.json is used by default) and outputs a composer
-repository in the given output-dir.
+            ->setHelp(
+                <<<'EOT'
+                The <info>build</info> command reads the given json file
+                (satis.json is used by default) and outputs a composer
+                repository in the given output-dir.
 
-The json config file accepts the following keys:
+                The json config file accepts the following keys:
 
-- <info>"repositories"</info>: defines which repositories are searched
-  for packages.
-- <info>"repositories-dep"</info>: define additional repositories for dependencies
-- <info>"output-dir"</info>: where to output the repository files
-  if not provided as an argument when calling build.
-- <info>"require-all"</info>: boolean, if true, all packages present
-  in the configured repositories will be present in the
-  dumped satis repository.
-- <info>"require"</info>: if you do not want to dump all packages,
-  you can explicitly require them by name and version.
-- <info>"minimum-stability"</info>: sets default stability for packages
-  (default: dev), see
-  http://getcomposer.org/doc/04-schema.md#minimum-stability
-- <info>"require-dependencies"</info>: if you mark a few packages as
-  required to mirror packagist for example, setting this
-  to true will make satis automatically require all of your
-  requirements' dependencies.
-- <info>"require-dev-dependencies"</info>: works like require-dependencies
-  but requires dev requirements rather than regular ones.
-- <info>"only-dependencies"</info>: only require dependencies - choose this if you want to build
-  a mirror of your project's dependencies without building packages for the main project repositories.
-- <info>"config"</info>: all config options from composer, see
-  http://getcomposer.org/doc/04-schema.md#config
-- <info>"strip-hosts"</info>: boolean or an array of domains, IPs, CIDR notations, '/local' (=localnet and other reserved)
-  or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.
-- <info>"output-html"</info>: boolean, controls whether the repository
-  has an html page as well or not.
-- <info>"name"</info>: for html output, this defines the name of the
-  repository.
-- <info>"homepage"</info>: for html output and urls in meta data files, this defines the home URL
-  of the repository (where you will host it). Build command allows this to be overloaded in SATIS_HOMEPAGE environment variable.
-- <info>"twig-template"</info>: Location of twig template to use for
-  building the html output.
-- <info>"abandoned"</info>: Packages that are abandoned. As the key use the
-  package name, as the value use true or the replacement package.
-- <info>"blacklist"</info>: Packages and versions which should be excluded from the final package list.
-- <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration. 
-  The resulting satis repository will contain only one or two versions of each project.
-- <info>"notify-batch"</info>: Allows you to specify a URL that will
-  be called every time a user installs a package, see
-  https://getcomposer.org/doc/05-repositories.md#notify-batch
-- <info>"include-filename"</info> Specify filename instead of default include/all${SHA1_HASH}.json
-- <info>"archive"</info> archive configuration, see https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#downloads
-
-EOT
+                - <info>"repositories"</info>: defines which repositories are searched
+                  for packages.
+                - <info>"repositories-dep"</info>: define additional repositories for dependencies
+                - <info>"output-dir"</info>: where to output the repository files
+                  if not provided as an argument when calling build.
+                - <info>"require-all"</info>: boolean, if true, all packages present
+                  in the configured repositories will be present in the
+                  dumped satis repository.
+                - <info>"require"</info>: if you do not want to dump all packages,
+                  you can explicitly require them by name and version.
+                - <info>"minimum-stability"</info>: sets default stability for packages
+                  (default: dev), see
+                  http://getcomposer.org/doc/04-schema.md#minimum-stability
+                - <info>"require-dependencies"</info>: if you mark a few packages as
+                  required to mirror packagist for example, setting this
+                  to true will make satis automatically require all of your
+                  requirements' dependencies.
+                - <info>"require-dev-dependencies"</info>: works like require-dependencies
+                  but requires dev requirements rather than regular ones.
+                - <info>"only-dependencies"</info>: only require dependencies - choose this if you want to build
+                  a mirror of your project's dependencies without building packages for the main project repositories.
+                - <info>"config"</info>: all config options from composer, see
+                  http://getcomposer.org/doc/04-schema.md#config
+                - <info>"strip-hosts"</info>: boolean or an array of domains, IPs, CIDR notations, '/local' (=localnet and other reserved)
+                  or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.
+                - <info>"output-html"</info>: boolean, controls whether the repository
+                  has an html page as well or not.
+                - <info>"name"</info>: for html output, this defines the name of the
+                  repository.
+                - <info>"homepage"</info>: for html output and urls in meta data files, this defines the home URL
+                  of the repository (where you will host it). Build command allows this to be overloaded in SATIS_HOMEPAGE environment variable.
+                - <info>"twig-template"</info>: Location of twig template to use for
+                  building the html output.
+                - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
+                  package name, as the value use true or the replacement package.
+                - <info>"blacklist"</info>: Packages and versions which should be excluded from the final package list.
+                - <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration. 
+                  The resulting satis repository will contain only one or two versions of each project.
+                - <info>"notify-batch"</info>: Allows you to specify a URL that will
+                  be called every time a user installs a package, see
+                  https://getcomposer.org/doc/05-repositories.md#notify-batch
+                - <info>"include-filename"</info> Specify filename instead of default include/all${SHA1_HASH}.json
+                - <info>"archive"</info> archive configuration, see https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#downloads
+                EOT
             );
     }
 

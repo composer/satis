@@ -38,11 +38,12 @@ class AddCommand extends BaseCommand
                 new InputOption('type', null, InputOption::VALUE_OPTIONAL, 'VCS driver (see https://getcomposer.org/doc/05-repositories.md#git-alternatives)', 'vcs'),
                 new InputOption('name', null, InputOption::VALUE_OPTIONAL, 'The name of the repository, will be added to satis.json', null),
             ])
-            ->setHelp(<<<'EOT'
-The <info>add</info> command adds given repository URL to the json file
-(satis.json is used by default). You will need to run <comment>build</comment> command to
-fetch updates from repository.
-EOT
+            ->setHelp(
+                <<<'EOT'
+                The <info>add</info> command adds given repository URL to the json file
+                (satis.json is used by default). You will need to run <comment>build</comment> command to
+                fetch updates from repository.
+                EOT
             )
         ;
     }

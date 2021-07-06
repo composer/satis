@@ -81,6 +81,7 @@ class ArchiveBuilderTest extends TestCase
             public function __construct()
             {
             }
+
             public function archive(CompletePackageInterface $package, $format, $targetDir, $fileName = null, $ignoreFilters = false)
             {
                 $target = $targetDir.'/'.$this->getPackageFilename($package).'.'.$format;
