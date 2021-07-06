@@ -1,6 +1,4 @@
-<?php
-
-/* This config requires PHP-CS-Fixer version ^2.9 */
+<?php declare(strict_types=1);
 
 $header = <<<EOF
 This file is part of composer/satis.
@@ -14,13 +12,16 @@ EOF;
 $finder = (new PhpCsFixer\Finder())
     ->files()
     ->name('*.php')
-    ->in(__DIR__.'/src')
-    ->in(__DIR__.'/tests')
-    ->in(__DIR__.'/views')
+    ->in([
+        __DIR__.'/src',
+        __DIR__.'/tests',
+        __DIR__.'/views',
+    ])
 ;
 
 return (new PhpCsFixer\Config('satis'))
     ->setRiskyAllowed(true)
+    ->setFinder($finder)
     ->setRules([
         // default
         '@PSR2' => true,
@@ -40,5 +41,4 @@ return (new PhpCsFixer\Config('satis'))
         'simplified_null_return' => false,
         'ternary_to_null_coalescing' => true,
     ])
-    ->setFinder($finder)
 ;

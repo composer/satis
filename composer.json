@@ -41,9 +41,8 @@
     },
     "require-dev": {
         "ext-json": "*",
-        "friendsofphp/php-cs-fixer": "^2.19",
         "mikey179/vfsstream": "^1.6.8",
-        "symfony/phpunit-bridge": "^5.3"
+        "phpunit/phpunit": "^9.5"
     },
     "autoload-dev": {
         "psr-4": { "Composer\\Satis\\": "tests" }
@@ -54,6 +53,9 @@
         }
     },
     "scripts": {
-        "test": "vendor/bin/phpunit"
+        "test": "vendor/bin/phpunit",
+        "phpstan": "tools/phpstan/vendor/bin/phpstan",
+        "php-cs-fixer": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix --dry-run",
+        "php-cs-fixer-fix": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix"
     }
 }

@@ -1,0 +1,7 @@
+parameters:
+	level: 1
+	tmpDir: .
+
+	paths:
+		- src
+		- tests

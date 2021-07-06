@@ -559,7 +559,6 @@ class PackageSelection
     /**
      * Removes selected packages which are blacklisted in configuration.
      *
-     * @param RepositorySet $repositorySet
      * @param bool $verbose
      *
      * @return PackageInterface[]
