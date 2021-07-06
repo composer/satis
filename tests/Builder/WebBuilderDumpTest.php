@@ -17,6 +17,7 @@ use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\RootPackage;
 use Composer\Satis\Builder\WebBuilder;
+use Composer\Semver\Constraint\MatchAllConstraint;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamWrapper;
@@ -82,7 +83,7 @@ class WebBuilderDumpTest extends TestCase
 
     public function testDependencies()
     {
-        $link = new Link('dummytest', 'vendor/name');
+        $link = new Link('dummytest', 'vendor/name', new MatchAllConstraint());
         $this->package->setRequires([$link]);
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);

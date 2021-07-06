@@ -25,21 +25,25 @@
         "irc": "irc://freenode.net/composer"
     },
     "bin": ["bin/satis"],
+    "replace": {
+        "symfony/polyfill-php72": "*",
+        "symfony/polyfill-php73": "*"
+    },
     "require": {
         "php": "^7.3||^8.0",
-        "composer/composer": "^1.10",
+        "composer/composer": "^2.1",
         "symfony/console": "^4.4||^5.0",
-        "twig/twig": "^2.12||^3.0",
-        "twig/html-extra": "^3.2"
+        "twig/twig": "^3.3",
+        "twig/html-extra": "^3.3"
     },
     "autoload": {
         "psr-4": { "Composer\\Satis\\": "src" }
     },
     "require-dev": {
         "ext-json": "*",
-        "friendsofphp/php-cs-fixer": "^2.15",
-        "mikey179/vfsstream": "^1.6.7",
-        "phpunit/phpunit": "^9.3"
+        "friendsofphp/php-cs-fixer": "^2.19",
+        "mikey179/vfsstream": "^1.6.8",
+        "symfony/phpunit-bridge": "^5.3"
     },
     "autoload-dev": {
         "psr-4": { "Composer\\Satis\\": "tests" }

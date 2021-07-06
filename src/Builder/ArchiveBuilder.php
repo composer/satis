@@ -43,7 +43,7 @@ class ArchiveBuilder extends Builder
         /* @var DownloadManager $downloadManager */
         $downloadManager = $this->composer->getDownloadManager();
         /* @var ArchiveManager $archiveManager */
-        $archiveManager = $factory->createArchiveManager($composerConfig, $downloadManager);
+        $archiveManager = $this->composer->getArchiveManager();
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
@@ -101,36 +101,15 @@ class ArchiveBuilder extends Builder
 
                 $intermediatePath = preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
 
-                $packageName = $archiveManager->getPackageFilename($package);
-
                 if ('pear-library' === $package->getType()) {
-                    // PEAR packages are archives already
-                    $filesystem = new Filesystem();
-                    $path = sprintf(
-                        '%s/%s/%s.%s',
-                        realpath($basedir),
-                        $intermediatePath,
-                        $packageName,
-                        pathinfo($package->getDistUrl(), PATHINFO_EXTENSION)
-                    );
-
-                    if (!file_exists($path)) {
-                        $downloadDir = sys_get_temp_dir() . '/composer_archiver/' . $packageName;
-                        $filesystem->ensureDirectoryExists($downloadDir);
-                        $downloadManager->download($package, $downloadDir, false);
-                        $filesystem->ensureDirectoryExists(dirname($path));
-                        $filesystem->rename($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
-                        $filesystem->removeDirectory($downloadDir);
-                    }
-
-                    // Set archive format to `file` to tell composer to download it as is
-                    $archiveFormat = 'file';
-                } else {
-                    $targetDir = sprintf('%s/%s', $basedir, $intermediatePath);
-
-                    $path = $this->archive($downloadManager, $archiveManager, $package, $targetDir);
-                    $archiveFormat = pathinfo($path, PATHINFO_EXTENSION);
+                    /* @see https://github.com/composer/composer/commit/44a4429978d1b3c6223277b875762b2930e83e8c */
+                    throw new \RuntimeException('The PEAR repository has been removed from Composer 2.0');
                 }
+
+                $targetDir = sprintf('%s/%s', $basedir, $intermediatePath);
+
+                $path = $this->archive($downloadManager, $archiveManager, $package, $targetDir);
+                $archiveFormat = pathinfo($path, PATHINFO_EXTENSION);
 
                 $archive = basename($path);
                 $distUrl = sprintf('%s/%s/%s/%s', $endpoint, $this->config['archive']['directory'], $intermediatePath, $archive);
@@ -193,7 +172,7 @@ class ArchiveBuilder extends Builder
         if ($overrideDistType) {
             $originalDistType = $package->getDistType();
             $package->setDistType($format);
-            $packageName = $overriddenPackageName = $archiveManager->getPackageFilename($package);
+            $packageName = $archiveManager->getPackageFilename($package);
             $package->setDistType($originalDistType);
         } else {
             $packageName = $archiveManager->getPackageFilename($package);
