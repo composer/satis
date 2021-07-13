@@ -48,6 +48,7 @@ class BuildCommand extends BaseCommand
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
+                new InputOption('minify', null, InputOption::VALUE_NONE, 'Minify output'),
             ])
             ->setHelp(
                 <<<'EOT'
@@ -116,6 +117,7 @@ class BuildCommand extends BaseCommand
         $packagesFilter = $input->getArgument('packages');
         $repositoryUrl = $input->getOption('repository-url');
         $skipErrors = (bool) $input->getOption('skip-errors');
+        $minify = (bool) $input->getOption('minify');
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
@@ -207,7 +209,7 @@ class BuildCommand extends BaseCommand
             ksort($packages);
         }
 
-        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors);
+        $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors, $minify);
         $packagesBuilder->dump($packages);
 
         if ($htmlView = !$input->getOption('no-html-output')) {
