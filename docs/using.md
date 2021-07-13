@@ -76,7 +76,7 @@ temporary solution.
 
 You can tell Satis to selectively update only particular packages or process
 only a repository with a given URL. This cuts down the time it takes to rebuild
-the `package.json` file and is helpful if you use (custom) webhooks to trigger
+the `packages.json` file and is helpful if you use (custom) webhooks to trigger
 rebuilds whenever code is pushed into one of your repositories.
 
 To rebuild only particular packages, pass the package names on the command line
