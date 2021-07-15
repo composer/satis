@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
+use Composer\MetadataMinifier\MetadataMinifier;
 use Composer\Package\Dumper\ArrayDumper;
 use Composer\Package\PackageInterface;
 use Composer\Semver\VersionParser;
-use Composer\MetadataMinifier\MetadataMinifier;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class PackagesBuilder extends Builder
