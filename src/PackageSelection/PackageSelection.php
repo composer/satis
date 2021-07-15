@@ -17,6 +17,7 @@ use Composer\Composer;
 use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
+use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
@@ -376,9 +377,9 @@ class PackageSelection
             }
 
             @list($host, $mask) = explode('/', $entry, 2);
-
             $host = @inet_pton($host);
 
+            /** @var string|null $mask */
             if (false === $host || (int) $mask != $mask) {
                 $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $entry));
                 continue;
@@ -408,7 +409,7 @@ class PackageSelection
             return;
         }
 
-        /** @var PackageInterface $package */
+        /** @var CompletePackage $package */
         foreach ($this->selected as $uniqueName => $package) {
             $sources = [];
 
@@ -548,6 +549,7 @@ class PackageSelection
 
     private function setSelectedAsAbandoned(): void
     {
+        /** @var CompletePackage $package */
         foreach ($this->selected as $name => $package) {
             if (array_key_exists($package->getName(), $this->abandoned)) {
                 $package->setAbandoned($this->abandoned[$package->getName()]);
@@ -558,11 +560,9 @@ class PackageSelection
     /**
      * Removes selected packages which are blacklisted in configuration.
      *
-     * @param bool $verbose
-     *
      * @return PackageInterface[]
      */
-    private function pruneBlacklisted(RepositorySet $repositorySet, $verbose): array
+    private function pruneBlacklisted(RepositorySet $repositorySet, bool $verbose): array
     {
         $blacklisted = [];
         if ($this->hasBlacklist()) {

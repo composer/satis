@@ -20,6 +20,7 @@ use Composer\Satis\Builder\WebBuilder;
 use Composer\Semver\Constraint\MatchAllConstraint;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
+use org\bovigo\vfs\vfsStreamFile;
 use org\bovigo\vfs\vfsStreamWrapper;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
@@ -56,32 +57,36 @@ class WebBuilderDumpTest extends TestCase
         return $root;
     }
 
-    public function testNominalCase()
+    public function testNominalCase(): void
     {
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
         $webBuilder->dump([$this->package]);
 
-        $html = $this->root->getChild('build/index.html')->getContent();
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/index.html');
+        $html = $file->getContent();
 
         $this->assertMatchesRegularExpression('/<title>dummy root package<\/title>/', $html);
         $this->assertMatchesRegularExpression('{<div id="[^"]+" class="card-header[^"]+">\s*<a href="#vendor/name" class="[^"]+">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</div>}si', $html);
         $this->assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
     }
 
-    public function testRepositoryWithNoName()
+    public function testRepositoryWithNoName(): void
     {
         $this->rootPackage = new RootPackage('__root__', 0, 0);
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
         $webBuilder->dump([$this->package]);
 
-        $html = $this->root->getChild('build/index.html')->getContent();
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/index.html');
+        $html = $file->getContent();
 
         $this->assertMatchesRegularExpression('/<title>A<\/title>/', $html);
     }
 
-    public function testDependencies()
+    public function testDependencies(): void
     {
         $link = new Link('dummytest', 'vendor/name', new MatchAllConstraint());
         $this->package->setRequires([$link]);
@@ -89,7 +94,9 @@ class WebBuilderDumpTest extends TestCase
         $webBuilder->setRootPackage($this->rootPackage);
         $webBuilder->dump([$this->package]);
 
-        $html = $this->root->getChild('build/index.html')->getContent();
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/index.html');
+        $html = $file->getContent();
 
         $this->assertMatchesRegularExpression('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
@@ -116,14 +123,16 @@ class WebBuilderDumpTest extends TestCase
      *
      * @param bool|string $abandoned
      */
-    public function testAbandoned($abandoned, string $expected)
+    public function testAbandoned($abandoned, string $expected): void
     {
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
         $this->package->setAbandoned($abandoned);
         $webBuilder->dump([$this->package]);
 
-        $html = $this->root->getChild('build/index.html')->getContent();
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/index.html');
+        $html = $file->getContent();
 
         $this->assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
         $this->assertMatchesRegularExpression($expected, $html);
