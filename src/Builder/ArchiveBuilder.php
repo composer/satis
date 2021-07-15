@@ -68,7 +68,7 @@ class ArchiveBuilder extends Builder
             );
         }
 
-        /* @var CompletePackage $package */
+        /** @var CompletePackage $package */
         foreach ($packages as $package) {
             if ($helper->isSkippable($package)) {
                 continue;
