@@ -41,7 +41,7 @@ class WebBuilderDumpTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->rootPackage = new RootPackage('dummy root package', 0, 0);
+        $this->rootPackage = new RootPackage('dummy root package', '0', '0');
 
         $this->package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
@@ -74,7 +74,7 @@ class WebBuilderDumpTest extends TestCase
 
     public function testRepositoryWithNoName(): void
     {
-        $this->rootPackage = new RootPackage('__root__', 0, 0);
+        $this->rootPackage = new RootPackage('__root__', '0', '0');
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
         $webBuilder->dump([$this->package]);

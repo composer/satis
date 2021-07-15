@@ -18,6 +18,7 @@ use Composer\Downloader\DownloadManager;
 use Composer\Factory;
 use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
+use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Symfony\Component\Console\Helper\ProgressBar;
@@ -158,7 +159,7 @@ class ArchiveBuilder extends Builder
         return $this;
     }
 
-    private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, PackageInterface $package, string $targetDir): string
+    private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, CompletePackageInterface $package, string $targetDir): string
     {
         $format = (string) ($this->config['archive']['format'] ?? 'zip');
         $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);

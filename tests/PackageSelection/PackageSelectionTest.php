@@ -929,11 +929,11 @@ class PackageSelectionTest extends TestCase
         $packageC1 = new Package('vendor/c', '1.1.0.0', '1.1');
 
         $constraint1 = new Constraint('=', '1.1');
-        $link1 = new Link('vendor/a', 'vendor/b', $constraint1, new MatchAllConstraint());
+        $link1 = new Link('vendor/a', 'vendor/b', $constraint1, Link::TYPE_REQUIRE);
         $packageA0->setRequires([$link1]);
 
         $constraint2 = new Constraint('<=', '1.1');
-        $link2 = new Link('vendor/b', 'vendor/c', $constraint2, new MatchAllConstraint());
+        $link2 = new Link('vendor/b', 'vendor/c', $constraint2, Link::TYPE_REQUIRE);
         $packageB1->setRequires([$link2]);
 
         $repository->addPackage($packageA0);
@@ -947,7 +947,7 @@ class PackageSelectionTest extends TestCase
         $repositorySet->addRepository($repository);
 
         $rootConstraint = new Constraint('=', '1.0');
-        $rootLink = new Link('top', 'vendor/a', $rootConstraint, new MatchAllConstraint());
+        $rootLink = new Link('top', 'vendor/a', $rootConstraint, Link::TYPE_REQUIRE);
 
         $config = [
           'only-best-candidates' => true,

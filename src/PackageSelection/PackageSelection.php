@@ -434,9 +434,9 @@ class PackageSelection
                 if ($this->matchStripHostsPatterns($url)) {
                     if ('dist' === $type) {
                         // if the type is not set, ArrayDumper ignores the other properties
-                        $package->setDistType(null);
+                        $package->setDistType('');
                     } else {
-                        $package->setSourceType(null);
+                        $package->setSourceType('');
                     }
 
                     unset($sources[$index]);
@@ -568,6 +568,7 @@ class PackageSelection
         if ($this->hasBlacklist()) {
             $parser = new VersionParser();
             $pool = $repositorySet->createPoolWithAllPackages();
+            /** @var BasePackage $package */
             foreach ($this->selected as $selectedKey => $package) {
                 foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
                     $constraint = $parser->parseConstraints($blacklistConstraint);

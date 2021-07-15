@@ -104,7 +104,7 @@ class ArchiveBuilderHelper
 
         foreach ($list as $entry) {
             $pattern = explode('*', $entry);
-            $pattern = array_map(function ($value) {
+            $pattern = array_map(static function ($value): string {
                 return preg_quote($value, '/');
             }, $pattern);
             $pattern = '/^' . implode('.*', $pattern) . '$/';
