@@ -25,11 +25,11 @@ class WebBuilder extends Builder
 {
     /** @var RootPackageInterface Root package used to build the pages. */
     private $rootPackage;
-    /** @var PackageInterface[] List of calculated required packages. */
+    /** @var array<string, array<string, string>> List of calculated required packages. */
     private $dependencies;
     /** @var Environment */
     private $twig;
-    /** @var string[string] The labels for the fields to toggle on the front end */
+    /** @var array<string, string> The labels for the fields to toggle on the front end */
     private $fieldsToToggle = [
         'description' => 'Description',
         'type' => 'Type',
@@ -123,6 +123,7 @@ class WebBuilder extends Builder
     private function setDependencies(array $packages): self
     {
         $dependencies = [];
+
         foreach ($packages as $package) {
             foreach ($package->getRequires() as $link) {
                 $dependencies[$link->getTarget()][$link->getSource()] = $link->getSource();
