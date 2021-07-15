@@ -1,0 +1,12 @@
+<?php
+
+namespace Composer\Package;
+
+class Package
+{
+    /** @param string|null $type */
+    public function setDistType($type): void {}
+
+    /** @param string|null $type */
+    public function setSourceType($type): void {}
+}

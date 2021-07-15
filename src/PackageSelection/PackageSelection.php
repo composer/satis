@@ -434,9 +434,9 @@ class PackageSelection
                 if ($this->matchStripHostsPatterns($url)) {
                     if ('dist' === $type) {
                         // if the type is not set, ArrayDumper ignores the other properties
-                        $package->setDistType('');
+                        $package->setDistType(null);
                     } else {
-                        $package->setSourceType('');
+                        $package->setSourceType(null);
                     }
 
                     unset($sources[$index]);
