@@ -377,9 +377,9 @@ class PackageSelection
             }
 
             @list($host, $mask) = explode('/', $entry, 2);
-
             $host = @inet_pton($host);
 
+            /** @var string|null $mask */
             if (false === $host || (int) $mask != $mask) {
                 $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $entry));
                 continue;
