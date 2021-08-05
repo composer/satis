@@ -26,7 +26,6 @@ RUN set -eux ; \
     bash \
     curl \
     git \
-    libzip-dev \
     mercurial \
     openssh \
     openssl \
