@@ -18,7 +18,10 @@ RUN set -eux ; \
 
 FROM php:8-cli-alpine
 
+COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
+
 RUN set -eux ; \
+  apk upgrade --no-cache ; \
   apk add --no-cache --upgrade \
     bash \
     curl \
@@ -27,10 +30,13 @@ RUN set -eux ; \
     mercurial \
     openssh \
     openssl \
+    p7zip \
     subversion \
     unzip \
     zip ; \
-  docker-php-ext-install zip
+  install-php-extensions \
+    bz2 \
+    zip
 
 ENV COMPOSER_HOME /composer
 
