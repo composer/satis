@@ -20,6 +20,8 @@ use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Repository\ArrayRepository;
+use Composer\Repository\ConfigurableRepositoryInterface;
+use Composer\Repository\PackageRepository;
 use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\Constraint;
 use Composer\Semver\Constraint\MatchAllConstraint;
@@ -641,20 +643,96 @@ class PackageSelectionTest extends TestCase
             ],
         ];
 
+        $data['Filter by one repository'] = [
+            [
+                $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+            ],
+            [
+                'repositories' => array_values($repo),
+            ],
+            ['example.org/project-gamma'],
+        ];
+
+        $data['Filter by two repositories'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['gamma1'],
+                $packages['gamma2'],
+                $packages['gamma3'],
+                $packages['gamma4'],
+            ],
+            [
+                'repositories' => array_values($repo),
+            ],
+            ['example.org/project-gamma', 'example.org/project-alpha'],
+        ];
+
+        $data['Filter by two repositories and one package name'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+            ],
+            [
+                'repositories' => array_values($repo),
+            ],
+            ['example.org/project-gamma', 'example.org/project-alpha'],
+            ['vendor/project-alpha'],
+        ];
+
+        $data['Filter by one package name'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+            ],
+            [
+                'repositories' => array_values($repo),
+            ],
+            null,
+            ['vendor/project-alpha'],
+        ];
+
+        $data['Filter by two package names'] = [
+            [
+                $packages['alpha'],
+                $packages['alpha-dev'],
+                $packages['eta'],
+            ],
+            [
+                'repositories' => array_values($repo),
+            ],
+            null,
+            ['vendor/project-alpha', 'vendor/project-eta'],
+        ];
+
         return $data;
     }
 
     /**
      * @dataProvider dataSelect
+     *
+     * @param string[]|null $filterRepos
      */
-    public function testSelect(array $expected, array $config, ?string $filterRepo = null, ?array $filterPackages = null)
+    public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null)
     {
+        if (null !== $filterRepos || null !== $filterPackages) {
+            // Need to be able to override the default package repository class to allow testing of the filter options.
+            // basically the following needs to work...
+            // $composer->getRepositoryManager()->setRepositoryClass('package', MockPackageSelectionPackageRepository::class);
+            // Simplest solution is probably for the hash in RepositoryFactory::manager() to be moved in to a static property.
+
+            self::markTestIncomplete('Test cannot be completed.');
+        }
+
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
         $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
 
         $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
-        $selection->setRepositoryFilter($filterRepo);
+        $selection->setRepositoriesFilter($filterRepos);
         $selection->setPackagesFilter($filterPackages ?? []);
 
         $selection->select($composer, true);
@@ -963,5 +1041,27 @@ class PackageSelectionTest extends TestCase
         $property->setAccessible(true);
 
         $this->assertEquals(array_values([$packageA0, $packageB1, $packageC1]), array_values($property->getValue($builder)));
+    }
+}
+
+final class MockPackageSelectionPackageRepository extends PackageRepository implements ConfigurableRepositoryInterface
+{
+    /** @var string */
+    private $name;
+
+    /** @var string */
+    private $url;
+
+    public function __construct(array $config)
+    {
+        $this->name = $config['package']['name'] ?? $config['package'][0]['name'];
+        $this->url = $config['url'];
+
+        parent::__construct($config);
+    }
+
+    public function getRepoConfig()
+    {
+        return ['name' => $this->name, 'url' => $this->url];
     }
 }
