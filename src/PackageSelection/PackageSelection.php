@@ -73,8 +73,8 @@ class PackageSelection
     /** @var array The active package filter to merge. */
     private $packagesFilter = [];
 
-    /** @var string|null The active repository filter to merge. */
-    private $repositoryFilter;
+    /** @var string[]|null The active repository filter to merge. */
+    private $repositoriesFilter;
 
     /** @var bool Apply the filter also for resolving dependencies. */
     private $repositoryFilterDep;
@@ -112,15 +112,18 @@ class PackageSelection
         $this->fetchOptions($config);
     }
 
-    public function setRepositoryFilter(?string $repositoryFilter, bool $forDependencies = false): void
+    /**
+     * @param string[]|null $repositoriesFilter
+     */
+    public function setRepositoriesFilter(?array $repositoriesFilter, bool $forDependencies = false): void
     {
-        $this->repositoryFilter = $repositoryFilter;
+        $this->repositoriesFilter = [] !== $repositoriesFilter ? $repositoriesFilter : null;
         $this->repositoryFilterDep = (bool) $forDependencies;
     }
 
-    public function hasRepositoryFilter(): bool
+    public function hasRepositoriesFilter(): bool
     {
-        return null !== $this->repositoryFilter;
+        return null !== $this->repositoriesFilter;
     }
 
     public function hasBlacklist(): bool
@@ -158,15 +161,11 @@ class PackageSelection
             return BasePackage::$stabilities[$value];
         }, $this->minimumStabilityPerPackage);
 
-        if ($this->hasRepositoryFilter()) {
+        if ($this->hasRepositoriesFilter()) {
             $repos = $this->filterRepositories($repos);
 
             if (0 === count($repos)) {
-                throw new \InvalidArgumentException(sprintf('Specified repository url "%s" does not exist.', $this->repositoryFilter));
-            }
-
-            if (count($repos) > 1) {
-                throw new \InvalidArgumentException(sprintf('Found more than one repository for url "%s".', $this->repositoryFilter));
+                throw new \InvalidArgumentException(sprintf('Specified repository URL(s) "%s" do not exist.', implode('", "', $this->repositoriesFilter)));
             }
         }
 
@@ -191,14 +190,14 @@ class PackageSelection
             $repositorySet = new RepositorySet($this->minimumStability, $stabilityFlags);
             $this->addRepositories($repositorySet, $repos);
             // dependencies of required packages might have changed and be part of filtered repos
-            if ($this->hasRepositoryFilter() && true !== $this->repositoryFilterDep) {
+            if ($this->hasRepositoriesFilter() && true !== $this->repositoryFilterDep) {
                 $this->addRepositories($repositorySet, \array_filter($initialRepos, function ($r) use ($repos) {
                     return false === \in_array($r, $repos);
                 }));
             }
 
             // additional repositories for dependencies
-            if (!$this->hasRepositoryFilter() || true !== $this->repositoryFilterDep) {
+            if (!$this->hasRepositoriesFilter() || true !== $this->repositoryFilterDep) {
                 $this->addRepositories($repositorySet, $this->getDepRepos($composer));
             }
 
@@ -838,18 +837,20 @@ class PackageSelection
      */
     private function filterRepositories(array $repositories): array
     {
-        $url = $this->repositoryFilter;
-
         return array_filter(
             $repositories,
-            static function ($repository) use ($url) {
+            function ($repository) {
                 if (!($repository instanceof ConfigurableRepositoryInterface)) {
                     return false;
                 }
 
                 $config = $repository->getRepoConfig();
 
-                return !(!isset($config['url']) || $config['url'] !== $url);
+                if (!isset($config['url'])) {
+                    return false;
+                }
+
+                return in_array($config['url'], $this->repositoriesFilter, true);
             }
         );
     }
