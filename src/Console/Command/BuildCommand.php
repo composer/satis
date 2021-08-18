@@ -159,7 +159,7 @@ class BuildCommand extends BaseCommand
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
         }
 
-        if (null !== $repositoryUrl && count($packagesFilter) > 0) {
+        if ((null !== $repositoryUrl && [] !== $repositoryUrl) && count($packagesFilter) > 0) {
             throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
         }
 
