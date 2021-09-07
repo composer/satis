@@ -184,7 +184,7 @@ class BuildCommand extends BaseCommand
         $composer = $application->getComposer(true, $config);
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
-        if (null !== $repositoryUrl) {
+        if (null !== $repositoryUrl && [] !== $repositoryUrl) {
             $packageSelection->setRepositoriesFilter($repositoryUrl, (bool) $input->getOption('repository-strict'));
         } else {
             $packageSelection->setPackagesFilter($packagesFilter);
