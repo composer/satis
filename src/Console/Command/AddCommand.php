@@ -27,7 +27,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class AddCommand extends BaseCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('add')
@@ -44,8 +44,7 @@ class AddCommand extends BaseCommand
                 (satis.json is used by default). You will need to run <comment>build</comment> command to
                 fetch updates from repository.
                 EOT
-            )
-        ;
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
