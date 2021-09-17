@@ -33,6 +33,7 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionTest extends TestCase
 {
+
     public function dataGetPackages(): array
     {
         $emptyRepo = new ArrayRepository();
@@ -90,7 +91,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataGetPackages
      */
-    public function testGetPackages(array $expected, array $filter, ArrayRepository $repository)
+    public function testGetPackages(array $expected, array $filter, ArrayRepository $repository): void
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
         if (!empty($filter)) {
@@ -148,7 +149,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataGetRequired
      */
-    public function testGetRequired(array $expected, Package $package, bool $requireDependencies, bool $requireDevDependencies)
+    public function testGetRequired(array $expected, Package $package, bool $requireDependencies, bool $requireDevDependencies): void
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
 
@@ -177,17 +178,17 @@ class PackageSelectionTest extends TestCase
 
         $data = [];
 
-        $data['Nothing Abandonned'] = [
+        $data['Nothing Abandoned'] = [
             [$package->getUniqueName() => $package],
             [],
         ];
 
-        $data['Package Abandonned without Replacement'] = [
+        $data['Package Abandoned without Replacement'] = [
             [$package->getUniqueName() => $packageAbandoned1],
             ['vendor/name' => true],
         ];
 
-        $data['Package Abandonned with Replacement'] = [
+        $data['Package Abandoned with Replacement'] = [
             [$package->getUniqueName() => $packageAbandoned2],
             ['vendor/name' => 'othervendor/othername'],
         ];
@@ -198,7 +199,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataSetSelectedAsAbandoned
      */
-    public function testSetSelectedAsAbandoned(array $expected, array $config)
+    public function testSetSelectedAsAbandoned(array $expected, array $config): void
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
 
@@ -253,7 +254,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataPruneBlacklisted
      */
-    public function testPruneBlacklisted(array $expected, array $selected, array $config)
+    public function testPruneBlacklisted(array $expected, array $selected, array $config): void
     {
         $repositorySet = new RepositorySet();
         $builder = new PackageSelection(new NullOutput(), 'build', [
@@ -716,7 +717,7 @@ class PackageSelectionTest extends TestCase
      *
      * @param string[]|null $filterRepos
      */
-    public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null)
+    public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null): void
     {
         if (null !== $filterRepos || null !== $filterPackages) {
             // Need to be able to override the default package repository class to allow testing of the filter options.
@@ -745,7 +746,7 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
     }
 
-    public function dataMetadataSupport()
+    public function dataMetadataSupport(): array
     {
         $vendorRepo = new ArrayRepository();
 
@@ -773,7 +774,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataMetadataSupport
      */
-    public function testMetadataSupport(array $expected, ArrayRepository $repository)
+    public function testMetadataSupport(array $expected, ArrayRepository $repository): void
     {
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
@@ -962,7 +963,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataClean
      */
-    public function testClean(array $expected, array $config, array $packages)
+    public function testClean(array $expected, array $config, array $packages): void
     {
         $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
         $selectionRef = new \ReflectionClass(\get_class($selection));
@@ -994,7 +995,7 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, $sources);
     }
 
-    public function testOnlyBestCandidates()
+    public function testOnlyBestCandidates(): void
     {
         $repository = new ArrayRepository();
 
@@ -1060,7 +1061,7 @@ final class MockPackageSelectionPackageRepository extends PackageRepository impl
         parent::__construct($config);
     }
 
-    public function getRepoConfig()
+    public function getRepoConfig(): array
     {
         return ['name' => $this->name, 'url' => $this->url];
     }
