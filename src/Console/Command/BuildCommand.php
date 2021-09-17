@@ -34,7 +34,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class BuildCommand extends BaseCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('build')
