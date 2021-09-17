@@ -31,6 +31,7 @@ return (new PhpCsFixer\Config('satis'))
         'concat_space' => false,
         'declare_strict_types' => true,
         'header_comment' => ['header' => $header],
+        'no_superfluous_phpdoc_tags' => false,
         'no_unused_imports' => false,
         'no_useless_else' => true,
         'no_useless_return' => true,
