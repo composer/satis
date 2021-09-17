@@ -85,7 +85,7 @@ class PackageSelectionLoadTest extends TestCase
         return $root;
     }
 
-    public function testNoJsonFile()
+    public function testNoJsonFile(): void
     {
         /*
          * no json filename means empty $packages
@@ -94,7 +94,7 @@ class PackageSelectionLoadTest extends TestCase
         $this->assertEmpty($this->selection->load());
     }
 
-    public function testNoIncludeFile()
+    public function testNoIncludeFile(): void
     {
         /*
          * include file not found means output + empty $packages
@@ -103,7 +103,7 @@ class PackageSelectionLoadTest extends TestCase
         $this->assertEmpty($this->selection->load());
     }
 
-    public function testNoPackagesFilter()
+    public function testNoPackagesFilter(): void
     {
         /*
          * no filterPackages means all $packages
@@ -112,7 +112,7 @@ class PackageSelectionLoadTest extends TestCase
         $this->assertNotEmpty($this->selection->load());
     }
 
-    public function testPackageInFilter()
+    public function testPackageInFilter(): void
     {
         /*
          * json filename + filterPackages :
@@ -121,7 +121,7 @@ class PackageSelectionLoadTest extends TestCase
         $this->assertEmpty($this->selection->load());
     }
 
-    public function testPackageNotInFilter()
+    public function testPackageNotInFilter(): void
     {
         /*
          * json filename + filterPackages :
@@ -131,7 +131,7 @@ class PackageSelectionLoadTest extends TestCase
         $this->assertNotEmpty($this->selection->load());
     }
 
-    public function testAliasNotSelected()
+    public function testAliasNotSelected(): void
     {
         $this->selection->setPackagesFilter(['othervendor/othername']);
         $packages = $this->selection->load();
