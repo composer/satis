@@ -33,7 +33,6 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionTest extends TestCase
 {
-
     public function dataGetPackages(): array
     {
         $emptyRepo = new ArrayRepository();
