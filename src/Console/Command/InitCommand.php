@@ -25,7 +25,7 @@ use Symfony\Component\Console\Question\Question;
 
 class InitCommand extends BaseCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('init')
@@ -40,8 +40,7 @@ class InitCommand extends BaseCommand
                 The <info>init</info> generates configuration file (satis.json is used by default).
                 You will need to run <comment>build</comment> command to build repository.
                 EOT
-            )
-        ;
+            );
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output): void
@@ -126,7 +125,7 @@ class InitCommand extends BaseCommand
         });
     }
 
-    protected function prompt(InputInterface $input, OutputInterface $output, string $prompt, string $optionName, callable $validator)
+    protected function prompt(InputInterface $input, OutputInterface $output, string $prompt, string $optionName, callable $validator): void
     {
         /** @var QuestionHelper $helper */
         $helper = $this->getHelper('question');
