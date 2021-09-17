@@ -24,7 +24,7 @@ use Symfony\Component\Finder\SplFileInfo;
 
 class PurgeCommand extends BaseCommand
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this->setName('purge')
             ->setDescription('Purge packages')
