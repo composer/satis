@@ -664,7 +664,16 @@ class PackageSelection
                 continue;
             }
 
-            $packages = $this->getPackages($repository);
+            try {
+                $packages = $this->getPackages($repository);
+            } catch (\Exception $exception) {
+                if (!$this->skipErrors) {
+                    throw $exception;
+                }
+
+                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                continue;
+            }
 
             foreach ($packages as $package) {
                 if ($package instanceof AliasPackage) {
