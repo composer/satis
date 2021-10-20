@@ -43,7 +43,7 @@ class PackageSelection
     /** @var string packages.json file name. */
     private $filename;
 
-    /** @var array Array of additional repositories for dependencies */
+    /** @var array<mixed, mixed> Array of additional repositories for dependencies */
     private $depRepositories;
 
     /** @var bool Selects All Packages if true. */
@@ -67,10 +67,10 @@ class PackageSelection
     /** @var string Minimum stability accepted for Packages in the list. */
     private $minimumStability;
 
-    /** @var array Minimum stability accepted by Package. */
+    /** @var string[] Minimum stability accepted by Package. */
     private $minimumStabilityPerPackage;
 
-    /** @var array The active package filter to merge. */
+    /** @var string[] The active package filter to merge. */
     private $packagesFilter = [];
 
     /** @var string[]|null The active repository filter to merge. */
@@ -82,19 +82,19 @@ class PackageSelection
     /** @var PackageInterface[] The selected packages from config */
     private $selected = [];
 
-    /** @var array A list of packages marked as abandoned */
+    /** @var string[] A list of packages marked as abandoned */
     private $abandoned = [];
 
-    /** @var array A list of blacklisted package/constraints. */
+    /** @var string[] A list of blacklisted package/constraints. */
     private $blacklist = [];
 
-    /** @var array|null A list of package types. If set only packages with one of these types will be selected */
+    /** @var string[]|null A list of package types. If set only packages with one of these types will be selected */
     private $includeTypes;
 
-    /** @var array A list of package types that will not be selected */
+    /** @var string[] A list of package types that will not be selected */
     private $excludeTypes = [];
 
-    /** @var array|bool Patterns from strip-hosts. */
+    /** @var string[]|bool Patterns from strip-hosts. */
     private $stripHosts = false;
 
     /** @var string The prefix of the distURLs when using archive. */
@@ -103,6 +103,14 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
+    /**
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string $outputDir
+     * @param array<string, mixed> $config
+     * @param bool $skipErrors
+     * @return void
+     */
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
     {
         $this->output = $output;
@@ -136,6 +144,11 @@ class PackageSelection
         return null !== $this->includeTypes || count($this->excludeTypes) > 0;
     }
 
+    /**
+     *
+     * @param string[] $packagesFilter
+     * @return void
+     */
     public function setPackagesFilter(array $packagesFilter = []): void
     {
         $this->packagesFilter = $packagesFilter;
@@ -149,6 +162,8 @@ class PackageSelection
     /**
      * @throws \InvalidArgumentException
      * @throws \Exception
+     *
+     * @return PackageInterface[]
      */
     public function select(Composer $composer, bool $verbose): array
     {
@@ -310,6 +325,11 @@ class PackageSelection
         return $packages;
     }
 
+    /**
+     *
+     * @param array<string, mixed> $config
+     * @return void
+     */
     private function fetchOptions(array $config): void
     {
         $this->depRepositories = $config['repositories-dep'] ?? [];
@@ -340,9 +360,9 @@ class PackageSelection
     }
 
     /**
-     * @param array|false $stripHostsConfig
+     * @param string[]|false $stripHostsConfig
      *
-     * @return array|false
+     * @return array<int, array>|false
      */
     private function createStripHostsPatterns($stripHostsConfig)
     {
@@ -492,7 +512,17 @@ class PackageSelection
                     return true;
                 }
             } elseif ('ipv4' === $type || 'ipv6' === $type) {
-                if ($urltype === $type && $this->matchAddr($urlunpack, $host, $mask)) {
+                $hostIp = @inet_pton($host);
+
+                /** @var string|null $mask */
+                if (false === $hostIp || (int) $mask != $mask) {
+                    $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $pattern));
+                    continue;
+                }
+                $mask = (int) $mask;
+
+                $hostIp = unpack('N*', $hostIp);
+                if ($urltype === $type && $this->matchAddr($urlunpack, $hostIp, $mask)) {
                     return true;
                 }
             } elseif ('name' === $type) {

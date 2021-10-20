@@ -26,11 +26,20 @@ class PackagesBuilder extends Builder
     private $filename;
     /** @var string included json filename template */
     private $includeFileName;
-    /** @var array */
+    /** @var array<int, mixed> */
     private $writtenIncludeJsons = [];
     /** @var bool */
     private $minify;
 
+    /**
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param string $outputDir
+     * @param array<string, mixed> $config
+     * @param bool $skipErrors
+     * @param bool $minify
+     * @return void
+     */
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, bool $minify = false)
     {
         parent::__construct($output, $outputDir, $config, $skipErrors);
@@ -126,6 +135,12 @@ class PackagesBuilder extends Builder
         $this->pruneIncludeDirectories();
     }
 
+    /**
+     *
+     * @param array<string, array> $packages
+     * @param string $replaced
+     * @return array<string, array>
+     */
     private function findReplacements(array $packages, string $replaced): array
     {
         $replacements = [];
@@ -201,6 +216,16 @@ class PackagesBuilder extends Builder
         }
     }
 
+    /**
+     *
+     * @param array<string, array> $packages
+     * @param string $includesUrl
+     * @param string $hashAlgorithm
+     * @return array<string, array>
+     * @throws \RuntimeException
+     * @throws \UnexpectedValueException
+     * @throws \Exception
+     */
     private function dumpPackageIncludeJson(array $packages, string $includesUrl, string $hashAlgorithm = 'sha1'): array
     {
         $filename = str_replace('%hash%', 'prep', $includesUrl);
@@ -273,7 +298,7 @@ class PackagesBuilder extends Builder
     }
 
     /**
-     * @param array $repo Repository information
+     * @param array<string, mixed> $repo Repository information
      */
     private function dumpPackagesJson(array $repo): void
     {

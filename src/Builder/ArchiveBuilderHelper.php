@@ -20,9 +20,15 @@ class ArchiveBuilderHelper
 {
     /** @var OutputInterface The output Interface. */
     private $output;
-    /** @var array The 'archive' part of a configuration file. */
+    /** @var array<string, mixed> The 'archive' part of a configuration file. */
     private $archiveConfig;
 
+    /**
+     *
+     * @param \Symfony\Component\Console\Output\OutputInterface $output
+     * @param array<string, mixed> $archiveConfig
+     * @return void
+     */
     public function __construct(OutputInterface $output, array $archiveConfig)
     {
         $this->output = $output;
@@ -74,6 +80,12 @@ class ArchiveBuilderHelper
         return false;
     }
 
+    /**
+     *
+     * @param array<int, string> $names
+     * @param array<int, string> $list
+     * @return bool
+     */
     protected function isOneOfNamesInList(array $names, array $list): bool
     {
         $patterns = $this->convertListToRegexPatterns($list);
@@ -87,6 +99,12 @@ class ArchiveBuilderHelper
         return false;
     }
 
+    /**
+     *
+     * @param string $name
+     * @param array<int, string> $patterns
+     * @return bool
+     */
     protected function doesNameMatchOneOfPatterns(string $name, array $patterns): bool
     {
         foreach ($patterns as $pattern) {
@@ -98,6 +116,11 @@ class ArchiveBuilderHelper
         return false;
     }
 
+    /**
+     *
+     * @param array<int, string> $list
+     * @return array<int, string>
+     */
     protected function convertListToRegexPatterns(array $list): array
     {
         $patterns = [];

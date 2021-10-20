@@ -140,7 +140,7 @@ class WebBuilder extends Builder
      *
      * @param PackageInterface[] $ungroupedPackages List of packages to dump
      *
-     * @return array Grouped list of packages with versions
+     * @return array<string, array> Grouped list of packages with versions
      */
     private function getMappedPackageList(array $ungroupedPackages): array
     {
@@ -166,7 +166,7 @@ class WebBuilder extends Builder
      *
      * @param PackageInterface[] $packages List of packages to dump
      *
-     * @return array List of packages grouped by name
+     * @return array<string, array> List of packages grouped by name
      */
     private function groupPackagesByName(array $packages): array
     {
