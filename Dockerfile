@@ -35,6 +35,7 @@ RUN set -eux ; \
     zip ; \
   install-php-extensions \
     bz2 \
+    sockets \
     zip
 
 ENV COMPOSER_HOME /composer
