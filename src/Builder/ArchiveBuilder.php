@@ -21,6 +21,7 @@ use Composer\Package\CompletePackage;
 use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
+use Composer\Util\SyncHelper;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -197,10 +198,12 @@ class ArchiveBuilder extends Builder
             $downloadDir = sys_get_temp_dir() . '/composer_archiver' . uniqid();
             $filesystem->ensureDirectoryExists($downloadDir);
             $downloader = $downloadManager->getDownloader('file');
-            $downloader->download($package, $downloadDir);
-
-            $filesystem->ensureDirectoryExists(dirname($path));
-            $filesystem->rename($downloadDir . '/' . pathinfo($package->getDistUrl(), PATHINFO_BASENAME), $path);
+            $downloadPromise = $downloader->download($package, $downloadDir);
+            $downloadPromise->then(function ($filename) use ($path, $filesystem) {
+                $filesystem->ensureDirectoryExists(dirname($path));
+                $filesystem->rename($filename, $path);
+            });
+            SyncHelper::await($this->composer->getLoop(), $downloadPromise);
             $filesystem->removeDirectory($downloadDir);
 
             return $path;
