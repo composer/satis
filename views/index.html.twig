@@ -23,7 +23,7 @@
             <a href="{{ url }}">
                 <h1>{{ name|default('Composer repository') }}</h1>
             </a>
-            <span class="badge badge-light m-1" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
+            <span class="badge bg-light text-dark m-1" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
                 Last updated: <br class="d-md-none"> <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
             </span>
         </div>
@@ -35,14 +35,14 @@
 
     <form class="my-3">
         <div class="input-group">
-            <label for="search" class="sr-only">Filter packages</label>
+            <label for="search" class="visually-hidden">Filter packages</label>
             <input type="search"
                 id="search"
                 class="form-control"
                 placeholder="Filter packages"
                 autocomplete="off"
                 autofocus>
-            <select class="custom-select filter-field">
+            <select class="form-select filter-field">
                 <option value="all" selected disabled hidden>Filter by..</option>
                 <option value="all">All fields</option>
                 <optgroup label="Specific field...">
@@ -175,7 +175,7 @@
         <div class="arrow"></div>
         <div class="tooltip-inner">Copied dependency to clipboard</div>
     </div>
-    <label for="copy-snippet__input" class="sr-only">Release code snippet for composer json</label>
+    <label for="copy-snippet__input" class="visually-hidden">Release code snippet for composer json</label>
     <input id="copy-snippet__input" class="copy-snippet__input form-control" type="text">
     <div class="input-group-append">
         <button class="btn btn-outline-secondary copy-snippet__button" aria-label="Copy to clipboard" title="Copy to clipboard">

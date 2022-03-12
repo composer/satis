@@ -8,16 +8,21 @@
 @import "~bootstrap/scss/root";
 @import "~bootstrap/scss/reboot";
 @import "~bootstrap/scss/type";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/utilities/api";
+@import "~bootstrap/scss/helpers/visually-hidden";
 // @import "~bootstrap/scss/images";
-@import "~bootstrap/scss/code";
+// @import "~bootstrap/scss/code";
 @import "~bootstrap/scss/grid";
+@import "~bootstrap/scss/containers";
 // @import "~bootstrap/scss/tables";
 @import "~bootstrap/scss/forms";
 @import "~bootstrap/scss/buttons";
 @import "~bootstrap/scss/transitions";
 // @import "~bootstrap/scss/dropdown";
 // @import "~bootstrap/scss/button-group";
-@import "~bootstrap/scss/input-group";
+@import "~bootstrap/scss/forms/input-group";
+@import "~bootstrap/scss/forms/form-select";
 // @import "~bootstrap/scss/custom-forms";
 // @import "~bootstrap/scss/nav";
 // @import "~bootstrap/scss/navbar";
@@ -35,45 +40,61 @@
 @import "~bootstrap/scss/tooltip";
 // @import "~bootstrap/scss/popover";
 // @import "~bootstrap/scss/carousel";
-@import "~bootstrap/scss/utilities";
-@import "~bootstrap/scss/print";
+// @import "~bootstrap/scss/print";
 
 pre.file {
-  border-left: 2px solid $primary;
-  background-color: $light;
-  padding: map-get($spacers, 2);
+    border-left: 2px solid $primary;
+    background-color: $light;
+    padding: map-get($spacers, 2);
 }
 
 .toggle-settings {
-  svg {
-    fill: currentColor;
-    pointer-events: none;
-    transition: transform 0.25s;
-  }
-  &.active svg {
-    transform: rotate(45deg);
-  }
+    svg {
+        fill: currentColor;
+        pointer-events: none;
+        transition: transform 0.25s;
+    }
+    &.active svg {
+        transform: rotate(45deg);
+    }
 }
 
 .copy-snippet {
-  &__button svg {
-    fill: currentColor;
-    pointer-events: none;
-  }
-  &__tooltip {
-    top: 100%;
-    left: 0;
-    transform: translateY(-50%);
-    transition: opacity 0.25s, transform 0.25s;
-    &.show {
-      transform: none;
+    &__button svg {
+        fill: currentColor;
+        pointer-events: none;
     }
-    .arrow {
-      left: 50%;
-      transform: translateX(-50%);
+    &__tooltip {
+        top: 100%;
+        left: 0;
+        transform: translateY(-50%);
+        transition: opacity 0.25s, transform 0.25s;
+        &.show {
+            transform: none;
+        }
+        .arrow {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .tooltip-inner {
+            max-width: none;
+        }
     }
-    .tooltip-inner {
-      max-width: none;
+}
+
+a {
+    text-decoration: none;
+    &:hover,
+    &:focus {
+        text-decoration: underline;
     }
-  }
+}
+
+// Bootstrap 5 removes hover and focus states for badges
+.filter-by a.badge.bg-secondary {
+    &:hover,
+    &:focus {
+        text-decoration: none;
+        background-color: $black !important;
+    }
 }
