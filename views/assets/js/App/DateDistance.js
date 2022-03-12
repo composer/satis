@@ -2,23 +2,23 @@ import formatDistanceToNow from "date-fns/formatDistanceToNow";
 import enUS from "date-fns/locale/en-US";
 
 class DateDistance {
-  static calculate(elements) {
-    if (typeof elements === "string") {
-      elements = document.querySelectorAll(elements);
-    }
+    static calculate(elements) {
+        if (typeof elements === "string") {
+            elements = document.querySelectorAll(elements);
+        }
 
-    for (let i = 0; i < elements.length; i++) {
-      let element = elements[i];
-      let datetime = element.attributes.datetime.value;
-      let date = new Date(datetime);
-      let distance = formatDistanceToNow(date, {
-        addSuffix: true,
-        locale: enUS,
-      });
+        for (let i = 0; i < elements.length; i++) {
+            let element = elements[i];
+            let datetime = element.attributes.datetime.value;
+            let date = new Date(datetime);
+            let distance = formatDistanceToNow(date, {
+                addSuffix: true,
+                locale: enUS,
+            });
 
-      element.textContent = distance;
+            element.textContent = distance;
+        }
     }
-  }
 }
 
 export default DateDistance;
