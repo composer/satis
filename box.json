@@ -3,21 +3,22 @@
     "main": "bin/satis",
     "output": "satis.phar",
     "stub": true,
-    "directories": [ "src", "views" ],
-    "files": [
-        "LICENSE",
-        "res/satis-schema.json"
+    "directories": ["src", "views"],
+    "files": ["LICENSE", "res/satis-schema.json"],
+    "finder": [
+        {
+            "name": "*.php",
+            "in": "vendor"
+        },
+        {
+            "name": "composer-schema.json",
+            "in": "vendor/composer/composer"
+        },
+        {
+            "name": "cacert.pem",
+            "in": "vendor/composer/ca-bundle"
+        }
     ],
-    "finder": [{
-        "name": "*.php",
-        "in": "vendor"
-    }, {
-        "name": "composer-schema.json",
-        "in": "vendor/composer/composer"
-    }, {
-        "name": "cacert.pem",
-        "in": "vendor/composer/ca-bundle"
-    }],
     "compression": "GZ",
     "compactors": [
         "Herrera\\Box\\Compactor\\Json",

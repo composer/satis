@@ -6,6 +6,6 @@ This project is released with a <a href="http://contributor-covenant.org/version
 
 ## How to contribute?
 
-1. Fork the project, 
-2. create a feature branch, 
+1. Fork the project,
+2. create a feature branch,
 3. and send us a pull request.
