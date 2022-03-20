@@ -3,7 +3,7 @@
     "name": "Repository Configuration",
     "type": "object",
     "additionalProperties": false,
-    "required": [ "name", "homepage" ],
+    "required": ["name", "homepage"],
     "properties": {
         "name": {
             "type": "string",
@@ -31,7 +31,7 @@
             "type": "object",
             "description": "Options for creating package archives for distribution.",
             "additionalProperties": false,
-            "required": [ "directory" ],
+            "required": ["directory"],
             "properties": {
                 "directory": {
                     "type": "string",
@@ -39,7 +39,7 @@
                 },
                 "format": {
                     "type": "string",
-                    "enum": [ "zip", "tar" ],
+                    "enum": ["zip", "tar"],
                     "description": "Archive format.",
                     "default": "zip"
                 },
@@ -94,12 +94,12 @@
             }
         },
         "repositories": {
-            "type": [ "object", "array" ],
+            "type": ["object", "array"],
             "description": "A set of additional repositories where packages can be found.",
             "additionalProperties": true
         },
         "repositories-dep": {
-            "type": [ "object", "array" ],
+            "type": ["object", "array"],
             "description": "A set of additional repositories where packages for dependencies can be found.",
             "additionalProperties": true
         },
@@ -107,7 +107,7 @@
             "type": "string",
             "description": "The minimum stability the packages must have to be install-able. Possible values are: dev, alpha, beta, RC, stable.",
             "default": "dev",
-            "enum": [ "dev", "alpha", "beta", "rc", "RC", "stable" ]
+            "enum": ["dev", "alpha", "beta", "rc", "RC", "stable"]
         },
         "minimum-stability-per-package": {
             "type": "object",
@@ -116,14 +116,14 @@
             "additionalProperties": {
                 "type": "string",
                 "description": "The minimum stability the package must have to be install-able. Possible values are: dev, alpha, beta, RC, stable. This overrides the \"minimum-stability\" global option for the specified package.",
-                "enum": [ "dev", "alpha", "beta", "rc", "RC", "stable" ]
+                "enum": ["dev", "alpha", "beta", "rc", "RC", "stable"]
             }
         },
         "abandoned": {
             "type": "object",
             "description": "List of packages marked as abandoned for this repository, the mark can be boolean or a package name/URL pointing to a recommended alternative.",
             "additionalProperties": {
-                "type": [ "boolean", "string" ],
+                "type": ["boolean", "string"],
                 "description": "A valid Package name"
             }
         },
@@ -137,7 +137,7 @@
             }
         },
         "include-types": {
-            "type": [ "array", "null" ],
+            "type": ["array", "null"],
             "description": "An array of composer types. When an array is provided only packages with this type will be selected by Satis.",
             "default": null,
             "items": {
@@ -145,7 +145,7 @@
             }
         },
         "exclude-types": {
-            "type": [ "array" ],
+            "type": ["array"],
             "description": "An array of composer types. Any packages with a type in this array will not be selected by Satis.",
             "default": [],
             "items": {
@@ -183,7 +183,7 @@
             "default": true
         },
         "strip-hosts": {
-            "type": [ "array", "boolean" ],
+            "type": ["array", "boolean"],
             "description": "List of domains, IPs, CIDR notations, '/local' (=localnet and other reserved) or '/private' (=private IPs) to be stripped from the output. If set and non-false, local file paths are removed too.",
             "default": false,
             "items": {
@@ -251,7 +251,7 @@
                 "github-protocols": {
                     "type": "array",
                     "description": "A list of protocols to use for github.com clones, in priority order, defaults to [\"git\", \"https\", \"http\"].",
-                    "default": [ "git", "https", "http" ],
+                    "default": ["git", "https", "http"],
                     "items": {
                         "type": "string"
                     }
@@ -272,7 +272,7 @@
                     "additionalProperties": true
                 },
                 "store-auths": {
-                    "type": [ "string", "boolean" ],
+                    "type": ["string", "boolean"],
                     "description": "What to do after prompting for authentication, one of: true (store), false (do not store) or \"prompt\" (ask every time), defaults to prompt.",
                     "default": "prompt"
                 },
@@ -320,18 +320,18 @@
                     "description": "The cache time-to-live for files, defaults to the value of cache-ttl."
                 },
                 "cache-files-maxsize": {
-                    "type": [ "string", "integer" ],
+                    "type": ["string", "integer"],
                     "description": "The cache max size for the files cache, defaults to \"300MiB\".",
                     "default": "300MiB"
                 },
                 "bin-compat": {
                     "type": "string",
-                    "enum": [ "auto", "full" ],
+                    "enum": ["auto", "full"],
                     "description": "The compatibility of the binaries, defaults to \"auto\" (automatically guessed) and can be \"full\" (compatible with both Windows and Unix-based systems).",
                     "default": "auto"
                 },
                 "discard-changes": {
-                    "type": [ "string", "boolean" ],
+                    "type": ["string", "boolean"],
                     "description": "The default style of handling dirty updates, defaults to false and can be any of true, false or \"stash\".",
                     "default": false
                 },
@@ -356,7 +356,7 @@
                 "github-domains": {
                     "type": "array",
                     "description": "A list of domains to use in github mode. This is used for GitHub Enterprise setups, defaults to [\"github.com\"].",
-                    "default": [ "github.com" ],
+                    "default": ["github.com"],
                     "items": {
                         "type": "string"
                     }
@@ -373,7 +373,7 @@
             "description": "a URL that will be called every time a user installs a package."
         },
         "_comment": {
-            "type": [ "array", "string" ],
+            "type": ["array", "string"],
             "description": "A key to store comments in"
         },
         "pretty-print": {

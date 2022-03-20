@@ -1,12 +1,6 @@
-/.github/
-/bin/
-/docs/
-/res/
-/resultCaches/
-/tests/
-/tools/
+/build/
+/cache/
+/node_modules/
+/tools/*/vendor/
 /vendor/
 /views/build/
-/box.json
-/composer.json
-/README.md
