@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - run: docker build --pull --no-cache --tag composer/satis .
     - if: github.ref == 'refs/heads/main'
       uses: docker/login-action@v1

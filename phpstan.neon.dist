@@ -1,10 +1,11 @@
 parameters:
-	level: 5
-	tmpDir: .
+  level: 5
+  tmpDir: .
+  phpVersion: 70428
 
-	paths:
-		- src
-		- tests
+  paths:
+    - src
+    - tests
 
-	stubFiles:
-		- tools/phpstan/stubs/Package.stub
+  stubFiles:
+    - tools/phpstan/stubs/Package.stub
