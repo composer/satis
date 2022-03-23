@@ -89,7 +89,7 @@ class WebBuilderDumpTest extends TestCase
     public function testDependencies(): void
     {
         $link = new Link('dummytest', 'vendor/name', new MatchAllConstraint());
-        $this->package->setRequires([$link]);
+        $this->package->setRequires([$link->getTarget() => $link]);
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
         $webBuilder->setRootPackage($this->rootPackage);
         $webBuilder->dump([$this->package]);

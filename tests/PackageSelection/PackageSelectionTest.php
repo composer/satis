@@ -109,8 +109,8 @@ class PackageSelectionTest extends TestCase
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
         $link = new Link('test', 'name', new MatchAllConstraint());
         $devLink = new Link('devTest', 'name', new MatchAllConstraint());
-        $package->setRequires([$link]);
-        $package->setDevRequires([$devLink]);
+        $package->setRequires([$link->getTarget() => $link]);
+        $package->setDevRequires([$devLink->getTarget() => $devLink]);
 
         $data = [];
 
@@ -122,21 +122,21 @@ class PackageSelectionTest extends TestCase
         ];
 
         $data['require true'] = [
-          [$link],
+          [$link->getTarget() => $link],
           $package,
           true,
           false,
         ];
 
         $data['requireDev true'] = [
-          [$devLink],
+          [$devLink->getTarget() => $devLink],
           $package,
           false,
           true,
         ];
 
         $data['both require true'] = [
-          [$link, $devLink],
+          [$link->getTarget() => $link, $devLink->getTarget() => $devLink],
           $package,
           true,
           true,
@@ -1008,11 +1008,11 @@ class PackageSelectionTest extends TestCase
 
         $constraint1 = new Constraint('=', '1.1');
         $link1 = new Link('vendor/a', 'vendor/b', $constraint1, Link::TYPE_REQUIRE);
-        $packageA0->setRequires([$link1]);
+        $packageA0->setRequires([$link1->getTarget() => $link1]);
 
         $constraint2 = new Constraint('<=', '1.1');
         $link2 = new Link('vendor/b', 'vendor/c', $constraint2, Link::TYPE_REQUIRE);
-        $packageB1->setRequires([$link2]);
+        $packageB1->setRequires([$link2->getTarget() => $link2]);
 
         $repository->addPackage($packageA0);
         $repository->addPackage($packageA1);
@@ -1055,7 +1055,7 @@ final class MockPackageSelectionPackageRepository extends PackageRepository impl
     public function __construct(array $config)
     {
         $this->name = $config['package']['name'] ?? $config['package'][0]['name'];
-        $this->url = $config['url'];
+        $this->url = $config['url'] ?? '';
 
         parent::__construct($config);
     }

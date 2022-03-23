@@ -67,7 +67,8 @@ class ArchiveBuilderHelperTest extends TestCase
         $package1 = new Package('vendor/name', '1.0.0.0', '1.0');
         $package2 = new Package('vendor/name', 'dev-master', 'dev-master');
         $package3 = new Package('othervendor/othername', '1.0.0.0', '1.0');
-        $package3->setProvides([new Link('', 'vendor/name', new MatchAllConstraint())]);
+        $link = new Link('', 'vendor/name', new MatchAllConstraint());
+        $package3->setProvides([$link->getTarget() => $link]);
 
         $data = [];
 
