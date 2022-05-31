@@ -247,7 +247,7 @@ class PackageSelection
         }
 
         if (isset($rootConfig['providers']) && is_array($rootConfig['providers']) && isset($rootConfig['providers-url'])) {
-            $baseUrl = $this->homepage ? parse_url(rtrim($this->homepage, '/'), PHP_URL_PATH) . '/' : null;
+            $baseUrl = $this->homepage ? parse_url(rtrim($this->homepage, '/'), PHP_URL_PATH) . '/' : '';
             $baseUrlLength = strlen($baseUrl);
 
             foreach ($rootConfig['providers'] as $package => $provider) {
