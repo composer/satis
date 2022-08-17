@@ -29,8 +29,8 @@ class AddCommand extends BaseCommand
 {
     protected function configure(): void
     {
+        $this->getName() ?? $this->setName('add');
         $this
-            ->setName('add')
             ->setDescription('Add repository URL to satis JSON file')
             ->setDefinition([
                 new InputArgument('url', InputArgument::REQUIRED, 'VCS repository URL'),

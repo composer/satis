@@ -16,12 +16,14 @@ namespace Composer\Satis\Console\Command;
 use Composer\Command\BaseCommand;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
+use Composer\Console\Application as ComposerApplication;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonValidationException;
+use Composer\Package\Loader\RootPackageLoader;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
-use Composer\Satis\Console\Application;
+use Composer\Satis\Console\Application as SatisApplication;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
@@ -31,13 +33,14 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use UnexpectedValueException;
 
 class BuildCommand extends BaseCommand
 {
     protected function configure(): void
     {
+        $this->getName() ?? $this->setName('build');
         $this
-            ->setName('build')
             ->setDescription('Builds a composer repository out of a json file')
             ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
@@ -152,7 +155,7 @@ class BuildCommand extends BaseCommand
                 throw $e;
             }
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
-        } catch (\UnexpectedValueException $e) {
+        } catch (UnexpectedValueException $e) {
             if (!$skipErrors) {
                 throw $e;
             }
@@ -179,9 +182,23 @@ class BuildCommand extends BaseCommand
             $output->writeln(sprintf('<notice>Homepage config used from env SATIS_HOMEPAGE: %s</notice>', $homepage));
         }
 
-        /** @var Application $application */
+        /** @var SatisApplication|ComposerApplication $application */
         $application = $this->getApplication();
-        $composer = $application->getComposer(true, $config);
+        $composer = $application->getComposer(true);
+        $composerConfig = $composer->getConfig();
+        $composerConfig->merge($config);
+        $composer->setConfig($composerConfig);
+
+        // Feed repo manager with satis' repos
+        $manager = $composer->getRepositoryManager();
+        foreach ($config['repositories'] as $repo) {
+            $manager->addRepository($manager->createRepository($repo['type'], $repo, $repo['name'] ?? null));
+        }
+        // Make satis' config file pretend it is the root package
+        $loader = new RootPackageLoader($manager, $composerConfig);
+        $satisConfigAsRootPackage = $loader->load($config);
+        $composer->setPackage($satisConfigAsRootPackage);
+
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
         if (null !== $repositoryUrl && [] !== $repositoryUrl) {
@@ -263,8 +280,9 @@ class BuildCommand extends BaseCommand
     }
 
     /**
-     * @throws ParsingException        if the json file has an invalid syntax
-     * @throws JsonValidationException if the json file doesn't match the schema
+     * @throws ParsingException         if the json file has an invalid syntax
+     * @throws JsonValidationException  if the json file doesn't match the schema
+     * @throws UnexpectedValueException if the json file is not UTF-8
      */
     private function check(string $configFile): bool
     {
@@ -274,7 +292,7 @@ class BuildCommand extends BaseCommand
         $result = $parser->lint($content);
         if (null === $result) {
             if (defined('JSON_ERROR_UTF8') && JSON_ERROR_UTF8 === json_last_error()) {
-                throw new \UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
+                throw new UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
             }
 
             $data = json_decode($content);

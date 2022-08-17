@@ -22,6 +22,8 @@ use Composer\Package\Link;
 use Composer\Package\Loader\ArrayLoader;
 use Composer\Package\PackageInterface;
 use Composer\Package\Version\VersionSelector;
+use Composer\PartialComposer;
+use Composer\Repository\ArrayRepository;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PlatformRepository;
@@ -76,6 +78,9 @@ class PackageSelection
     /** @var string[]|null The active repository filter to merge. */
     private $repositoriesFilter;
 
+    /** @var array Repositories mentioned in the satis config */
+    private $repositories;
+
     /** @var bool Apply the filter also for resolving dependencies. */
     private $repositoryFilterDep;
 
@@ -108,6 +113,7 @@ class PackageSelection
         $this->output = $output;
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
+        $this->repositories = $config['repositories'] ?? [];
 
         $this->fetchOptions($config);
     }
@@ -150,7 +156,7 @@ class PackageSelection
      * @throws \InvalidArgumentException
      * @throws \Exception
      */
-    public function select(Composer $composer, bool $verbose): array
+    public function select(PartialComposer $composer, bool $verbose): array
     {
         // run over all packages and store matching ones
         $this->output->writeln('<info>Scanning packages</info>');
@@ -166,6 +172,25 @@ class PackageSelection
 
             if (0 === count($repos)) {
                 throw new \InvalidArgumentException(sprintf('Specified repository URL(s) "%s" do not exist.', implode('", "', $this->repositoriesFilter)));
+            }
+        } else {
+            // Only use repos explicitly activated in satis config if no further filter given
+            $repos = [];
+            // Todo: Use a filter function instead
+            foreach ($initialRepos as $repo) {
+                if ($repo instanceof ConfigurableRepositoryInterface) {
+                    $config = $repo->getRepoConfig();
+                    foreach ($this->repositories as $satisRepo) {
+                        // TODO configurable repo types without URL attribute
+                        if ($config['url'] == $satisRepo['url']) {
+                            $repos[] = $repo;
+                        }
+                    }
+                } else {
+                    if ($repo instanceof ArrayRepository) {
+                        $repos[] = $repo;
+                    }
+                }
             }
         }
 
@@ -627,7 +652,7 @@ class PackageSelection
      *
      * @return Link[]
      */
-    private function getFilteredLinks(Composer $composer): array
+    private function getFilteredLinks(PartialComposer $composer): array
     {
         $links = array_values($composer->getPackage()->getRequires());
 
@@ -660,7 +685,6 @@ class PackageSelection
                 foreach ($repository->getPackageNames() as $name) {
                     $links[] = new Link('__root__', $name, new MatchAllConstraint(), 'requires', '*');
                 }
-
                 continue;
             }
 
@@ -717,6 +741,7 @@ class PackageSelection
                     $selector = new VersionSelector($repositorySet);
                     $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
                     $matches = $match ? [$match] : [];
+                } elseif (PlatformRepository::isPlatformPackage($name)) {
                 } else {
                     $matches = $repositorySet->createPoolForPackage($link->getTarget())->whatProvides($name, $link->getConstraint());
                 }
@@ -786,7 +811,7 @@ class PackageSelection
     /**
      * @return RepositoryInterface[]
      */
-    private function getDepRepos(Composer $composer): array
+    private function getDepRepos(PartialComposer $composer): array
     {
         $repositories = [];
 
