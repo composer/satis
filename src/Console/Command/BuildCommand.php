@@ -31,6 +31,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use UnexpectedValueException;
 
 class BuildCommand extends BaseCommand
 {
@@ -94,7 +95,7 @@ class BuildCommand extends BaseCommand
                 - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
                   package name, as the value use true or the replacement package.
                 - <info>"blacklist"</info>: Packages and versions which should be excluded from the final package list.
-                - <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration. 
+                - <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration.
                   The resulting satis repository will contain only one or two versions of each project.
                 - <info>"notify-batch"</info>: Allows you to specify a URL that will
                   be called every time a user installs a package, see
@@ -152,7 +153,7 @@ class BuildCommand extends BaseCommand
                 throw $e;
             }
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
-        } catch (\UnexpectedValueException $e) {
+        } catch (UnexpectedValueException $e) {
             if (!$skipErrors) {
                 throw $e;
             }
@@ -263,8 +264,9 @@ class BuildCommand extends BaseCommand
     }
 
     /**
-     * @throws ParsingException        if the json file has an invalid syntax
+     * @throws ParsingException if the json file has an invalid syntax
      * @throws JsonValidationException if the json file doesn't match the schema
+     * @throws UnexpectedValueException if the json file cannot be parsed
      */
     private function check(string $configFile): bool
     {
@@ -274,7 +276,7 @@ class BuildCommand extends BaseCommand
         $result = $parser->lint($content);
         if (null === $result) {
             if (defined('JSON_ERROR_UTF8') && JSON_ERROR_UTF8 === json_last_error()) {
-                throw new \UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
+                throw new UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
             }
 
             $data = json_decode($content);
