@@ -20,13 +20,13 @@ use Composer\Console\Application as ComposerApplication;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonValidationException;
 use Composer\Package\Loader\RootPackageLoader;
+use Composer\Package\Version\VersionGuesser;
+use Composer\Package\Version\VersionParser;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\Console\Application as SatisApplication;
 use Composer\Satis\PackageSelection\PackageSelection;
-use Composer\Package\Version\VersionParser;
-use Composer\Package\Version\VersionGuesser;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
@@ -198,12 +198,12 @@ class BuildCommand extends BaseCommand
             $manager->addRepository($manager->createRepository($repo['type'], $repo, $repo['name'] ?? null));
         }
         // Make satis' config file pretend it is the root package
-        $parser = new VersionParser;
+        $parser = new VersionParser();
         /**
          * In standalone case, the RootPackageLoader assembles an internal VersionGuesser with a broken ProcessExecutor
-         * Workaround by explicitly injecting a ProcessExecutor with enableAsync; 
+         * Workaround by explicitly injecting a ProcessExecutor with enableAsync;
          */
-        $process =  new ProcessExecutor($io);
+        $process = new ProcessExecutor($io);
         $process->enableAsync();
         $guesser = new VersionGuesser($composerConfig, $process, $parser);
         $loader = new RootPackageLoader($manager, $composerConfig, $parser, $guesser);

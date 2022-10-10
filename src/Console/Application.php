@@ -38,7 +38,6 @@ class Application extends ComposerApplication
         parent::__construct();
         $this->setName('Satis');
         $this->setVersion(Satis::VERSION);
-
     }
 
     /**
