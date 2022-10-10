@@ -1,5 +1,8 @@
 {
     "require": {
-        "phpstan/phpstan": "^1.4.0"
+        "phpstan/phpstan": "*",
+        "phpstan/phpstan-php-parser": "*",
+        "phpstan/phpstan-deprecation-rules": "*",
+        "phpstan/phpstan-strict-rules": "*"
     }
 }

@@ -97,7 +97,7 @@ class BuildCommand extends BaseCommand
                 - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
                   package name, as the value use true or the replacement package.
                 - <info>"blacklist"</info>: Packages and versions which should be excluded from the final package list.
-                - <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration. 
+                - <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration.
                   The resulting satis repository will contain only one or two versions of each project.
                 - <info>"notify-batch"</info>: Allows you to specify a URL that will
                   be called every time a user installs a package, see

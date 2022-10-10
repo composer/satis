@@ -1,0 +1,266 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Only booleans are allowed in &&, mixed given on the left side\\.$#"
+			count: 1
+			path: src/Builder/ArchiveBuilder.php
+
+		-
+			message: "#^Construct empty\\(\\) is not allowed\\. Use more strict comparison\\.$#"
+			count: 4
+			path: src/Builder/PackagesBuilder.php
+
+		-
+			message: "#^Dynamic call to static method Composer\\\\Json\\\\JsonFile\\:\\:encode\\(\\)\\.$#"
+			count: 1
+			path: src/Builder/PackagesBuilder.php
+
+		-
+			message: "#^Only booleans are allowed in an if condition, int\\<min, 2\\> given\\.$#"
+			count: 1
+			path: src/Builder/PackagesBuilder.php
+
+		-
+			message: "#^Only booleans are allowed in an if condition, string\\|null given\\.$#"
+			count: 1
+			path: src/Builder/PackagesBuilder.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, string\\|null given\\.$#"
+			count: 1
+			path: src/Builder/WebBuilder.php
+
+		-
+			message: "#^Construct empty\\(\\) is not allowed\\. Use more strict comparison\\.$#"
+			count: 2
+			path: src/Console/Command/AddCommand.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, Composer\\\\Repository\\\\Vcs\\\\VcsDriverInterface\\|null given\\.$#"
+			count: 1
+			path: src/Console/Command/AddCommand.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, mixed given\\.$#"
+			count: 2
+			path: src/Console/Command/BuildCommand.php
+
+		-
+			message: "#^Only booleans are allowed in \\|\\|, mixed given on the right side\\.$#"
+			count: 1
+			path: src/Console/Command/BuildCommand.php
+
+		-
+			message: "#^Only booleans are allowed in &&, string\\|null given on the left side\\.$#"
+			count: 1
+			path: src/Console/Command/InitCommand.php
+
+		-
+			message: "#^Strict comparison using \\!\\=\\= between '' and non\\-empty\\-string will always evaluate to true\\.$#"
+			count: 1
+			path: src/Console/Command/InitCommand.php
+
+		-
+			message: "#^Call to function in_array\\(\\) requires parameter \\#3 to be set\\.$#"
+			count: 1
+			path: src/Console/Command/PurgeCommand.php
+
+		-
+			message: "#^Construct empty\\(\\) is not allowed\\. Use more strict comparison\\.$#"
+			count: 1
+			path: src/Console/Command/PurgeCommand.php
+
+		-
+			message: "#^Foreach overwrites \\$file with its value variable\\.$#"
+			count: 2
+			path: src/Console/Command/PurgeCommand.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, int given\\.$#"
+			count: 1
+			path: src/Console/Command/PurgeCommand.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, string\\|null given\\.$#"
+			count: 1
+			path: src/Console/Command/PurgeCommand.php
+
+		-
+			message: "#^Short ternary operator is not allowed\\. Use null coalesce operator if applicable or consider using long ternary\\.$#"
+			count: 1
+			path: src/Console/Command/PurgeCommand.php
+
+		-
+			message: "#^Call to function in_array\\(\\) requires parameter \\#3 to be set\\.$#"
+			count: 6
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Casting to bool something that's already bool\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Only booleans are allowed in &&, string given on the left side\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, int\\<0, max\\> given\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Only booleans are allowed in a ternary operator condition, string given\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Only booleans are allowed in an if condition, string\\|null given\\.$#"
+			count: 2
+			path: src/PackageSelection/PackageSelection.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\)\\.$#"
+			count: 2
+			path: tests/Builder/ArchiveBuilderHelperTest.php
+
+		-
+			message: "#^AnonymousClass2d02c9eac45914ec7a66de1222f21cf4\\:\\:__construct\\(\\) does not call parent constructor from Composer\\\\Package\\\\Archiver\\\\ArchiveManager\\.$#"
+			count: 1
+			path: tests/Builder/ArchiveBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertSame\\(\\)\\.$#"
+			count: 2
+			path: tests/Builder/ArchiveBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\TestCase\\:\\:returnCallback\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/ArchiveBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\TestCase\\:\\:returnValue\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/ArchiveBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertArrayHasKey\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/PackagesBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertArrayNotHasKey\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/PackagesBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\)\\.$#"
+			count: 3
+			path: tests/Builder/PackagesBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertFalse\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/PackagesBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertTrue\\(\\)\\.$#"
+			count: 2
+			path: tests/Builder/PackagesBuilderDumpTest.php
+
+		-
+			message: "#^Only booleans are allowed in a negated boolean, string\\|null given\\.$#"
+			count: 1
+			path: tests/Builder/PackagesBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertFalse\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/WebBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertMatchesRegularExpression\\(\\)\\.$#"
+			count: 6
+			path: tests/Builder/WebBuilderDumpTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\)\\.$#"
+			count: 3
+			path: tests/Builder/WebBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertInstanceOf\\(\\)\\.$#"
+			count: 1
+			path: tests/Builder/WebBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertSame\\(\\)\\.$#"
+			count: 3
+			path: tests/Builder/WebBuilderTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEmpty\\(\\)\\.$#"
+			count: 3
+			path: tests/PackageSelection/PackageSelectionLoadTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertNotEmpty\\(\\)\\.$#"
+			count: 3
+			path: tests/PackageSelection/PackageSelectionLoadTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertNotInstanceOf\\(\\)\\.$#"
+			count: 1
+			path: tests/PackageSelection/PackageSelectionLoadTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertSame\\(\\)\\.$#"
+			count: 2
+			path: tests/PackageSelection/PackageSelectionLoadTest.php
+
+		-
+			message: "#^Construct empty\\(\\) is not allowed\\. Use more strict comparison\\.$#"
+			count: 1
+			path: tests/PackageSelection/PackageSelectionTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertEquals\\(\\)\\.$#"
+			count: 6
+			path: tests/PackageSelection/PackageSelectionTest.php
+
+		-
+			message: "#^Dynamic call to static method PHPUnit\\\\Framework\\\\Assert\\:\\:assertSame\\(\\)\\.$#"
+			count: 2
+			path: tests/PackageSelection/PackageSelectionTest.php
+
+		-
+			message: "#^Implicit array creation is not allowed \\- variable \\$data does not exist\\.$#"
+			count: 1
+			path: tests/PackageSelection/PackageSelectionTest.php
+
+		-
+			message: "#^Implicit array creation is not allowed \\- variable \\$repo does not exist\\.$#"
+			count: 1
+			path: tests/PackageSelection/PackageSelectionTest.php
+
+		-
+			message: "#^Offset 'url' on array\\{package\\: array\\} on left side of \\?\\? does not exist\\.$#"
+			count: 1
+			path: tests/PackageSelection/PackageSelectionTest.php
+
+		-
+			message: "#^Variable \\$filterPackages on left side of \\?\\? always exists and is always null\\.$#"
+			count: 1
+			path: tests/PackageSelection/PackageSelectionTest.php
