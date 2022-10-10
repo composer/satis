@@ -29,12 +29,16 @@ class Application extends ComposerApplication
 {
     /** @var IOInterface */
     protected $io;
-    /** @var Composer */
+    /** @var Composer|null */
     protected $composer;
 
     public function __construct()
     {
-        BaseApplication::__construct('Satis', Satis::VERSION);
+        // Composer constuctor does not allow passing BaseApplication::__construct('Satis', Satis::VERSION);
+        parent::__construct();
+        $this->setName('Satis');
+        $this->setVersion(Satis::VERSION);
+
     }
 
     /**

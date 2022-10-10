@@ -733,7 +733,6 @@ class PackageSelectionTest extends TestCase
 
         $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
         $selection->setRepositoriesFilter($filterRepos);
-        // @phpstan-ignore-next-line
         $selection->setPackagesFilter($filterPackages ?? []);
 
         $selection->select($composer, true);
@@ -1063,7 +1062,6 @@ final class MockPackageSelectionPackageRepository extends PackageRepository impl
         $this->name = $config['package']['name'] ?? $config['package'][0]['name'];
         // Composer\Repository\PackageRepository has a definition without the "url" key
         // phpstan does not pick the amended schema above
-        // @phpstan-ignore-next-line
         $this->url = $config['url'] ?? '';
 
         parent::__construct($config);

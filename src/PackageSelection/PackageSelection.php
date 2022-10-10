@@ -788,7 +788,7 @@ class PackageSelection
                     // append non-platform dependencies
                     foreach ($required as $dependencyLink) {
                         $target = $dependencyLink->getTarget();
-                        if (!preg_match(PlatformRepository::PLATFORM_PACKAGE_REGEX, $target)) {
+                        if (!PlatformRepository::isPlatformPackage($target)) {
                             $linkId = $target . ' ' . $dependencyLink->getConstraint();
                             // prevent loading multiple times the same link
                             if (!isset($depsLinks[$linkId])) {
