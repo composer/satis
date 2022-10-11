@@ -26,7 +26,8 @@ class PurgeCommand extends BaseCommand
 {
     protected function configure(): void
     {
-        $this->setName('purge')
+        $this->getName() ?? $this->setName('purge');
+        $this
             ->setDescription('Purge packages')
             ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),

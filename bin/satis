@@ -22,6 +22,17 @@ if ((!$loader = includeIfExists(__DIR__.'/../vendor/autoload.php')) && (!$loader
     exit(1);
 }
 
+if (!class_exists('Composer\Console\Application')) {
+    print("The Satis standalone CLI requires composer. If satis is not your root project, run\n
+    composer require --dev composer/composer\n\nin your root project or use the equivalent plugin commands:\n
+    composer satis:init
+    composer satis:build
+    composer satis:add
+    composer satis:purge
+    \n");
+    exit(2);
+}
+
 if (function_exists('ini_set')) {
     // Set user defined memory limit or use Composer's user defined memory limit
     if ($memoryLimit = getenv('SATIS_MEMORY_LIMIT')) {

@@ -1052,9 +1052,16 @@ final class MockPackageSelectionPackageRepository extends PackageRepository impl
     /** @var string */
     private $url;
 
+    /*
+     * Constructor.
+     *
+     * @param array{package: mixed[], ?url: string} $config package definition
+     */
     public function __construct(array $config)
     {
         $this->name = $config['package']['name'] ?? $config['package'][0]['name'];
+        // Composer\Repository\PackageRepository has a definition without the "url" key
+        // phpstan does not pick the amended schema above
         $this->url = $config['url'] ?? '';
 
         parent::__construct($config);

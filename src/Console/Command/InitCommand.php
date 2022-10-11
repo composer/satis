@@ -27,8 +27,8 @@ class InitCommand extends BaseCommand
 {
     protected function configure(): void
     {
+        $this->getName() ?? $this->setName('init');
         $this
-            ->setName('init')
             ->setDescription('Initialize Satis configuration file')
             ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'JSON file to use', './satis.json'),

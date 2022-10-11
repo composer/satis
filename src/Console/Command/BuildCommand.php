@@ -16,13 +16,18 @@ namespace Composer\Satis\Console\Command;
 use Composer\Command\BaseCommand;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
+use Composer\Console\Application as ComposerApplication;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonValidationException;
+use Composer\Package\Loader\RootPackageLoader;
+use Composer\Package\Version\VersionGuesser;
+use Composer\Package\Version\VersionParser;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
-use Composer\Satis\Console\Application;
+use Composer\Satis\Console\Application as SatisApplication;
 use Composer\Satis\PackageSelection\PackageSelection;
+use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
 use Seld\JsonLint\JsonParser;
@@ -37,8 +42,8 @@ class BuildCommand extends BaseCommand
 {
     protected function configure(): void
     {
+        $this->getName() ?? $this->setName('build');
         $this
-            ->setName('build')
             ->setDescription('Builds a composer repository out of a json file')
             ->setDefinition([
                 new InputArgument('file', InputArgument::OPTIONAL, 'Json file to use', './satis.json'),
@@ -180,9 +185,31 @@ class BuildCommand extends BaseCommand
             $output->writeln(sprintf('<notice>Homepage config used from env SATIS_HOMEPAGE: %s</notice>', $homepage));
         }
 
-        /** @var Application $application */
+        /** @var SatisApplication|ComposerApplication $application */
         $application = $this->getApplication();
-        $composer = $application->getComposer(true, $config);
+        $composer = $application->getComposer(true);
+        $composerConfig = $composer->getConfig();
+        $composerConfig->merge($config);
+        $composer->setConfig($composerConfig);
+
+        // Feed repo manager with satis' repos
+        $manager = $composer->getRepositoryManager();
+        foreach ($config['repositories'] as $repo) {
+            $manager->addRepository($manager->createRepository($repo['type'], $repo, $repo['name'] ?? null));
+        }
+        // Make satis' config file pretend it is the root package
+        $parser = new VersionParser();
+        /**
+         * In standalone case, the RootPackageLoader assembles an internal VersionGuesser with a broken ProcessExecutor
+         * Workaround by explicitly injecting a ProcessExecutor with enableAsync;
+         */
+        $process = new ProcessExecutor($io);
+        $process->enableAsync();
+        $guesser = new VersionGuesser($composerConfig, $process, $parser);
+        $loader = new RootPackageLoader($manager, $composerConfig, $parser, $guesser);
+        $satisConfigAsRootPackage = $loader->load($config);
+        $composer->setPackage($satisConfigAsRootPackage);
+
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
         if (null !== $repositoryUrl && [] !== $repositoryUrl) {
@@ -264,9 +291,9 @@ class BuildCommand extends BaseCommand
     }
 
     /**
-     * @throws ParsingException if the json file has an invalid syntax
-     * @throws JsonValidationException if the json file doesn't match the schema
-     * @throws UnexpectedValueException if the json file cannot be parsed
+     * @throws ParsingException         if the json file has an invalid syntax
+     * @throws JsonValidationException  if the json file doesn't match the schema
+     * @throws UnexpectedValueException if the json file is not UTF-8
      */
     private function check(string $configFile): bool
     {
