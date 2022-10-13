@@ -187,10 +187,15 @@ class BuildCommand extends BaseCommand
 
         /** @var SatisApplication|ComposerApplication $application */
         $application = $this->getApplication();
-        $composer = $application->getComposer(true);
-        $composerConfig = $composer->getConfig();
-        $composerConfig->merge($config);
-        $composer->setConfig($composerConfig);
+        if ($application instanceof SatisApplication) {
+            $composer = $application->getComposerWithConfig($config);
+            $composerConfig = $composer->getConfig();
+        } else {
+            $composer = $application->getComposer(true);
+            $composerConfig = $composer->getConfig();
+            $composerConfig->merge($config);
+            $composer->setConfig($composerConfig);    
+        }
 
         // Feed repo manager with satis' repos
         $manager = $composer->getRepositoryManager();

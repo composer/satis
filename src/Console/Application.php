@@ -24,6 +24,7 @@ use Composer\Util\ErrorHandler;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Composer\Util\Platform;
 
 class Application extends ComposerApplication
 {
@@ -70,5 +71,29 @@ class Application extends ComposerApplication
         ]);
 
         return $commands;
+    }
+
+    public function getComposerWithConfig($config): ?Composer
+    {
+
+        if (null === $this->composer) {
+            try {
+                $this->composer = Factory::create(Platform::isInputCompletionProcess() ? new NullIO() : $this->io, $config, false, false);
+            } catch (\InvalidArgumentException $e) {
+                if ($required) {
+                    $this->io->writeError($e->getMessage());
+                    if ($this->areExceptionsCaught()) {
+                        exit(1);
+                    }
+                    throw $e;
+                }
+            } catch (JsonValidationException $e) {
+                if ($required) {
+                    throw $e;
+                }
+            }
+        }
+
+        return $this->composer;
     }
 }
