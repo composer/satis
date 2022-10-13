@@ -114,7 +114,6 @@ class PackageSelection
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->repositories = $config['repositories'] ?? [];
-
         $this->fetchOptions($config);
     }
 
@@ -173,7 +172,8 @@ class PackageSelection
             if (0 === count($repos)) {
                 throw new \InvalidArgumentException(sprintf('Specified repository URL(s) "%s" do not exist.', implode('", "', $this->repositoriesFilter)));
             }
-        } else {
+        }
+        else {
             // Only use repos explicitly activated in satis config if no further filter given
             $repos = [];
             // Todo: Use a filter function instead
@@ -182,7 +182,10 @@ class PackageSelection
                     $config = $repo->getRepoConfig();
                     foreach ($this->repositories as $satisRepo) {
                         // TODO configurable repo types without URL attribute
-                        if ($config['url'] == $satisRepo['url']) {
+                        if (empty($config['url'])|| empty($satisRepo['url'])) {
+                            continue;
+                        }
+                        if (rtrim($config['url'], '/') == rtrim($satisRepo['url'], '/')) {
                             $repos[] = $repo;
                         }
                     }
