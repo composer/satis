@@ -172,8 +172,7 @@ class PackageSelection
             if (0 === count($repos)) {
                 throw new \InvalidArgumentException(sprintf('Specified repository URL(s) "%s" do not exist.', implode('", "', $this->repositoriesFilter)));
             }
-        }
-        else {
+        } else {
             // Only use repos explicitly activated in satis config if no further filter given
             $repos = [];
             // Todo: Use a filter function instead
@@ -182,9 +181,18 @@ class PackageSelection
                     $config = $repo->getRepoConfig();
                     foreach ($this->repositories as $satisRepo) {
                         // TODO configurable repo types without URL attribute
-                        if (empty($config['url'])|| empty($satisRepo['url'])) {
+                        // This is madness and should be an empty() but phpstan-strict-rules does not like empty()
+                        if (
+                            !isset($config['url']) ||
+                            !is_string($config['url']) ||
+                            '' === $config['url'] ||
+                            !isset($satisRepo['url']) ||
+                            !is_string($satisRepo['url']) ||
+                            '' === $satisRepo['url']
+                        ) {
                             continue;
                         }
+                        // Treat any combination of missing or present trailing slash as equal
                         if (rtrim($config['url'], '/') == rtrim($satisRepo['url'], '/')) {
                             $repos[] = $repo;
                         }
