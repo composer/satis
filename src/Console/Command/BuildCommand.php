@@ -194,7 +194,7 @@ class BuildCommand extends BaseCommand
             $composer = $application->getComposer(true);
             $composerConfig = $composer->getConfig();
             $composerConfig->merge($config);
-            $composer->setConfig($composerConfig);    
+            $composer->setConfig($composerConfig);
         }
 
         // Feed repo manager with satis' repos
