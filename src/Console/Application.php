@@ -18,9 +18,11 @@ use Composer\Console\Application as ComposerApplication;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
 use Composer\IO\IOInterface;
+use Composer\IO\NullIO;
 use Composer\Satis\Console\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;
+use Composer\Util\Platform;
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -70,5 +72,22 @@ class Application extends ComposerApplication
         ]);
 
         return $commands;
+    }
+
+    public function getComposerWithConfig($config): ?Composer
+    {
+        if (null === $this->composer) {
+            try {
+                $this->composer = Factory::create(Platform::isInputCompletionProcess() ? new NullIO() : $this->io, $config, false, false);
+            } catch (\InvalidArgumentException $e) {
+                $this->io->writeError($e->getMessage());
+                if ($this->areExceptionsCaught()) {
+                    exit(1);
+                }
+                throw $e;
+            }
+        }
+
+        return $this->composer;
     }
 }

@@ -114,7 +114,6 @@ class PackageSelection
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->repositories = $config['repositories'] ?? [];
-
         $this->fetchOptions($config);
     }
 
@@ -182,7 +181,19 @@ class PackageSelection
                     $config = $repo->getRepoConfig();
                     foreach ($this->repositories as $satisRepo) {
                         // TODO configurable repo types without URL attribute
-                        if ($config['url'] == $satisRepo['url']) {
+                        // This is madness and should be an empty() but phpstan-strict-rules does not like empty()
+                        if (
+                            !isset($config['url']) ||
+                            !is_string($config['url']) ||
+                            '' === $config['url'] ||
+                            !isset($satisRepo['url']) ||
+                            !is_string($satisRepo['url']) ||
+                            '' === $satisRepo['url']
+                        ) {
+                            continue;
+                        }
+                        // Treat any combination of missing or present trailing slash as equal
+                        if (rtrim($config['url'], '/') == rtrim($satisRepo['url'], '/')) {
                             $repos[] = $repo;
                         }
                     }
