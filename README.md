@@ -63,6 +63,21 @@ Fork the project, create a feature branch, and send us a pull request.
 
 If you introduce a new feature, or fix a bug, please try to include a testcase.
 
+While not required, it is appreciated if your contribution meets our coding standards.
+
+You can check these yourself by running the tools we use:
+
+```bash
+# install tooling & dependencies
+for d in tools/*; do composer --working-dir=$d install; done
+
+# run php-cs-fixer
+tools/php-cs-fixer/vendor/bin/php-cs-fixer fix
+
+# run phpstan
+tools/phpstan/vendor/bin/phpstan
+```
+
 ## Authors
 
 See the list of [contributors][] who participate(d) in this project.
