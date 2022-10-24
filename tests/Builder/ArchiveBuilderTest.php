@@ -72,7 +72,7 @@ class ArchiveBuilderTest extends TestCase
             $this->returnCallback(
                 function ($package, $source) {
                     $filesystem = new Filesystem();
-                    $filesystem->dumpFile(realpath($source) . '/' . 'README.md', '# The demo archive.');
+                    $filesystem->dumpFile(realpath($source) . '/README.md', '# The demo archive.');
                 }
             )
         );
