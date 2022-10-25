@@ -76,6 +76,10 @@ tools/php-cs-fixer/vendor/bin/php-cs-fixer fix
 
 # run phpstan
 tools/phpstan/vendor/bin/phpstan
+
+# alternatively, use the shortcuts
+composer phpstan
+composer php-cs-fixer[-fix]
 ```
 
 ## Authors
