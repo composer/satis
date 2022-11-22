@@ -227,9 +227,7 @@ class PackageSelection
             $this->addRepositories($repositorySet, $repos);
             // dependencies of required packages might have changed and be part of filtered repos
             if ($this->hasRepositoriesFilter() && true !== $this->repositoryFilterDep) {
-                $this->addRepositories($repositorySet, \array_filter($initialRepos, function ($r) use ($repos) {
-                    return false === \in_array($r, $repos);
-                }));
+                $this->addRepositories($repositorySet, \array_diff($initialRepos, $repos, fn($a, $b) => $a->getRepoName() <=> $b->getRepoName()));
             }
 
             // additional repositories for dependencies
