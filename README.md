@@ -1,6 +1,12 @@
 # Satis
 
-Simple static Composer repository generator.
+A simple static Composer repository generator.
+
+## About
+
+Satis is a tool that allows PHP developers to create a private package repository for their projects' dependencies. It provides
+increased control over package distribution, improved security, and faster package installations, by creating a static Composer
+registry that can be hosted anywhere (even via Docker, locally).
 
 ## Run from source
 
