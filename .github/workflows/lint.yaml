@@ -23,7 +23,7 @@ jobs:
       - name: setup php
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.1
+          php-version: 8.2
           extensions: mbstring
       - name: install dependencies
         run: |
@@ -38,7 +38,7 @@ jobs:
       - name: setup php
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.1
+          php-version: 8.2
           extensions: mbstring
           coverage: xdebug
       - name: install dependencies
