@@ -7,7 +7,7 @@ includes:
 parameters:
   level: 5
   tmpDir: .
-  phpVersion: 70428
+  phpVersion: 80204
 
   paths:
     - src
