@@ -22,6 +22,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PackagesBuilder extends Builder
 {
+    public const MINIFY_ALGORITHM_V2 = 'composer/2.0';
+
     /** @var string packages.json file name. */
     private $filename;
     /** @var string included json filename template */
@@ -100,6 +102,12 @@ class PackagesBuilder extends Builder
             $repo['available-packages'] = array_keys($packagesByName);
         }
 
+        $additionalMetaData = [];
+
+        if ($this->minify) {
+            $additionalMetaData['minified'] = self::MINIFY_ALGORITHM_V2;
+        }
+
         foreach ($packagesByName as $packageName => $versionPackages) {
             $stableVersions = [];
             $devVersions = [];
@@ -114,13 +122,17 @@ class PackagesBuilder extends Builder
             // Stable versions
             $this->dumpPackageIncludeJson(
                 [$packageName => $this->minify ? MetadataMinifier::minify($stableVersions) : $stableVersions],
-                str_replace('%package%', $packageName, $metadataUrl)
+                str_replace('%package%', $packageName, $metadataUrl),
+                'sha1',
+                $additionalMetaData
             );
 
             // Dev versions
             $this->dumpPackageIncludeJson(
                 [$packageName => $this->minify ? MetadataMinifier::minify($devVersions) : $devVersions],
-                str_replace('%package%', $packageName.'~dev', $metadataUrl)
+                str_replace('%package%', $packageName.'~dev', $metadataUrl),
+                'sha1',
+                $additionalMetaData
             );
         }
 
@@ -204,7 +216,7 @@ class PackagesBuilder extends Builder
         }
     }
 
-    private function dumpPackageIncludeJson(array $packages, string $includesUrl, string $hashAlgorithm = 'sha1'): array
+    private function dumpPackageIncludeJson(array $packages, string $includesUrl, string $hashAlgorithm = 'sha1', array $additionalMetaData = []): array
     {
         $filename = str_replace('%hash%', 'prep', $includesUrl);
         $path = $tmpPath = $this->outputDir . '/' . ltrim($filename, '/');
@@ -215,7 +227,7 @@ class PackagesBuilder extends Builder
             $options |= JSON_PRETTY_PRINT;
         }
 
-        $contents = $repoJson->encode(['packages' => $packages], $options) . "\n";
+        $contents = $repoJson->encode(array_merge(['packages' => $packages], $additionalMetaData), $options) . "\n";
         $hash = hash($hashAlgorithm, $contents);
 
         if (false !== strpos($includesUrl, '%hash%')) {
