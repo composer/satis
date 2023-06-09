@@ -163,6 +163,11 @@ Path to twig template used for generating html output.
 
 If true, output package providers. This will generate a directory per vendor and a json file per package.
 
+### includes
+
+If true, output package includes. This is `true` by default - setting it to `false` allows you to work with Composer v2
+metadata URLs only.
+
 ### pretty-print
 
 Whether or not to use `JSON_PRETTY_PRINT` when generating json output.

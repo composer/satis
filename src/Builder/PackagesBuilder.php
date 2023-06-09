@@ -38,6 +38,7 @@ class PackagesBuilder extends Builder
         $this->filename = $this->outputDir . '/packages.json';
         $this->includeFileName = $config['include-filename'] ?? 'include/all$%hash%.json';
         $this->minify = $minify;
+        $this->config['includes'] = $config['includes'] ?? true;
     }
 
     /**
@@ -79,7 +80,9 @@ class PackagesBuilder extends Builder
                 );
                 $repo['providers'][$packageName] = current($includes);
             }
-        } else {
+        }
+
+        if (isset($this->config['includes']) && $this->config['includes']) {
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, $this->includeFileName);
         }
 
