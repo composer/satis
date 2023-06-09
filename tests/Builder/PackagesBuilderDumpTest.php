@@ -208,4 +208,36 @@ class PackagesBuilderDumpTest extends TestCase
 
         self::assertEquals(trim(json_encode($expected, $jsonOptions)), trim($content));
     }
+
+    public function testComposer2MinifiedProvider(): void
+    {
+        $expected = [
+            'packages' => [
+                'vendor/name' => [
+                    [
+                        'name' => 'vendor/name',
+                        'version' => '1.0',
+                        'version_normalized' => '1.0.0.0',
+                        'type' => 'library',
+                    ],
+                    [
+                        'version' => '2.0',
+                        'version_normalized' => '2.0.0.0',
+                    ],
+                ],
+            ],
+            'minified' => PackagesBuilder::MINIFY_ALGORITHM_V2,
+        ];
+
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false, true);
+        $packagesBuilder->dump(array_merge(self::createPackages(1), self::createPackages(2)));
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/p2/vendor/name.json');
+        $content = $file->getContent();
+
+        self::assertEquals($expected, json_decode($content, true));
+    }
 }
