@@ -494,7 +494,12 @@ class PackageSelection
             return false;
         }
 
-        $url = trim(parse_url($url, PHP_URL_HOST), '[]');
+        $sshRegex = '#^[^@:\/]+@([^\/:]+)#ui';
+        if (preg_match($sshRegex, $url, $matches)) {
+            $url = $matches[1];
+        } else {
+            $url = trim(parse_url($url, PHP_URL_HOST), '[]');
+        }
 
         if (false !== filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
             $urltype = 'ipv4';
