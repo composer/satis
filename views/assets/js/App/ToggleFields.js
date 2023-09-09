@@ -12,7 +12,7 @@ class ToggleFields {
         this.packageFieldsByFieldName = {};
         this.showAllButton = document.querySelector(showAllButton);
         this.checkboxes = Array.prototype.slice.call(
-            document.querySelectorAll(checkboxesToToggle)
+            document.querySelectorAll(checkboxesToToggle),
         );
         if (this.showAllButton && this.checkboxes.length) {
             this.init();
@@ -25,7 +25,7 @@ class ToggleFields {
     populateCheckboxesFromStorage() {
         let showAllButtonIsDisabled = true;
         const fieldStatus = JSON.parse(
-            window.localStorage.getItem("satisFieldStatus") || "{}"
+            window.localStorage.getItem("satisFieldStatus") || "{}",
         );
         this.checkboxes.forEach((elem) => {
             if (elem.value in fieldStatus) {
@@ -54,7 +54,7 @@ class ToggleFields {
         });
         window.localStorage.setItem(
             "satisFieldStatus",
-            JSON.stringify(fieldStatus)
+            JSON.stringify(fieldStatus),
         );
         this.showAllButton.disabled = showAllButtonIsDisabled;
     }
@@ -89,15 +89,15 @@ class ToggleFields {
      */
     init() {
         this.showAllButton.addEventListener("click", () =>
-            this.showAllFields()
+            this.showAllFields(),
         );
         this.checkboxes.forEach((elem) => {
             elem.addEventListener("change", () =>
-                this.saveCheckboxesToStorage()
+                this.saveCheckboxesToStorage(),
             );
             this.packageFieldsByFieldName[elem.value] =
                 Array.prototype.slice.call(
-                    document.querySelectorAll(".field-" + elem.value)
+                    document.querySelectorAll(".field-" + elem.value),
                 );
         });
         this.populateCheckboxesFromStorage();

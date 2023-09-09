@@ -16,7 +16,7 @@ class PackageFilter {
         this.itemContainer = document.querySelector(itemContainer);
         this.filterBy = document.querySelector(filterBy);
         this.allPackages = Array.prototype.slice.call(
-            this.itemContainer.querySelectorAll(item)
+            this.itemContainer.querySelectorAll(item),
         );
 
         // Vars
@@ -50,7 +50,7 @@ class PackageFilter {
      */
     updateHash() {
         window.location.hash = window.encodeURIComponent(
-            this.searchField.value
+            this.searchField.value,
         );
     }
 
@@ -70,7 +70,7 @@ class PackageFilter {
             // Get content either from specific fields, or the whole package
             const filterableContent = this.filterByValue
                 ? elem.querySelector(
-                      ".field-" + this.filterByValue + ".filter-by"
+                      ".field-" + this.filterByValue + ".filter-by",
                   ).textContent
                 : elem.textContent;
 
@@ -101,7 +101,7 @@ class PackageFilter {
 
     init() {
         this.filterBy.addEventListener("change", (event) =>
-            this.handleFilterByChange(event)
+            this.handleFilterByChange(event),
         );
         this.searchField.addEventListener("search", () => {
             if (!this.searchField.value) {
@@ -114,7 +114,7 @@ class PackageFilter {
             window.clearTimeout(this.inputTimeout);
             this.inputTimeout = window.setTimeout(
                 this.filterPackages.bind(this),
-                350
+                350,
             );
         });
         document.addEventListener("keyup", (event) => {

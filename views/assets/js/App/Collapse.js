@@ -1,10 +1,10 @@
 class Collapse {
     constructor() {
         this.toggleElements = Array.prototype.slice.call(
-            document.querySelectorAll('[data-toggle="collapse"]')
+            document.querySelectorAll('[data-toggle="collapse"]'),
         );
         this.collapsibleElements = Array.prototype.slice.call(
-            document.querySelectorAll(".collapse")
+            document.querySelectorAll(".collapse"),
         );
         this.handleClick = this.handleClick.bind(this);
         this.init();
@@ -60,7 +60,7 @@ class Collapse {
             element.style.transition = "max-height 0.25s";
             element.setAttribute(
                 "aria-expanded",
-                initiallyVisible ? "true" : "false"
+                initiallyVisible ? "true" : "false",
             );
         });
     }
