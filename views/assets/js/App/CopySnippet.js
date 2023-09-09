@@ -19,7 +19,7 @@ class CopySnippet {
         this.clipboardButton = document.querySelector(clipboardButton);
         this.tooltip = document.querySelector(tooltip);
         this.releases = Array.prototype.slice.call(
-            document.querySelectorAll(releases)
+            document.querySelectorAll(releases),
         );
 
         // Vars
@@ -91,7 +91,7 @@ class CopySnippet {
                 .then((result) => {
                     if (result.state == "granted" || result.state == "prompt") {
                         navigator.clipboard.writeText(
-                            this.snippetTextField.value
+                            this.snippetTextField.value,
                         );
                         updatedClipboardViaAPI = true;
                     }
@@ -103,7 +103,7 @@ class CopySnippet {
             if ("clipboardData" in window) {
                 window.clipboardData.setData(
                     "Text",
-                    this.snippetTextField.value
+                    this.snippetTextField.value,
                 );
             } else {
                 document.execCommand("copy");
@@ -135,17 +135,17 @@ class CopySnippet {
     init() {
         this.releases.forEach((elem) =>
             elem.addEventListener("click", (event) =>
-                this.showCodeSnippetToCopy(event)
-            )
+                this.showCodeSnippetToCopy(event),
+            ),
         );
         this.snippetTextField.addEventListener("focus", (event) =>
-            event.target.select()
+            event.target.select(),
         );
         this.clipboardButton.addEventListener("click", () =>
-            this.copyCodeSnippetToClipboard()
+            this.copyCodeSnippetToClipboard(),
         );
         this.tooltip.addEventListener("transitionend", (event) =>
-            this.tooltipFadeout(event)
+            this.tooltipFadeout(event),
         );
     }
 }

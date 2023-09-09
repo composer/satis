@@ -11,7 +11,7 @@ class PackageFilterSettings {
      */
     constructor(defaultFilterBy, activeFilter, useThisField) {
         this.defaultFilterBy = Array.prototype.slice.call(
-            document.querySelectorAll(defaultFilterBy)
+            document.querySelectorAll(defaultFilterBy),
         );
         this.activeFilter = document.querySelector(activeFilter);
         this.useThisField = document.querySelector(useThisField);
@@ -33,15 +33,21 @@ class PackageFilterSettings {
             elem.addEventListener("change", (event) =>
                 window.localStorage.setItem(
                     "satisDefaultFilterBy",
-                    event.target.value
-                )
-            )
+                    event.target.value,
+                ),
+            ),
         );
         this.useThisField.addEventListener("change", (event) =>
-            window.localStorage.setItem("satisUseThisField", event.target.value)
+            window.localStorage.setItem(
+                "satisUseThisField",
+                event.target.value,
+            ),
         );
         this.activeFilter.addEventListener("change", (event) =>
-            window.localStorage.setItem("satisActiveFilter", event.target.value)
+            window.localStorage.setItem(
+                "satisActiveFilter",
+                event.target.value,
+            ),
         );
     }
 
@@ -52,7 +58,7 @@ class PackageFilterSettings {
         const defaultFilterBy =
             window.localStorage.getItem("satisDefaultFilterBy") || "all";
         this.defaultFilterBy.forEach(
-            (elem) => (elem.checked = defaultFilterBy === elem.value)
+            (elem) => (elem.checked = defaultFilterBy === elem.value),
         );
         const useThisField = window.localStorage.getItem("satisUseThisField");
         if (useThisField) {
