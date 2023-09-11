@@ -24,14 +24,14 @@ jobs:
         run: |
           echo "::add-matcher::${{ runner.tool_cache }}/php.json"
           echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
-      - name: get composer cache directory
+      - name: determine composer cache directory
         id: composer-cache
-        run: echo "::set-output name=dir::$(composer config cache-files-dir)"
-      - name: restore cached dependencies
+        run: "echo \"directory=$(composer config cache-dir)\" >> $GITHUB_OUTPUT"
+      - name: cache dependencies installed with composer
         uses: actions/cache@v3
         with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ matrix.php }}-${{ matrix.stability }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ matrix.php }}-${{ matrix.stability }}-composer-
+          path: ${{ steps.composer-cache.outputs.directory }}
+          key: php-${{ matrix.php-version }}-${{ matrix.stability }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ matrix.php }}-${{ matrix.stability }}-composer
       - run: composer update --${{ matrix.stability }} --prefer-dist --no-interaction
       - run: composer run test
