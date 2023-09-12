@@ -28,7 +28,7 @@ class PackagesBuilder extends Builder
     private $filename;
     /** @var string included json filename template */
     private $includeFileName;
-    /** @var array<int, mixed> */
+    /** @var list<mixed> */
     private $writtenIncludeJsons = [];
     /** @var bool */
     private $minify;
