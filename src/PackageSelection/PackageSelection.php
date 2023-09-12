@@ -45,7 +45,7 @@ class PackageSelection
     /** @var string packages.json file name. */
     private $filename;
 
-    /** @var array Array of additional repositories for dependencies */
+    /** @var mixed Array of additional repositories for dependencies */
     private $depRepositories;
 
     /** @var bool Selects All Packages if true. */
@@ -69,16 +69,16 @@ class PackageSelection
     /** @var string Minimum stability accepted for Packages in the list. */
     private $minimumStability;
 
-    /** @var array Minimum stability accepted by Package. */
+    /** @var string[] Minimum stability accepted by Package. */
     private $minimumStabilityPerPackage;
 
-    /** @var array The active package filter to merge. */
+    /** @var string[] The active package filter to merge. */
     private $packagesFilter = [];
 
     /** @var string[]|null The active repository filter to merge. */
     private $repositoriesFilter;
 
-    /** @var array Repositories mentioned in the satis config */
+    /** @var mixed Repositories mentioned in the satis config */
     private $repositories;
 
     /** @var bool Apply the filter also for resolving dependencies. */
@@ -87,19 +87,19 @@ class PackageSelection
     /** @var PackageInterface[] The selected packages from config */
     private $selected = [];
 
-    /** @var array A list of packages marked as abandoned */
+    /** @var string[] A list of packages marked as abandoned */
     private $abandoned = [];
 
-    /** @var array A list of blacklisted package/constraints. */
+    /** @var string[] A list of blacklisted package/constraints. */
     private $blacklist = [];
 
-    /** @var array|null A list of package types. If set only packages with one of these types will be selected */
+    /** @var string[]|null A list of package types. If set only packages with one of these types will be selected */
     private $includeTypes;
 
-    /** @var array A list of package types that will not be selected */
+    /** @var string[] A list of package types that will not be selected */
     private $excludeTypes = [];
 
-    /** @var array|bool Patterns from strip-hosts. */
+    /** @var mixed Patterns from strip-hosts. */
     private $stripHosts = false;
 
     /** @var string The prefix of the distURLs when using archive. */
@@ -108,6 +108,9 @@ class PackageSelection
     /** @var string The homepage - needed to get the relative paths of the providers */
     private $homepage;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
     {
         $this->output = $output;
@@ -141,6 +144,9 @@ class PackageSelection
         return null !== $this->includeTypes || count($this->excludeTypes) > 0;
     }
 
+    /**
+     * @param string[] $packagesFilter
+     */
     public function setPackagesFilter(array $packagesFilter = []): void
     {
         $this->packagesFilter = $packagesFilter;
@@ -154,6 +160,8 @@ class PackageSelection
     /**
      * @throws \InvalidArgumentException
      * @throws \Exception
+     *
+     * @return PackageInterface[]
      */
     public function select(PartialComposer $composer, bool $verbose): array
     {
@@ -344,6 +352,9 @@ class PackageSelection
         return $packages;
     }
 
+    /**
+     * @param array<string, mixed> $config
+     */
     private function fetchOptions(array $config): void
     {
         $this->depRepositories = $config['repositories-dep'] ?? [];
@@ -374,9 +385,9 @@ class PackageSelection
     }
 
     /**
-     * @param array|false $stripHostsConfig
+     * @param string[]|false $stripHostsConfig
      *
-     * @return array|false
+     * @return array<mixed>|false
      */
     private function createStripHostsPatterns($stripHostsConfig)
     {

@@ -28,11 +28,14 @@ class PackagesBuilder extends Builder
     private $filename;
     /** @var string included json filename template */
     private $includeFileName;
-    /** @var array */
+    /** @var array<int, mixed> */
     private $writtenIncludeJsons = [];
     /** @var bool */
     private $minify;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, bool $minify = false)
     {
         parent::__construct($output, $outputDir, $config, $skipErrors);
@@ -56,7 +59,7 @@ class PackagesBuilder extends Builder
 
         // Composer 1.0 format
         $repo = ['packages' => []];
-        if (isset($this->config['providers']) && $this->config['providers']) {
+        if (isset($this->config['providers']) && true === $this->config['providers']) {
             $providersUrl = 'p/%package%$%hash%.json';
             if (!empty($this->config['homepage'])) {
                 $repo['providers-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $providersUrl;
@@ -84,7 +87,7 @@ class PackagesBuilder extends Builder
             }
         }
 
-        if (isset($this->config['includes']) && $this->config['includes']) {
+        if (isset($this->config['includes']) && true === $this->config['includes']) {
             $repo['includes'] = $this->dumpPackageIncludeJson($packagesByName, $this->includeFileName);
         }
 
@@ -141,6 +144,11 @@ class PackagesBuilder extends Builder
         $this->pruneIncludeDirectories();
     }
 
+    /**
+     * @param array<string, mixed> $packages
+     *
+     * @return array<string, mixed>
+     */
     private function findReplacements(array $packages, string $replaced): array
     {
         $replacements = [];
@@ -216,6 +224,16 @@ class PackagesBuilder extends Builder
         }
     }
 
+    /**
+     * @param array<string, mixed> $packages
+     * @param array<string, string> $additionalMetaData
+     *
+     * @throws \RuntimeException
+     * @throws \UnexpectedValueException
+     * @throws \Exception
+     *
+     * @return array<string, mixed>
+     */
     private function dumpPackageIncludeJson(array $packages, string $includesUrl, string $hashAlgorithm = 'sha1', array $additionalMetaData = []): array
     {
         $filename = str_replace('%hash%', 'prep', $includesUrl);
@@ -223,7 +241,8 @@ class PackagesBuilder extends Builder
 
         $repoJson = new JsonFile($path);
         $options = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
-        if ($this->config['pretty-print'] ?? true) {
+        $shouldPrettyPrint = isset($this->config['pretty-print']) ? (bool) $this->config['pretty-print'] : true;
+        if ($shouldPrettyPrint) {
             $options |= JSON_PRETTY_PRINT;
         }
 
@@ -288,7 +307,7 @@ class PackagesBuilder extends Builder
     }
 
     /**
-     * @param array $repo Repository information
+     * @param array<string, mixed> $repo Repository information
      */
     private function dumpPackagesJson(array $repo): void
     {

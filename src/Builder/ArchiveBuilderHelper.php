@@ -20,9 +20,12 @@ class ArchiveBuilderHelper
 {
     /** @var OutputInterface The output Interface. */
     private $output;
-    /** @var array The 'archive' part of a configuration file. */
+    /** @var array<string, mixed> The 'archive' part of a configuration file. */
     private $archiveConfig;
 
+    /**
+     * @param array<string, mixed> $archiveConfig
+     */
     public function __construct(OutputInterface $output, array $archiveConfig)
     {
         $this->output = $output;
@@ -59,13 +62,15 @@ class ArchiveBuilderHelper
 
         $names = $package->getNames();
 
-        if ($this->archiveConfig['whitelist'] && !$this->isOneOfNamesInList($names, $this->archiveConfig['whitelist'])) {
+        $whiteListIsEmpty = 0 === count($this->archiveConfig['whitelist']);
+        if (!$whiteListIsEmpty && !$this->isOneOfNamesInList($names, $this->archiveConfig['whitelist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
 
             return true;
         }
 
-        if ($this->archiveConfig['blacklist'] && $this->isOneOfNamesInList($names, $this->archiveConfig['blacklist'])) {
+        $blackListIsEmpty = 0 === count($this->archiveConfig['blacklist']);
+        if (!$blackListIsEmpty && $this->isOneOfNamesInList($names, $this->archiveConfig['blacklist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
 
             return true;
@@ -74,6 +79,10 @@ class ArchiveBuilderHelper
         return false;
     }
 
+    /**
+     * @param array<int, string> $names
+     * @param array<int, string> $list
+     */
     protected function isOneOfNamesInList(array $names, array $list): bool
     {
         $patterns = $this->convertListToRegexPatterns($list);
@@ -87,6 +96,9 @@ class ArchiveBuilderHelper
         return false;
     }
 
+    /**
+     * @param array<int, string> $patterns
+     */
     protected function doesNameMatchOneOfPatterns(string $name, array $patterns): bool
     {
         foreach ($patterns as $pattern) {
@@ -98,6 +110,11 @@ class ArchiveBuilderHelper
         return false;
     }
 
+    /**
+     * @param array<int, string> $list
+     *
+     * @return array<int, string>
+     */
     protected function convertListToRegexPatterns(array $list): array
     {
         $patterns = [];

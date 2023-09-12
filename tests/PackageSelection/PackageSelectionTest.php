@@ -33,6 +33,9 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionTest extends TestCase
 {
+    /**
+     * @return array<string, mixed>
+     */
     public function dataGetPackages(): array
     {
         $emptyRepo = new ArrayRepository();
@@ -89,6 +92,9 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataGetPackages
+     *
+     * @param string[] $expected
+     * @param string[] $filter
      */
     public function testGetPackages(array $expected, array $filter, ArrayRepository $repository): void
     {
@@ -104,6 +110,9 @@ class PackageSelectionTest extends TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, [$repository]));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataGetRequired(): array
     {
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
@@ -147,6 +156,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataGetRequired
+     *
+     * @param string[] $expected
      */
     public function testGetRequired(array $expected, Package $package, bool $requireDependencies, bool $requireDevDependencies): void
     {
@@ -167,6 +178,9 @@ class PackageSelectionTest extends TestCase
         $this->assertSame($expected, $method->invokeArgs($builder, [$package, true]));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataSetSelectedAsAbandoned(): array
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
@@ -197,6 +211,9 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataSetSelectedAsAbandoned
+     *
+     * @param string[] $expected
+     * @param array<string, mixed> $config
      */
     public function testSetSelectedAsAbandoned(array $expected, array $config): void
     {
@@ -219,6 +236,9 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, $property->getValue($builder));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataPruneBlacklisted(): array
     {
         $package0 = new Package('vendor/name', '1.0.0.0', '1.0');
@@ -252,6 +272,10 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataPruneBlacklisted
+     *
+     * @param string[] $expected
+     * @param string[] $selected
+     * @param array<string, mixed> $config
      */
     public function testPruneBlacklisted(array $expected, array $selected, array $config): void
     {
@@ -272,6 +296,9 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals(array_values($expected), array_values($property->getValue($builder)));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataSelect(): array
     {
         $packages = [
@@ -714,7 +741,10 @@ class PackageSelectionTest extends TestCase
     /**
      * @dataProvider dataSelect
      *
+     * @param string[] $expected
+     * @param array<string, mixed> $config
      * @param string[]|null $filterRepos
+     * @param string[]|null $filterPackages
      */
     public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null): void
     {
@@ -745,6 +775,9 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataMetadataSupport(): array
     {
         $vendorRepo = new ArrayRepository();
@@ -772,6 +805,8 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataMetadataSupport
+     *
+     * @param string[] $expected
      */
     public function testMetadataSupport(array $expected, ArrayRepository $repository): void
     {
@@ -790,6 +825,9 @@ class PackageSelectionTest extends TestCase
         $this->assertEquals($expected, array_keys($result));
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataClean(): array
     {
         $packages = [
@@ -961,6 +999,10 @@ class PackageSelectionTest extends TestCase
 
     /**
      * @dataProvider dataClean
+     *
+     * @param string[] $expected
+     * @param array<string, mixed> $config
+     * @param array<string, mixed> $packages
      */
     public function testClean(array $expected, array $config, array $packages): void
     {
@@ -1067,6 +1109,9 @@ final class MockPackageSelectionPackageRepository extends PackageRepository impl
         parent::__construct($config);
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function getRepoConfig(): array
     {
         return ['name' => $this->name, 'url' => $this->url];

@@ -27,17 +27,13 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionLoadTest extends TestCase
 {
-    /** @var PackageSelection */
-    protected $selection;
+    protected PackageSelection $selection;
 
-    /** @var Package */
-    protected $package;
+    protected Package $package;
 
-    /** @var Package */
-    protected $devPackage;
+    protected Package $devPackage;
 
-    /** @var vfsStreamDirectory */
-    protected $root;
+    protected vfsStreamDirectory $root;
 
     protected function setUp(): void
     {
