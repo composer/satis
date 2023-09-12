@@ -74,6 +74,9 @@ class Application extends ComposerApplication
         return $commands;
     }
 
+    /**
+     * @param mixed $config
+     */
     public function getComposerWithConfig($config): ?Composer
     {
         if (null === $this->composer) {

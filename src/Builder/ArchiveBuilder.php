@@ -28,11 +28,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ArchiveBuilder extends Builder
 {
-    /** @var Composer A Composer instance. */
-    private $composer;
-    /** @var InputInterface */
-    private $input;
+    private Composer $composer;
 
+    private InputInterface $input;
+
+    /**
+     * @param array<PackageInterface> $packages
+     */
     public function dump(array $packages): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);

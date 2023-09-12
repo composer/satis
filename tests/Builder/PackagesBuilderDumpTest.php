@@ -26,17 +26,18 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackagesBuilderDumpTest extends TestCase
 {
-    /** @var vfsStreamDirectory */
-    protected $package;
+    protected vfsStreamDirectory $package;
 
-    /** @var vfsStreamDirectory */
-    protected $root;
+    protected vfsStreamDirectory $root;
 
     protected function setUp(): void
     {
         $this->root = vfsStream::setup('build');
     }
 
+    /**
+     * @return array<Package>|array<string, mixed>
+     */
     protected static function createPackages(int $majorVersionNumber, bool $asArray = false): array
     {
         $version = $majorVersionNumber . '.0';
@@ -162,6 +163,9 @@ class PackagesBuilderDumpTest extends TestCase
         $this->assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function prettyPrintProvider(): array
     {
         return [

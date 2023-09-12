@@ -30,14 +30,11 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class WebBuilderDumpTest extends TestCase
 {
-    /** @var RootPackage */
-    protected $rootPackage;
+    protected RootPackage $rootPackage;
 
-    /** @var CompletePackage */
-    protected $package;
+    protected CompletePackage $package;
 
-    /** @var vfsStreamDirectory */
-    protected $root;
+    protected vfsStreamDirectory $root;
 
     protected function setUp(): void
     {
@@ -101,6 +98,9 @@ class WebBuilderDumpTest extends TestCase
         $this->assertMatchesRegularExpression('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataAbandoned(): array
     {
         $data = [];

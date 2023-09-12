@@ -96,11 +96,6 @@ parameters:
 			path: src/PackageSelection/PackageSelection.php
 
 		-
-			message: "#^Call to function is_array\\(\\) with array will always evaluate to true\\.$#"
-			count: 1
-			path: src/PackageSelection/PackageSelection.php
-
-		-
 			message: "#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#"
 			count: 1
 			path: src/PackageSelection/PackageSelection.php
@@ -136,7 +131,7 @@ parameters:
 			path: tests/Builder/ArchiveBuilderHelperTest.php
 
 		-
-			message: "#^AnonymousClass2d02c9eac45914ec7a66de1222f21cf4\\:\\:__construct\\(\\) does not call parent constructor from Composer\\\\Package\\\\Archiver\\\\ArchiveManager\\.$#"
+			message: "#^AnonymousClassdd4f4d5d0a10081f3f8b9c19006facf2\\:\\:__construct\\(\\) does not call parent constructor from Composer\\\\Package\\\\Archiver\\\\ArchiveManager\\.$#"
 			count: 1
 			path: tests/Builder/ArchiveBuilderTest.php
 
