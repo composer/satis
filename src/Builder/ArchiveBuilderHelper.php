@@ -62,15 +62,13 @@ class ArchiveBuilderHelper
 
         $names = $package->getNames();
 
-        $whiteListIsEmpty = 0 === count($this->archiveConfig['whitelist']);
-        if (!$whiteListIsEmpty && !$this->isOneOfNamesInList($names, $this->archiveConfig['whitelist'])) {
+        if (0 !== count($this->archiveConfig['whitelist']) && !$this->isOneOfNamesInList($names, $this->archiveConfig['whitelist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
 
             return true;
         }
 
-        $blackListIsEmpty = 0 === count($this->archiveConfig['blacklist']);
-        if (!$blackListIsEmpty && $this->isOneOfNamesInList($names, $this->archiveConfig['blacklist'])) {
+        if (0 !== count($this->archiveConfig['blacklist']) && $this->isOneOfNamesInList($names, $this->archiveConfig['blacklist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is in blacklist)</info>", $name));
 
             return true;
@@ -80,8 +78,8 @@ class ArchiveBuilderHelper
     }
 
     /**
-     * @param array<int, string> $names
-     * @param array<int, string> $list
+     * @param list<string> $names
+     * @param list<string> $list
      */
     protected function isOneOfNamesInList(array $names, array $list): bool
     {
@@ -97,7 +95,7 @@ class ArchiveBuilderHelper
     }
 
     /**
-     * @param array<int, string> $patterns
+     * @param list<string> $patterns
      */
     protected function doesNameMatchOneOfPatterns(string $name, array $patterns): bool
     {
@@ -111,9 +109,9 @@ class ArchiveBuilderHelper
     }
 
     /**
-     * @param array<int, string> $list
+     * @param list<string> $list
      *
-     * @return array<int, string>
+     * @return list<string>
      */
     protected function convertListToRegexPatterns(array $list): array
     {
