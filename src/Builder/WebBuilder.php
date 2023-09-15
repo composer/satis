@@ -93,12 +93,12 @@ class WebBuilder extends Builder
             $twigTemplate = $this->config['twig-template'] ?? null;
             $templateDir = !is_null($twigTemplate) ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new FilesystemLoader($templateDir);
-            $options = getenv('SATIS_TWIG_DEBUG') ? ['debug' => true] : [];
+            $options = false !== getenv('SATIS_TWIG_DEBUG') ? ['debug' => true] : [];
 
             $this->twig = new Environment($loader, $options);
             $this->twig->addExtension(new HtmlExtension());
 
-            if (getenv('SATIS_TWIG_DEBUG')) {
+            if (false !== getenv('SATIS_TWIG_DEBUG')) {
                 $this->twig->addExtension(new DebugExtension());
             }
         }

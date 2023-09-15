@@ -119,7 +119,8 @@ class ArchiveBuilder extends Builder
                 $distUrl = sprintf('%s/%s/%s/%s', $endpoint, $this->config['archive']['directory'], $intermediatePath, $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
-                $package->setDistSha1Checksum($includeArchiveChecksum ? hash_file('sha1', $path) : null);
+                $hasedPath = $includeArchiveChecksum ? hash_file('sha1', $path) : false;
+                $package->setDistSha1Checksum(false !== $hasedPath ? $hasedPath : null);
                 $package->setDistReference($package->getSourceReference());
 
                 if ($renderProgress) {
@@ -171,7 +172,7 @@ class ArchiveBuilder extends Builder
 
         $filesystem = new Filesystem();
         $filesystem->ensureDirectoryExists($targetDir);
-        $targetDir = realpath($targetDir);
+        $targetDir = (string) realpath($targetDir);
 
         if ($overrideDistType) {
             $originalDistType = $package->getDistType();
@@ -203,7 +204,9 @@ class ArchiveBuilder extends Builder
             $downloadPromise = $downloader->download($package, $downloadDir);
             $downloadPromise->then(function ($filename) use ($path, $filesystem) {
                 $filesystem->ensureDirectoryExists(dirname($path));
-                $filesystem->rename($filename, $path);
+                if (is_string($filename)) {
+                    $filesystem->rename($filename, $path);
+                }
             });
             SyncHelper::await($this->composer->getLoop(), $downloadPromise);
             $filesystem->removeDirectory($downloadDir);

@@ -88,6 +88,11 @@ class PackagesBuilderDumpTest extends TestCase
                 $includeJson = end($includes);
             }
 
+            // Skip if there is no valid json file
+            if (!is_string($includeJson)) {
+                continue;
+            }
+
             $includeJsonFile = 'build/' . $includeJson;
             $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
 
@@ -96,7 +101,7 @@ class PackagesBuilderDumpTest extends TestCase
             $packagesIncludeJson = JsonFile::parseJson($file->getContent());
             $this->assertEquals($arrayPackages, $packagesIncludeJson['packages']);
 
-            if ($lastIncludedJsonFile && $lastIncludedJsonFile !== $includeJsonFile) {
+            if (!is_null($lastIncludedJsonFile) && $lastIncludedJsonFile !== $includeJsonFile) {
                 $this->assertFalse(is_file(vfsStream::url($lastIncludedJsonFile)), 'Previous files not pruned');
             }
 
@@ -210,7 +215,9 @@ class PackagesBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/out.json');
         $content = $file->getContent();
 
-        self::assertEquals(trim(json_encode($expected, $jsonOptions)), trim($content));
+        $jsonEncodedObject = json_encode($expected, $jsonOptions);
+        self::assertIsString($jsonEncodedObject);
+        self::assertEquals(trim($jsonEncodedObject), trim($content));
     }
 
     public function testComposer2MinifiedProvider(): void
