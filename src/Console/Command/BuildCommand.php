@@ -127,11 +127,17 @@ class BuildCommand extends BaseCommand
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
         $io->loadConfiguration($this->getConfiguration());
+        $config = [];
 
-        if (preg_match('{^https?://}i', $configFile)) {
+        if (1 === preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($io, $this->getConfiguration());
-            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
-            $config = JsonFile::parseJson($contents, $configFile);
+            $host = parse_url($configFile, PHP_URL_HOST);
+            if (is_string($host)) {
+                $contents = $rfs->getContents($host, $configFile, false);
+                if (is_string($contents)) {
+                    $config = JsonFile::parseJson($contents, $configFile);
+                }
+            }
         } else {
             $file = new JsonFile($configFile);
             if (!$file->exists()) {
@@ -179,7 +185,8 @@ class BuildCommand extends BaseCommand
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
         }
 
-        if ($homepage = getenv('SATIS_HOMEPAGE')) {
+        $homepage = getenv('SATIS_HOMEPAGE');
+        if (false !== $homepage) {
             $config['homepage'] = $homepage;
             $output->writeln(sprintf('<notice>Homepage config used from env SATIS_HOMEPAGE: %s</notice>', $homepage));
         }
@@ -277,17 +284,19 @@ class BuildCommand extends BaseCommand
     private function getComposerHome(): string
     {
         $home = getenv('COMPOSER_HOME');
-        if (!$home) {
+        if (false === $home) {
             if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
-                if (!getenv('APPDATA')) {
+                $appData = getenv('APPDATA');
+                if (false === $appData) {
                     throw new \RuntimeException('The APPDATA or COMPOSER_HOME environment variable must be set for composer to run correctly');
                 }
-                $home = strtr(getenv('APPDATA'), '\\', '/') . '/Composer';
+                $home = strtr($appData, '\\', '/') . '/Composer';
             } else {
-                if (!getenv('HOME')) {
+                $homeEnv = getenv('HOME');
+                if (false === $homeEnv) {
                     throw new \RuntimeException('The HOME or COMPOSER_HOME environment variable must be set for composer to run correctly');
                 }
-                $home = rtrim(getenv('HOME'), '/') . '/.composer';
+                $home = rtrim($homeEnv, '/') . '/.composer';
             }
         }
 
@@ -304,16 +313,20 @@ class BuildCommand extends BaseCommand
         $content = file_get_contents($configFile);
 
         $parser = new JsonParser();
-        $result = $parser->lint($content);
+        $result = is_string($content) ? $parser->lint($content) : new ParsingException('Could not read file contents from "' . $configFile . '"');
         if (null === $result) {
             if (defined('JSON_ERROR_UTF8') && JSON_ERROR_UTF8 === json_last_error()) {
                 throw new \UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
             }
 
-            $data = json_decode($content);
+            $data = json_decode((string) $content);
 
             $schemaFile = __DIR__ . '/../../../res/satis-schema.json';
-            $schema = json_decode(file_get_contents($schemaFile));
+            $schemaFileContents = file_get_contents($schemaFile);
+            if (false === $schemaFileContents) {
+                throw new ParsingException('Could not read file contents from "' . $schemaFile . '"');
+            }
+            $schema = json_decode($schemaFileContents);
             $validator = new Validator();
             $validator->check($data, $schema);
 

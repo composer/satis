@@ -57,7 +57,7 @@ class AddCommand extends BaseCommand
         $vcsDriver = $input->getOption('type');
         $repositoryName = $input->getOption('name');
 
-        if (preg_match('{^https?://}i', $configFile)) {
+        if (1 === preg_match('{^https?://}i', $configFile)) {
             $output->writeln('<error>Unable to write to remote file ' . $configFile . '</error>');
 
             return 2;

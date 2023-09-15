@@ -235,7 +235,14 @@ class PackageSelection
             $this->addRepositories($repositorySet, $repos);
             // dependencies of required packages might have changed and be part of filtered repos
             if ($this->hasRepositoriesFilter() && true !== $this->repositoryFilterDep) {
-                $this->addRepositories($repositorySet, \array_udiff($initialRepos, $repos, fn ($a, $b) => $a->getRepoName() <=> $b->getRepoName()));
+                $this->addRepositories(
+                    $repositorySet,
+                    \array_udiff(
+                        $initialRepos,
+                        $repos,
+                        fn ($a, $b) => (method_exists($a, 'getRepoName') ? $a->getRepoName() : '') <=> (method_exists($b, 'getRepoName') ? $b->getRepoName() : '')
+                    )
+                );
             }
 
             // additional repositories for dependencies
@@ -293,7 +300,7 @@ class PackageSelection
             $baseUrlLength = strlen($baseUrl);
 
             foreach ($rootConfig['providers'] as $package => $provider) {
-                $file = str_replace(['%package%', '%hash%'], [$package, $provider['sha256']], $rootConfig['providers-url']);
+                $file = (string) str_replace(['%package%', '%hash%'], [$package, $provider['sha256']], $rootConfig['providers-url']);
 
                 if ($baseUrl && substr($file, 0, $baseUrlLength) === $baseUrl) {
                     $file = substr($file, $baseUrlLength);
@@ -506,10 +513,10 @@ class PackageSelection
         }
 
         $sshRegex = '#^[^@:\/]+@([^\/:]+)#ui';
-        if (preg_match($sshRegex, $url, $matches)) {
+        if (1 === preg_match($sshRegex, $url, $matches)) {
             $url = $matches[1];
         } else {
-            $url = trim(parse_url($url, PHP_URL_HOST), '[]');
+            $url = trim((string) parse_url($url, PHP_URL_HOST), '[]');
         }
 
         if (false !== filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
@@ -522,7 +529,7 @@ class PackageSelection
 
         $urlunpack = null;
         if ('ipv4' === $urltype || 'ipv6' === $urltype) {
-            $urlunpack = unpack('N*', @inet_pton($url));
+            $urlunpack = (array) unpack('N*', (string) @inet_pton($url));
         }
 
         foreach ($this->stripHosts as $pattern) {
@@ -546,7 +553,7 @@ class PackageSelection
                     return true;
                 }
             } elseif ('name' === $type) {
-                if ('name' === $urltype && preg_match($host, $url)) {
+                if ('name' === $urltype && 1 === preg_match($host, $url)) {
                     return true;
                 }
             }
@@ -577,7 +584,7 @@ class PackageSelection
     }
 
     /**
-     * @param RepositoryInterface[] $repositories
+     * @param array<RepositoryInterface|ConfigurableRepositoryInterface> $repositories
      *
      * @throws \Exception
      */
@@ -585,7 +592,9 @@ class PackageSelection
     {
         foreach ($repositories as $repository) {
             try {
-                $repositorySet->addRepository($repository);
+                if ($repository instanceof RepositoryInterface) {
+                    $repositorySet->addRepository($repository);
+                }
             } catch (\Exception $exception) {
                 if (!$this->skipErrors) {
                     throw $exception;
@@ -697,7 +706,7 @@ class PackageSelection
     }
 
     /**
-     * @param RepositoryInterface[] $repositories
+     * @param array<RepositoryInterface|ConfigurableRepositoryInterface> $repositories
      *
      * @return Link[]|PackageInterface[]
      */
@@ -714,7 +723,11 @@ class PackageSelection
             }
 
             try {
-                $packages = $this->getPackages($repository);
+                if ($repository instanceof RepositoryInterface) {
+                    $packages = $this->getPackages($repository);
+                } else {
+                    continue;
+                }
             } catch (\Exception $exception) {
                 if (!$this->skipErrors) {
                     throw $exception;
@@ -745,9 +758,9 @@ class PackageSelection
     }
 
     /**
-     * @param Link[]|PackageInterface[] $links
+     * @param array<Link|PackageInterface> $links
      *
-     * @return Link[]
+     * @return array<Link|PackageInterface>
      */
     private function selectLinks(RepositorySet $repositorySet, array $links, bool $isRoot, bool $verbose): array
     {
@@ -758,14 +771,14 @@ class PackageSelection
         while (null !== key($links)) {
             $link = current($links);
             $matches = [];
-            if (is_a($link, PackageInterface::class)) {
+            if (false !== $link && is_a($link, PackageInterface::class)) {
                 $matches = [$link];
-            } elseif (is_a($link, Link::class)) {
+            } elseif (false !== $link && is_a($link, Link::class)) {
                 $name = $link->getTarget();
                 if (!$isRoot && $this->onlyBestCandidates) {
                     $selector = new VersionSelector($repositorySet);
                     $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
-                    $matches = $match ? [$match] : [];
+                    $matches = false !== $match ? [$match] : [];
                 } elseif (PlatformRepository::isPlatformPackage($name)) {
                 } else {
                     $matches = $repositorySet->createPoolForPackage($link->getTarget())->whatProvides($name, $link->getConstraint());
@@ -795,7 +808,7 @@ class PackageSelection
                 // otherwise metadata will stripped as usual
                 if (1 === substr_count($prettyVersion, '+')) {
                     // re-inject metadata because it has been stripped by the VersionParser
-                    if (preg_match('/.+(\+[0-9A-Za-z-]*)$/', $prettyVersion, $match)) {
+                    if (1 === preg_match('/.+(\+[0-9A-Za-z-]*)$/', $prettyVersion, $match)) {
                         $uniqueName .= $match[1];
                     }
                 }

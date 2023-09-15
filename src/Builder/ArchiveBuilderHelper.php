@@ -100,7 +100,7 @@ class ArchiveBuilderHelper
     protected function doesNameMatchOneOfPatterns(string $name, array $patterns): bool
     {
         foreach ($patterns as $pattern) {
-            if (preg_match($pattern, $name)) {
+            if (1 === preg_match($pattern, $name)) {
                 return true;
             }
         }

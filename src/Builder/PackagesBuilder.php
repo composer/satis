@@ -184,7 +184,7 @@ class PackagesBuilder extends Builder
             foreach (new \DirectoryIterator($dirname) as $file) {
                 foreach ($entries as $entry) {
                     list($pattern, $hash) = $entry;
-                    if (preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
+                    if (1 === preg_match($pattern, $file->getFilename(), $matches) && $matches[1] !== $hash) {
                         $group = sprintf(
                             '%s/%s',
                             basename($dirname),
