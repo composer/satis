@@ -99,7 +99,7 @@ class PackageSelectionTest extends TestCase
     public function testGetPackages(array $expected, array $filter, ArrayRepository $repository): void
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
-        if (!empty($filter)) {
+        if (count($filter) > 0) {
             $builder->setPackagesFilter($filter);
         }
 
@@ -107,7 +107,7 @@ class PackageSelectionTest extends TestCase
         $method = $reflection->getMethod('getPackages');
         $method->setAccessible(true);
 
-        $this->assertSame($expected, $method->invokeArgs($builder, [$repository]));
+        self::assertSame($expected, $method->invokeArgs($builder, [$repository]));
     }
 
     /**
@@ -175,7 +175,7 @@ class PackageSelectionTest extends TestCase
         $property->setAccessible(true);
         $property->setValue($builder, $requireDevDependencies);
 
-        $this->assertSame($expected, $method->invokeArgs($builder, [$package, true]));
+        self::assertSame($expected, $method->invokeArgs($builder, [$package, true]));
     }
 
     /**
@@ -233,7 +233,7 @@ class PackageSelectionTest extends TestCase
 
         $method->invokeArgs($builder, []);
 
-        $this->assertEquals($expected, $property->getValue($builder));
+        self::assertEquals($expected, $property->getValue($builder));
     }
 
     /**
@@ -293,7 +293,7 @@ class PackageSelectionTest extends TestCase
         $method->setAccessible(true);
         $method->invokeArgs($builder, [$repositorySet, false]);
 
-        $this->assertEquals(array_values($expected), array_values($property->getValue($builder)));
+        self::assertEquals(array_values($expected), array_values($property->getValue($builder)));
     }
 
     /**
@@ -378,6 +378,7 @@ class PackageSelectionTest extends TestCase
             ],
         ];
 
+        $repo = [];
         $repo['alpha'] = [
             'type' => 'package',
             'url' => 'example.org/project-alpha',
@@ -763,7 +764,7 @@ class PackageSelectionTest extends TestCase
 
         $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
         $selection->setRepositoriesFilter($filterRepos);
-        $selection->setPackagesFilter($filterPackages ?? []);
+        $selection->setPackagesFilter([]);
 
         $selection->select($composer, true);
 
@@ -772,7 +773,7 @@ class PackageSelectionTest extends TestCase
         $selected->setAccessible(true);
 
         \sort($expected, \SORT_STRING);
-        $this->assertEquals($expected, \array_keys($selected->getValue($selection)));
+        self::assertEquals($expected, \array_keys($selected->getValue($selection)));
     }
 
     /**
@@ -822,7 +823,7 @@ class PackageSelectionTest extends TestCase
         $select->setAccessible(true);
         $result = $select->invokeArgs($selection, [$composer, true]);
 
-        $this->assertEquals($expected, array_keys($result));
+        self::assertEquals($expected, array_keys($result));
     }
 
     /**
@@ -883,6 +884,7 @@ class PackageSelectionTest extends TestCase
             ],
         ];
 
+        $data = [];
         $data['Keep everything'] = [
             [
                 'alpha' => ['http://127.0.0.1/output/dist/alpha.zip', './git-repo'],
@@ -1033,7 +1035,7 @@ class PackageSelectionTest extends TestCase
             ];
         }
 
-        $this->assertEquals($expected, $sources);
+        self::assertEquals($expected, $sources);
     }
 
     public function testOnlyBestCandidates(): void
@@ -1082,7 +1084,7 @@ class PackageSelectionTest extends TestCase
         $property = $reflection->getProperty('selected');
         $property->setAccessible(true);
 
-        $this->assertEquals(array_values([$packageA0, $packageB1, $packageC1]), array_values($property->getValue($builder)));
+        self::assertEquals(array_values([$packageA0, $packageB1, $packageC1]), array_values($property->getValue($builder)));
     }
 }
 

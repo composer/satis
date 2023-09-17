@@ -61,7 +61,7 @@ class ArchiveBuilderHelperTest extends TestCase
     public function testDirectoryConfig(string $expected, string $outputDir, array $config): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);
-        $this->assertEquals($helper->getDirectory($outputDir), $expected);
+        self::assertEquals($helper->getDirectory($outputDir), $expected);
     }
 
     /**
@@ -138,6 +138,6 @@ class ArchiveBuilderHelperTest extends TestCase
     public function testSkipDump(bool $expected, Package $package, array $config): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);
-        $this->assertEquals($helper->isSkippable($package), $expected);
+        self::assertEquals($helper->isSkippable($package), $expected);
     }
 }

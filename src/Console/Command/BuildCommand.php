@@ -177,7 +177,8 @@ class BuildCommand extends BaseCommand
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
-        if (!$outputDir = $input->getArgument('output-dir')) {
+        $outputDir = $input->getArgument('output-dir');
+        if (!(bool) $outputDir) {
             $outputDir = $config['output-dir'] ?? null;
         }
 
@@ -251,8 +252,9 @@ class BuildCommand extends BaseCommand
         $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors, $minify);
         $packagesBuilder->dump($packages);
 
-        if ($htmlView = !$input->getOption('no-html-output')) {
-            $htmlView = !isset($config['output-html']) || $config['output-html'];
+        $htmlView = (bool) $input->getOption('no-html-output');
+        if (!$htmlView) {
+            $htmlView = !isset($config['output-html']) || (bool) $config['output-html'];
         }
 
         if ($htmlView) {

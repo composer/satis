@@ -70,7 +70,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigEnvironment');
         $method->setAccessible(true);
 
-        $this->assertSame($twig, $method->invoke($this->webBuilder));
+        self::assertSame($twig, $method->invoke($this->webBuilder));
     }
 
     public function testTwigEnvironmentDefault(): void
@@ -79,7 +79,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigEnvironment');
         $method->setAccessible(true);
 
-        $this->assertInstanceOf('\Twig\Environment', $method->invoke($this->webBuilder));
+        self::assertInstanceOf('\Twig\Environment', $method->invoke($this->webBuilder));
     }
 
     public function testTwigTemplate(): void
@@ -92,7 +92,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigTemplate');
         $method->setAccessible(true);
 
-        $this->assertSame('foo.twig', $method->invoke($this->webBuilder));
+        self::assertSame('foo.twig', $method->invoke($this->webBuilder));
     }
 
     public function testTwigTemplateDefault(): void
@@ -101,7 +101,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigTemplate');
         $method->setAccessible(true);
 
-        $this->assertSame('index.html.twig', $method->invoke($this->webBuilder));
+        self::assertSame('index.html.twig', $method->invoke($this->webBuilder));
     }
 
     /**
@@ -116,7 +116,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getDescSortedVersions');
         $method->setAccessible(true);
 
-        $this->assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
+        self::assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
     }
 
     /**
@@ -152,7 +152,7 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getHighestVersion');
         $method->setAccessible(true);
 
-        $this->assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
+        self::assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
     }
 
     /**
@@ -198,6 +198,6 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('groupPackagesByName');
         $method->setAccessible(true);
 
-        $this->assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
+        self::assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
     }
 }

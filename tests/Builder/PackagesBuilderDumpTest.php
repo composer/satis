@@ -76,7 +76,7 @@ class PackagesBuilderDumpTest extends TestCase
             /** @var vfsStreamFile $file */
             $file = $this->root->getChild('build/packages.json');
             $packagesJson = JsonFile::parseJson($file->getContent());
-            $this->assertArrayNotHasKey('notify-batch', $packagesJson);
+            self::assertArrayNotHasKey('notify-batch', $packagesJson);
 
             if ($providers) {
                 $packageName = key($arrayPackages);
@@ -94,25 +94,25 @@ class PackagesBuilderDumpTest extends TestCase
             }
 
             $includeJsonFile = 'build/' . $includeJson;
-            $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
+            self::assertTrue(is_file(vfsStream::url($includeJsonFile)));
 
             /** @var vfsStreamFile $file */
             $file = $this->root->getChild($includeJsonFile);
             $packagesIncludeJson = JsonFile::parseJson($file->getContent());
-            $this->assertEquals($arrayPackages, $packagesIncludeJson['packages']);
+            self::assertEquals($arrayPackages, $packagesIncludeJson['packages']);
 
             if (!is_null($lastIncludedJsonFile) && $lastIncludedJsonFile !== $includeJsonFile) {
-                $this->assertFalse(is_file(vfsStream::url($lastIncludedJsonFile)), 'Previous files not pruned');
+                self::assertFalse(is_file(vfsStream::url($lastIncludedJsonFile)), 'Previous files not pruned');
             }
 
             $lastIncludedJsonFile = $includeJsonFile;
 
-            $this->assertArrayHasKey('metadata-url', $packagesJson);
+            self::assertArrayHasKey('metadata-url', $packagesJson);
             $packageName = key($arrayPackages);
             foreach (['', '~dev'] as $suffix) {
                 $includeJson = str_replace('%package%', $packageName.$suffix, $packagesJson['metadata-url']);
                 $includeJsonFile = 'build/' . $includeJson;
-                $this->assertTrue(is_file(vfsStream::url($includeJsonFile)), $includeJsonFile.' file must be created');
+                self::assertTrue(is_file(vfsStream::url($includeJsonFile)), $includeJsonFile.' file must be created');
             }
         }
     }
@@ -143,10 +143,10 @@ class PackagesBuilderDumpTest extends TestCase
             /** @var vfsStreamFile $file */
             $file = $this->root->getChild('build/packages.json');
             $packagesJson = JsonFile::parseJson($file->getContent());
-            if (!$basePath) {
+            if (is_null($basePath)) {
                 $providersUrlWithoutBase = $packagesJson['providers-url'];
             } else {
-                $this->assertEquals($basePath . $providersUrlWithoutBase, $packagesJson['providers-url']);
+                self::assertEquals($basePath . $providersUrlWithoutBase, $packagesJson['providers-url']);
             }
         }
     }
@@ -165,7 +165,7 @@ class PackagesBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/packages.json');
         $packagesJson = JsonFile::parseJson($file->getContent());
 
-        $this->assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
+        self::assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
     }
 
     /**
