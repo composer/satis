@@ -52,7 +52,7 @@ class WebBuilder extends Builder
             $this->output->writeln('Define a "name" property in your json config to name the repository');
         }
 
-        if (!$this->rootPackage->getHomepage()) {
+        if (is_null($this->rootPackage->getHomepage())) {
             $this->output->writeln('Define a "homepage" property in your json config to configure the repository URL');
         }
 

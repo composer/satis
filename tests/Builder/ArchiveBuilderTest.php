@@ -74,7 +74,7 @@ class ArchiveBuilderTest extends TestCase
 
         $downloadManager = $this->getMockBuilder(DownloadManager::class)->disableOriginalConstructor()->getMock();
         $downloadManager->method('download')->will(
-            $this->returnCallback(
+            self::returnCallback(
                 function ($package, $source) {
                     $filesystem = new Filesystem();
                     $filesystem->dumpFile(realpath($source) . '/README.md', '# The demo archive.');
@@ -102,7 +102,7 @@ class ArchiveBuilderTest extends TestCase
         $this->composer->setArchiveManager($archiveManager);
 
         $this->input = $this->getMockBuilder('Symfony\Component\Console\Input\InputInterface')->disableOriginalConstructor()->getMock();
-        $this->input->method('getOption')->with('stats')->willReturn($this->returnValue(false));
+        $this->input->method('getOption')->with('stats')->willReturn(self::returnValue(false));
 
         $this->output = new NullOutput();
 
@@ -148,7 +148,7 @@ class ArchiveBuilderTest extends TestCase
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
-        $this->assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+        self::assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
     }
 
     /**
@@ -206,7 +206,7 @@ class ArchiveBuilderTest extends TestCase
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
-        $this->assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+        self::assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
     }
 
     private function initArchives(): void

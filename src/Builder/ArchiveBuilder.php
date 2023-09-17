@@ -55,7 +55,7 @@ class ArchiveBuilder extends Builder
         $progressBar = null;
         $hasStarted = false;
         $verbosity = $this->output->getVerbosity();
-        $renderProgress = $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
+        $renderProgress = (bool) $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
 
         if ($renderProgress) {
             $packageCount = 0;

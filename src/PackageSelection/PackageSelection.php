@@ -36,11 +36,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PackageSelection
 {
-    /** @var OutputInterface The output Interface. */
-    protected $output;
+    /** The output Interface. */
+    protected OutputInterface $output;
 
-    /** @var bool Skips Exceptions if true. */
-    protected $skipErrors;
+    /** Skips Exceptions if true. */
+    protected bool $skipErrors;
 
     /** @var string packages.json file name. */
     private $filename;
@@ -48,65 +48,65 @@ class PackageSelection
     /** @var mixed Array of additional repositories for dependencies */
     private $depRepositories;
 
-    /** @var bool Selects All Packages if true. */
-    private $requireAll;
+    /** Selects All Packages if true. */
+    private bool $requireAll;
 
-    /** @var bool Add required dependencies if true. */
-    private $requireDependencies;
+    /** Add required dependencies if true. */
+    private bool $requireDependencies;
 
-    /** @var bool required dev-dependencies if true. */
-    private $requireDevDependencies;
+    /** required dev-dependencies if true. */
+    private bool $requireDevDependencies;
 
-    /** @var bool do not build packages only dependencies */
-    private $onlyDependencies;
+    /** do not build packages only dependencies */
+    private bool $onlyDependencies;
 
-    /** @var bool only resolve best candidates in dependencies */
-    private $onlyBestCandidates;
+    /** only resolve best candidates in dependencies */
+    private bool $onlyBestCandidates;
 
-    /** @var bool Filter dependencies if true. */
-    private $requireDependencyFilter;
+    /** Filter dependencies if true. */
+    private bool $requireDependencyFilter;
 
-    /** @var string Minimum stability accepted for Packages in the list. */
-    private $minimumStability;
+    /** Minimum stability accepted for Packages in the list. */
+    private string $minimumStability;
 
     /** @var string[] Minimum stability accepted by Package. */
-    private $minimumStabilityPerPackage;
+    private array $minimumStabilityPerPackage;
 
     /** @var string[] The active package filter to merge. */
-    private $packagesFilter = [];
+    private array $packagesFilter = [];
 
     /** @var string[]|null The active repository filter to merge. */
-    private $repositoriesFilter;
+    private ?array $repositoriesFilter = null;
 
     /** @var mixed Repositories mentioned in the satis config */
     private $repositories;
 
-    /** @var bool Apply the filter also for resolving dependencies. */
-    private $repositoryFilterDep;
+    /** Apply the filter also for resolving dependencies. */
+    private bool $repositoryFilterDep;
 
     /** @var PackageInterface[] The selected packages from config */
-    private $selected = [];
+    private array $selected = [];
 
     /** @var string[] A list of packages marked as abandoned */
-    private $abandoned = [];
+    private array $abandoned = [];
 
     /** @var string[] A list of blacklisted package/constraints. */
-    private $blacklist = [];
+    private array $blacklist = [];
 
     /** @var string[]|null A list of package types. If set only packages with one of these types will be selected */
-    private $includeTypes;
+    private ?array $includeTypes;
 
     /** @var string[] A list of package types that will not be selected */
-    private $excludeTypes = [];
+    private array $excludeTypes = [];
 
     /** @var mixed Patterns from strip-hosts. */
     private $stripHosts = false;
 
-    /** @var string The prefix of the distURLs when using archive. */
-    private $archiveEndpoint;
+    /** The prefix of the distURLs when using archive. */
+    private ?string $archiveEndpoint = null;
 
-    /** @var string The homepage - needed to get the relative paths of the providers */
-    private $homepage;
+    /** The homepage - needed to get the relative paths of the providers */
+    private ?string $homepage = null;
 
     /**
      * @param array<string, mixed> $config
@@ -126,7 +126,7 @@ class PackageSelection
     public function setRepositoriesFilter(?array $repositoriesFilter, bool $forDependencies = false): void
     {
         $this->repositoriesFilter = [] !== $repositoriesFilter ? $repositoriesFilter : null;
-        $this->repositoryFilterDep = (bool) $forDependencies;
+        $this->repositoryFilterDep = $forDependencies;
     }
 
     public function hasRepositoriesFilter(): bool
@@ -296,13 +296,13 @@ class PackageSelection
         }
 
         if (isset($rootConfig['providers']) && is_array($rootConfig['providers']) && isset($rootConfig['providers-url'])) {
-            $baseUrl = $this->homepage ? parse_url(rtrim($this->homepage, '/'), PHP_URL_PATH) . '/' : '';
+            $baseUrl = is_string($this->homepage) ? parse_url(rtrim($this->homepage, '/'), PHP_URL_PATH) . '/' : '';
             $baseUrlLength = strlen($baseUrl);
 
             foreach ($rootConfig['providers'] as $package => $provider) {
                 $file = (string) str_replace(['%package%', '%hash%'], [$package, $provider['sha256']], $rootConfig['providers-url']);
 
-                if ($baseUrl && substr($file, 0, $baseUrlLength) === $baseUrl) {
+                if (strlen($baseUrl) > 0 && substr($file, 0, $baseUrlLength) === $baseUrl) {
                     $file = substr($file, $baseUrlLength);
                 }
 
@@ -341,7 +341,7 @@ class PackageSelection
                         continue;
                     }
 
-                    if (isset($package['name']) && in_array($package['name'], $this->packagesFilter)) {
+                    if (isset($package['name']) && in_array($package['name'], $this->packagesFilter, true)) {
                         continue;
                     }
 
@@ -405,7 +405,7 @@ class PackageSelection
         $patterns = [];
 
         foreach ($stripHostsConfig as $entry) {
-            if (!strlen($entry)) {
+            if (0 === strlen($entry)) {
                 continue;
             }
 
@@ -464,11 +464,11 @@ class PackageSelection
         foreach ($this->selected as $uniqueName => $package) {
             $sources = [];
 
-            if ($package->getSourceType()) {
+            if (is_string($package->getSourceType())) {
                 $sources[] = 'source';
             }
 
-            if ($package->getDistType()) {
+            if (is_string($package->getDistType())) {
                 $sources[] = 'dist';
             }
 
@@ -654,7 +654,7 @@ class PackageSelection
         $excluded = [];
         if ($this->hasTypeFilter()) {
             foreach ($this->selected as $selectedKey => $package) {
-                if (null !== $this->includeTypes && !in_array($package->getType(), $this->includeTypes)) {
+                if (null !== $this->includeTypes && !in_array($package->getType(), $this->includeTypes, true)) {
                     if ($verbose) {
                         $this->output->writeln(
                             'Excluded ' . $package->getPrettyName()
@@ -664,7 +664,7 @@ class PackageSelection
                     }
                     $excluded[$selectedKey] = $package;
                     unset($this->selected[$selectedKey]);
-                } elseif (in_array($package->getType(), $this->excludeTypes)) {
+                } elseif (in_array($package->getType(), $this->excludeTypes, true)) {
                     if ($verbose) {
                         $this->output->writeln(
                             'Excluded ' . $package->getPrettyName()
@@ -698,7 +698,7 @@ class PackageSelection
         $links = array_filter(
             $links,
             function (Link $link) use ($packagesFilter) {
-                return in_array($link->getTarget(), $packagesFilter);
+                return in_array($link->getTarget(), $packagesFilter, true);
             }
         );
 
@@ -946,7 +946,7 @@ class PackageSelection
                 $config = $repository->getRepoConfig();
 
                 // We need name to be set on repo config as it would otherwise be too slow on remote repos (VCS, ..)
-                if (!isset($config['name']) || !in_array($config['name'], $packages)) {
+                if (!isset($config['name']) || !in_array($config['name'], $packages, true)) {
                     return false;
                 }
 

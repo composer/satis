@@ -138,7 +138,7 @@ class InitCommand extends BaseCommand
 
     protected function getQuestion(string $prompt, ?string $default): Question
     {
-        $prompt = ($default && '' !== $default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
+        $prompt = (is_string($default) && '' !== $default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
 
         return new Question($prompt, $default);
     }

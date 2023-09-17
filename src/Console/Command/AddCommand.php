@@ -97,7 +97,7 @@ class AddCommand extends BaseCommand
 
         $repositoryConfig = ['type' => $vcsDriver, 'url' => $repositoryUrl];
 
-        if (!empty($repositoryName)) {
+        if (is_string($repositoryName) && '' !== $repositoryName) {
             $repositoryConfig['name'] = $repositoryName;
         }
 
@@ -122,12 +122,13 @@ class AddCommand extends BaseCommand
         $downloader = new HttpDownloader($io, $config);
         $repository = new VcsRepository(['url' => $repositoryUrl, 'type' => $type], $io, $config, $downloader);
 
-        if (!($driver = $repository->getDriver())) {
+        $driver = $repository->getDriver();
+        if (is_null($driver)) {
             return false;
         }
 
         $information = $driver->getComposerInformation($driver->getRootIdentifier());
 
-        return !empty($information['name']);
+        return isset($information['name']) && is_string($information['name']);
     }
 }
