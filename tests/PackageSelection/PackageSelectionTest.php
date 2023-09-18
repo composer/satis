@@ -747,7 +747,7 @@ class PackageSelectionTest extends TestCase
      * @param string[]|null $filterRepos
      * @param string[]|null $filterPackages
      */
-    public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null): void
+    public function testSelect(array $expected, array $config, array $filterRepos = null, array $filterPackages = null): void
     {
         if (null !== $filterRepos || null !== $filterPackages) {
             // Need to be able to override the default package repository class to allow testing of the filter options.

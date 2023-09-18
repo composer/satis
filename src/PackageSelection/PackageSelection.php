@@ -191,12 +191,12 @@ class PackageSelection
                         // TODO configurable repo types without URL attribute
                         // This is madness and should be an empty() but phpstan-strict-rules does not like empty()
                         if (
-                            !isset($config['url']) ||
-                            !is_string($config['url']) ||
-                            '' === $config['url'] ||
-                            !isset($satisRepo['url']) ||
-                            !is_string($satisRepo['url']) ||
-                            '' === $satisRepo['url']
+                            !isset($config['url'])
+                            || !is_string($config['url'])
+                            || '' === $config['url']
+                            || !isset($satisRepo['url'])
+                            || !is_string($satisRepo['url'])
+                            || '' === $satisRepo['url']
                         ) {
                             continue;
                         }
@@ -537,8 +537,8 @@ class PackageSelection
 
             if ('/local' === $type) {
                 if (('name' === $urltype && 'localhost' === strtolower($url)) || (
-                    ('ipv4' === $urltype || 'ipv6' === $urltype) &&
-                    false === filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE)
+                    ('ipv4' === $urltype || 'ipv6' === $urltype)
+                    && false === filter_var($url, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE)
                 )) {
                     return true;
                 }
