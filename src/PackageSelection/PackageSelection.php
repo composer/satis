@@ -300,7 +300,7 @@ class PackageSelection
             $baseUrlLength = strlen($baseUrl);
 
             foreach ($rootConfig['providers'] as $package => $provider) {
-                $file = (string) str_replace(['%package%', '%hash%'], [$package, $provider['sha256']], $rootConfig['providers-url']);
+                $file = str_replace(['%package%', '%hash%'], [$package, $provider['sha256']], (string) $rootConfig['providers-url']);
 
                 if (strlen($baseUrl) > 0 && substr($file, 0, $baseUrlLength) === $baseUrl) {
                     $file = substr($file, $baseUrlLength);
