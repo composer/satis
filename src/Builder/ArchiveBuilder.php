@@ -44,14 +44,15 @@ class ArchiveBuilder extends Builder
         $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
-        /* @var DownloadManager $downloadManager */
+        /** @var DownloadManager $downloadManager */
         $downloadManager = $this->composer->getDownloadManager();
-        /* @var ArchiveManager $archiveManager */
+        /** @var ArchiveManager $archiveManager */
         $archiveManager = $this->composer->getArchiveManager();
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
 
+        /** @var ProgressBar|null $progressBar Should only remain `null` if $renderProgress is `false` */
         $progressBar = null;
         $hasStarted = false;
         $verbosity = $this->output->getVerbosity();
@@ -78,7 +79,7 @@ class ArchiveBuilder extends Builder
                 continue;
             }
 
-            if ($renderProgress) {
+            if (!is_null($progressBar)) {
                 $progressBar->setMessage($package->getName(), 'packageName');
                 $progressBar->setMessage($package->getPrettyVersion(), 'packageVersion');
 
@@ -137,14 +138,15 @@ class ArchiveBuilder extends Builder
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
 
-            if ($renderProgress) {
+            if (!is_null($progressBar)) {
                 $progressBar->advance();
             }
         }
 
-        if ($renderProgress) {
+        if (!is_null($progressBar)) {
             $progressBar->finish();
-
+        }
+        if ($renderProgress) {
             $this->output->writeln('');
         }
     }

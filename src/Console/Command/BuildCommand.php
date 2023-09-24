@@ -196,10 +196,16 @@ class BuildCommand extends BaseCommand
         $application = $this->getApplication();
         if ($application instanceof SatisApplication) {
             $composer = $application->getComposerWithConfig($config);
-            $composerConfig = $composer->getConfig();
         } else {
             $composer = $application->getComposer(true);
-            $composerConfig = $composer->getConfig();
+        }
+
+        if (is_null($composer)) {
+            throw new \Exception('Unable to get Composer instance');
+        }
+
+        $composerConfig = $composer->getConfig();
+        if (!$application instanceof SatisApplication) {
             $composerConfig->merge($config);
             $composer->setConfig($composerConfig);
         }
