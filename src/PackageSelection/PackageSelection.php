@@ -473,7 +473,7 @@ class PackageSelection
             }
 
             foreach ($sources as $index => $type) {
-                $url = 'source' === $type ? $package->getSourceUrl() : $package->getDistUrl();
+                $url = (string) ('source' === $type ? $package->getSourceUrl() : $package->getDistUrl());
 
                 // skip distURL applied by ArchiveBuilder
                 if ('dist' === $type && null !== $this->archiveEndpoint
@@ -922,7 +922,7 @@ class PackageSelection
                     return false;
                 }
 
-                return in_array($config['url'], $this->repositoriesFilter, true);
+                return in_array($config['url'], $this->repositoriesFilter ?? [], true);
             }
         );
     }

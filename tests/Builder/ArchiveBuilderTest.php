@@ -148,7 +148,7 @@ class ArchiveBuilderTest extends TestCase
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
-        self::assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+        self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
     }
 
     /**
@@ -206,7 +206,7 @@ class ArchiveBuilderTest extends TestCase
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
-        self::assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+        self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
     }
 
     private function initArchives(): void

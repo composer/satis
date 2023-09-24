@@ -92,7 +92,7 @@ class PurgeCommand extends BaseCommand
             if (is_null($package->getDistType())) {
                 continue;
             }
-            $url = $package->getDistUrl();
+            $url = (string) $package->getDistUrl();
             if (substr($url, 0, $length) === $prefix) {
                 $needed[] = substr($url, $length);
             }
