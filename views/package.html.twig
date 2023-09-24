@@ -3,8 +3,8 @@
 {% set col2_class = 'col-sm-9 col-md-10' %}
 
 <div class="card {% if package.abandoned %}border-danger{% else %}border-primary{% endif %} mb-3">
-    <div id="{{ package.highest.name }}" class="card-header field-name filter-by {% if package.abandoned %}bg-danger{% else %}bg-primary{% endif %}">
-        <a href="#{{ package.highest.name }}" class="text-white">
+    <div id="{{ package.highest.name }}" class="card-header field-name filter-by {% if package.abandoned %}text-bg-danger{% else %}text-bg-primary{% endif %}">
+        <a href="#{{ package.highest.name }}" class="text-reset">
             <svg class="octicon-link" width="16" height="16">
                 <use xlink:href="#octicon-link"></use>
             </svg>
@@ -42,7 +42,7 @@
             <dt class="{{ col1_class }} field-keywords">Keywords</dt>
             <dd class="{{ col2_class }} field-keywords filter-by">
                 {% for keyword in package.highest.keywords|sort %}
-                <span class="badge bg-info">{{ keyword }}</span>
+                <span class="badge text-bg-info">{{ keyword }}</span>
                 {% endfor %}
             </dd>
         {% endif %}
@@ -96,11 +96,11 @@
                 {%- if package.highest.type == 'metapackage' -%}
                 {{ version.prettyVersion }}
                 {%- elseif version.distType -%}
-                <a class="badge rounded-pill bg-secondary text-light" href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                <a class="badge rounded-pill text-bg-secondary" href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- elseif version.sourceUrl matches '#^https?:\/\/#' -%}
-                <a class="badge rounded-pill bg-secondary text-light" href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                <a class="badge rounded-pill text-bg-secondary" href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
-                <span class="badge rounded-pill bg-secondary text-light" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
+                <span class="badge rounded-pill text-bg-secondary" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
                 {%- endif -%}
                 {% endfor %}
             </dd>
