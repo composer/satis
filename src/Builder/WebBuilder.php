@@ -68,6 +68,7 @@ class WebBuilder extends Builder
             'packages' => $mappedPackages,
             'dependencies' => $this->dependencies,
             'fieldsToToggle' => $this->fieldsToToggle,
+            'blockIndexing' => !isset($this->config['allow-seo-indexing']) || true !== $this->config['allow-seo-indexing'],
         ]);
 
         file_put_contents($this->outputDir . '/index.html', $content);

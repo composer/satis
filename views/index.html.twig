@@ -5,7 +5,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow" />
+
+    {% if description %}
+        <meta name="description" content="{{ description|striptags|escape("html_attr") }}">
+    {% else %}
+        <meta name="description" content="This Composer repository is powered by Satis">
+    {% endif %}
+    
+    {% if blockIndexing %}
+        <meta name="robots" content="noindex,nofollow">
+    {% endif %}
+
     <link rel="icon" type="image/png" href="{{ source('assets/img/favicon.png')|data_uri(mime="image/png") }}">
 
     <title>{{ name|default('Composer repository') }}</title>

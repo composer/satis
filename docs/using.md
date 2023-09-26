@@ -287,6 +287,8 @@ Example: A `prefix-url` of `https://my-bucket.s3.amazonaws.com` (and
     will not generate the `output-dir`/index.html page.
 -   `twig-template`: optional, a path to a personalized [Twig] template for
     the `output-dir`/index.html page.
+-   `allow-seo-indexing`: optional, `false` by default, when enabled (`true`) satis
+    will allow the generated page to be indexed by search engines.
 
 ### Abandoned packages
 
