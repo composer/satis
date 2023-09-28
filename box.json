@@ -11,6 +11,10 @@
             "in": "vendor"
         },
         {
+            "name": "completion.*",
+            "in": "vendor/symfony/console/Resources"
+        },
+        {
             "name": "composer-schema.json",
             "in": "vendor/composer/composer"
         },
