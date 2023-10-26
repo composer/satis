@@ -19,6 +19,8 @@ Read the more detailed instructions in the [documentation][].
 
 ## Run as Docker container
 
+> Note: use `composer/satis` for Docker Hub, `ghcr.io/composer/satis` for GitHub container registry.
+
 Pull the image:
 
 ```sh
