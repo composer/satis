@@ -13,7 +13,7 @@ jobs:
         stability: [prefer-lowest, prefer-stable]
     name: PHP ${{ matrix.php }} - ${{ matrix.stability }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: setup php
         uses: shivammathur/setup-php@v2
         with:
