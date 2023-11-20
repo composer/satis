@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "@babel/core": "^7.22.20",
+        "@babel/core": "^7.23.3",
         "@babel/preset-env": "^7.23.3",
         "@symfony/webpack-encore": "^4.4.0",
         "bootstrap": "^5.3.2",
