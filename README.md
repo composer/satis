@@ -12,7 +12,7 @@ registry that can be hosted anywhere (even via Docker, locally).
 
 Satis requires a recent PHP version, it does not run with unsupported PHP versions. Check the `composer.json` file for details.
 
--   Install satis: `composer create-project composer/satis:dev-main`
+-   Install satis: `composer create-project --keep-vcs composer/satis:dev-main`
 -   Build a repository: `php bin/satis build <configuration-file> <output-directory>`
 
 Read the more detailed instructions in the [documentation][].
