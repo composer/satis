@@ -16,6 +16,14 @@ updates:
       interval: "weekly"
     assignees:
       - "alcohol"
+    versioning-strategy: "increase"
+    allow:
+      - dependency-type: "all"
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
 
   # composer dependencies
   - package-ecosystem: "composer"
@@ -24,3 +32,11 @@ updates:
       interval: "weekly"
     assignees:
       - "alcohol"
+    versioning-strategy: "increase"
+    allow:
+      - dependency-type: "all"
+    groups:
+      minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
