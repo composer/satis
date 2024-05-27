@@ -49,7 +49,7 @@
         "ext-zip": "*",
         "composer/composer": "^2.7.6",
         "composer-plugin-api": "^2.3.0",
-        "symfony/console": "^6.4.7",
+        "symfony/console": "^7.0.7",
         "twig/twig": "^3.10.3",
         "twig/html-extra": "^3.10.0"
     },
