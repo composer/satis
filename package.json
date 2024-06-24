@@ -10,9 +10,9 @@
         "lint-staged": "^15.2.7",
         "prettier": "^3.3.2",
         "purgecss-webpack-plugin": "^5.0.0",
-        "sass": "^1.77.5",
+        "sass": "^1.77.6",
         "sass-loader": "^14.2.1",
-        "webpack": "^5.92.0",
+        "webpack": "^5.92.1",
         "webpack-cli": "^5.1.4"
     },
     "license": "MIT",
