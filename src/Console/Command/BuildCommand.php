@@ -36,7 +36,6 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use UnexpectedValueException;
 
 class BuildCommand extends BaseCommand
 {
@@ -97,6 +96,7 @@ class BuildCommand extends BaseCommand
                   of the repository (where you will host it). Build command allows this to be overloaded in SATIS_HOMEPAGE environment variable.
                 - <info>"twig-template"</info>: Location of twig template to use for
                   building the html output.
+                - <info>"allow-seo-indexing"</info>: Allow the generated html output to be indexed by search engines.
                 - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
                   package name, as the value use true or the replacement package.
                 - <info>"blacklist"</info>: Packages and versions which should be excluded from the final package list.
@@ -128,11 +128,17 @@ class BuildCommand extends BaseCommand
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
         $io->loadConfiguration($this->getConfiguration());
+        $config = [];
 
-        if (preg_match('{^https?://}i', $configFile)) {
+        if (1 === preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($io, $this->getConfiguration());
-            $contents = $rfs->getContents(parse_url($configFile, PHP_URL_HOST), $configFile, false);
-            $config = JsonFile::parseJson($contents, $configFile);
+            $host = parse_url($configFile, PHP_URL_HOST);
+            if (is_string($host)) {
+                $contents = $rfs->getContents($host, $configFile, false);
+                if (is_string($contents)) {
+                    $config = JsonFile::parseJson($contents, $configFile);
+                }
+            }
         } else {
             $file = new JsonFile($configFile);
             if (!$file->exists()) {
@@ -158,7 +164,7 @@ class BuildCommand extends BaseCommand
                 throw $e;
             }
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
-        } catch (UnexpectedValueException $e) {
+        } catch (\UnexpectedValueException $e) {
             if (!$skipErrors) {
                 throw $e;
             }
@@ -172,7 +178,8 @@ class BuildCommand extends BaseCommand
         // disable packagist by default
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
-        if (!$outputDir = $input->getArgument('output-dir')) {
+        $outputDir = $input->getArgument('output-dir');
+        if (!(bool) $outputDir) {
             $outputDir = $config['output-dir'] ?? null;
         }
 
@@ -180,7 +187,8 @@ class BuildCommand extends BaseCommand
             throw new \InvalidArgumentException('The output dir must be specified as second argument or be configured inside ' . $input->getArgument('file'));
         }
 
-        if ($homepage = getenv('SATIS_HOMEPAGE')) {
+        $homepage = getenv('SATIS_HOMEPAGE');
+        if (false !== $homepage) {
             $config['homepage'] = $homepage;
             $output->writeln(sprintf('<notice>Homepage config used from env SATIS_HOMEPAGE: %s</notice>', $homepage));
         }
@@ -189,10 +197,16 @@ class BuildCommand extends BaseCommand
         $application = $this->getApplication();
         if ($application instanceof SatisApplication) {
             $composer = $application->getComposerWithConfig($config);
-            $composerConfig = $composer->getConfig();
         } else {
             $composer = $application->getComposer(true);
-            $composerConfig = $composer->getConfig();
+        }
+
+        if (is_null($composer)) {
+            throw new \Exception('Unable to get Composer instance');
+        }
+
+        $composerConfig = $composer->getConfig();
+        if (!$application instanceof SatisApplication) {
             $composerConfig->merge($config);
             $composer->setConfig($composerConfig);
         }
@@ -245,8 +259,9 @@ class BuildCommand extends BaseCommand
         $packagesBuilder = new PackagesBuilder($output, $outputDir, $config, $skipErrors, $minify);
         $packagesBuilder->dump($packages);
 
-        if ($htmlView = !$input->getOption('no-html-output')) {
-            $htmlView = !isset($config['output-html']) || $config['output-html'];
+        $htmlView = (bool) $input->getOption('no-html-output');
+        if (!$htmlView) {
+            $htmlView = !isset($config['output-html']) || (bool) $config['output-html'];
         }
 
         if ($htmlView) {
@@ -278,17 +293,19 @@ class BuildCommand extends BaseCommand
     private function getComposerHome(): string
     {
         $home = getenv('COMPOSER_HOME');
-        if (!$home) {
+        if (false === $home) {
             if (defined('PHP_WINDOWS_VERSION_MAJOR')) {
-                if (!getenv('APPDATA')) {
+                $appData = getenv('APPDATA');
+                if (false === $appData) {
                     throw new \RuntimeException('The APPDATA or COMPOSER_HOME environment variable must be set for composer to run correctly');
                 }
-                $home = strtr(getenv('APPDATA'), '\\', '/') . '/Composer';
+                $home = strtr($appData, '\\', '/') . '/Composer';
             } else {
-                if (!getenv('HOME')) {
+                $homeEnv = getenv('HOME');
+                if (false === $homeEnv) {
                     throw new \RuntimeException('The HOME or COMPOSER_HOME environment variable must be set for composer to run correctly');
                 }
-                $home = rtrim(getenv('HOME'), '/') . '/.composer';
+                $home = rtrim($homeEnv, '/') . '/.composer';
             }
         }
 
@@ -298,23 +315,27 @@ class BuildCommand extends BaseCommand
     /**
      * @throws ParsingException         if the json file has an invalid syntax
      * @throws JsonValidationException  if the json file doesn't match the schema
-     * @throws UnexpectedValueException if the json file is not UTF-8
+     * @throws \UnexpectedValueException if the json file is not UTF-8
      */
     private function check(string $configFile): bool
     {
         $content = file_get_contents($configFile);
 
         $parser = new JsonParser();
-        $result = $parser->lint($content);
+        $result = is_string($content) ? $parser->lint($content) : new ParsingException('Could not read file contents from "' . $configFile . '"');
         if (null === $result) {
             if (defined('JSON_ERROR_UTF8') && JSON_ERROR_UTF8 === json_last_error()) {
-                throw new UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
+                throw new \UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
             }
 
-            $data = json_decode($content);
+            $data = json_decode((string) $content);
 
             $schemaFile = __DIR__ . '/../../../res/satis-schema.json';
-            $schema = json_decode(file_get_contents($schemaFile));
+            $schemaFileContents = file_get_contents($schemaFile);
+            if (false === $schemaFileContents) {
+                throw new ParsingException('Could not read file contents from "' . $schemaFile . '"');
+            }
+            $schema = json_decode($schemaFileContents);
             $validator = new Validator();
             $validator->check($data, $schema);
 

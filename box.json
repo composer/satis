@@ -11,6 +11,10 @@
             "in": "vendor"
         },
         {
+            "name": "completion.*",
+            "in": "vendor/symfony/console/Resources"
+        },
+        {
             "name": "composer-schema.json",
             "in": "vendor/composer/composer"
         },
@@ -21,8 +25,8 @@
     ],
     "compression": "GZ",
     "compactors": [
-        "Herrera\\Box\\Compactor\\Json",
-        "Herrera\\Box\\Compactor\\Php"
+        "KevinGH\\Box\\Compactor\\Json",
+        "KevinGH\\Box\\Compactor\\Php"
     ],
     "chmod": "0755",
     "algorithm": "SHA1"

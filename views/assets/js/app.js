@@ -17,13 +17,13 @@ document.addEventListener("DOMContentLoaded", function () {
     new PackageFilterSettings(
         '[name="default-filter"]',
         ".filter-field",
-        ".default-filter-field"
+        ".default-filter-field",
     );
     new PackageFilter(
         "input#search",
         "#package-list",
         ".card",
-        ".filter-field"
+        ".filter-field",
     );
 
     // Copy code snippet from a release for a project's composer.json
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
         ".copy-snippet__input",
         ".copy-snippet__button",
         ".copy-snippet__tooltip",
-        ".field-releases .badge"
+        ".field-releases .badge",
     );
 
     new ToggleFields("#toggle-field-all", ".toggle-field");

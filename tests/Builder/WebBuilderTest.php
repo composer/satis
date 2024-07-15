@@ -26,14 +26,16 @@ use Twig\Loader\ArrayLoader;
  */
 class WebBuilderTest extends TestCase
 {
-    /** @var WebBuilder */
-    protected $webBuilder;
+    protected WebBuilder $webBuilder;
 
     public function setUp(): void
     {
         $this->webBuilder = new WebBuilder(new NullOutput(), 'build', [], false);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataGetDescSortedVersions(): array
     {
         $data = [];
@@ -58,7 +60,7 @@ class WebBuilderTest extends TestCase
         return $data;
     }
 
-    public function testTwigEnvironment()
+    public function testTwigEnvironment(): void
     {
         $twig = new Environment(new ArrayLoader([]));
         $twig->addExtension(new HtmlExtension());
@@ -68,19 +70,19 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigEnvironment');
         $method->setAccessible(true);
 
-        $this->assertSame($twig, $method->invoke($this->webBuilder));
+        self::assertSame($twig, $method->invoke($this->webBuilder));
     }
 
-    public function testTwigEnvironmentDefault()
+    public function testTwigEnvironmentDefault(): void
     {
         $reflection = new \ReflectionClass($this->webBuilder);
         $method = $reflection->getMethod('getTwigEnvironment');
         $method->setAccessible(true);
 
-        $this->assertInstanceOf('\Twig\Environment', $method->invoke($this->webBuilder));
+        self::assertInstanceOf('\Twig\Environment', $method->invoke($this->webBuilder));
     }
 
-    public function testTwigTemplate()
+    public function testTwigTemplate(): void
     {
         $config = [
             'twig-template' => 'foo.twig',
@@ -90,31 +92,37 @@ class WebBuilderTest extends TestCase
         $method = $reflection->getMethod('getTwigTemplate');
         $method->setAccessible(true);
 
-        $this->assertSame('foo.twig', $method->invoke($this->webBuilder));
+        self::assertSame('foo.twig', $method->invoke($this->webBuilder));
     }
 
-    public function testTwigTemplateDefault()
+    public function testTwigTemplateDefault(): void
     {
         $reflection = new \ReflectionClass($this->webBuilder);
         $method = $reflection->getMethod('getTwigTemplate');
         $method->setAccessible(true);
 
-        $this->assertSame('index.html.twig', $method->invoke($this->webBuilder));
+        self::assertSame('index.html.twig', $method->invoke($this->webBuilder));
     }
 
     /**
      * @dataProvider dataGetDescSortedVersions
+     *
+     * @param string[] $expected
+     * @param array<string, mixed> $packages
      */
-    public function testGetDescSortedVersions($expected, $packages)
+    public function testGetDescSortedVersions(array $expected, array $packages): void
     {
         $reflection = new \ReflectionClass(get_class($this->webBuilder));
         $method = $reflection->getMethod('getDescSortedVersions');
         $method->setAccessible(true);
 
-        $this->assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
+        self::assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
     }
 
-    public function dataGetHighestVersion()
+    /**
+     * @return array<string, mixed>
+     */
+    public function dataGetHighestVersion(): array
     {
         $data = [];
 
@@ -135,17 +143,22 @@ class WebBuilderTest extends TestCase
 
     /**
      * @dataProvider dataGetHighestVersion
+     *
+     * @param array<string, mixed> $packages
      */
-    public function testGetHighestVersion($expected, $packages)
+    public function testGetHighestVersion(Package $expected, array $packages): void
     {
         $reflection = new \ReflectionClass(get_class($this->webBuilder));
         $method = $reflection->getMethod('getHighestVersion');
         $method->setAccessible(true);
 
-        $this->assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
+        self::assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
     }
 
-    public function dataGroupPackagesByName()
+    /**
+     * @return array<string, mixed>
+     */
+    public function dataGroupPackagesByName(): array
     {
         $data = [];
 
@@ -175,13 +188,16 @@ class WebBuilderTest extends TestCase
 
     /**
      * @dataProvider dataGroupPackagesByName
+     *
+     * @param string[] $expected
+     * @param array<string, mixed> $packages
      */
-    public function testGroupPackagesByName($expected, $packages)
+    public function testGroupPackagesByName(array $expected, array $packages): void
     {
         $reflection = new \ReflectionClass(get_class($this->webBuilder));
         $method = $reflection->getMethod('groupPackagesByName');
         $method->setAccessible(true);
 
-        $this->assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
+        self::assertEquals($expected, $method->invokeArgs($this->webBuilder, $packages));
     }
 }

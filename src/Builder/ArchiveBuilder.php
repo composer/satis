@@ -28,11 +28,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ArchiveBuilder extends Builder
 {
-    /** @var Composer A Composer instance. */
-    private $composer;
-    /** @var InputInterface */
-    private $input;
+    private Composer $composer;
 
+    private InputInterface $input;
+
+    /**
+     * @param array<PackageInterface> $packages
+     */
     public function dump(array $packages): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $this->config['archive']);
@@ -42,18 +44,19 @@ class ArchiveBuilder extends Builder
         $includeArchiveChecksum = (bool) ($this->config['archive']['checksum'] ?? true);
         $composerConfig = $this->composer->getConfig();
         $factory = new Factory();
-        /* @var DownloadManager $downloadManager */
+        /** @var DownloadManager $downloadManager */
         $downloadManager = $this->composer->getDownloadManager();
-        /* @var ArchiveManager $archiveManager */
+        /** @var ArchiveManager $archiveManager */
         $archiveManager = $this->composer->getArchiveManager();
         $archiveManager->setOverwriteFiles(false);
 
         shuffle($packages);
 
+        /** @var ProgressBar|null $progressBar Should only remain `null` if $renderProgress is `false` */
         $progressBar = null;
         $hasStarted = false;
         $verbosity = $this->output->getVerbosity();
-        $renderProgress = $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
+        $renderProgress = (bool) $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL == $verbosity;
 
         if ($renderProgress) {
             $packageCount = 0;
@@ -76,7 +79,7 @@ class ArchiveBuilder extends Builder
                 continue;
             }
 
-            if ($renderProgress) {
+            if (!is_null($progressBar)) {
                 $progressBar->setMessage($package->getName(), 'packageName');
                 $progressBar->setMessage($package->getPrettyVersion(), 'packageVersion');
 
@@ -117,7 +120,8 @@ class ArchiveBuilder extends Builder
                 $distUrl = sprintf('%s/%s/%s/%s', $endpoint, $this->config['archive']['directory'], $intermediatePath, $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
-                $package->setDistSha1Checksum($includeArchiveChecksum ? hash_file('sha1', $path) : null);
+                $hashedPath = hash_file('sha1', $path);
+                $package->setDistSha1Checksum($includeArchiveChecksum ? (is_string($hashedPath) ? $hashedPath : null) : null);
                 $package->setDistReference($package->getSourceReference());
 
                 if ($renderProgress) {
@@ -134,14 +138,15 @@ class ArchiveBuilder extends Builder
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
 
-            if ($renderProgress) {
+            if (!is_null($progressBar)) {
                 $progressBar->advance();
             }
         }
 
-        if ($renderProgress) {
+        if (!is_null($progressBar)) {
             $progressBar->finish();
-
+        }
+        if ($renderProgress) {
             $this->output->writeln('');
         }
     }
@@ -169,7 +174,7 @@ class ArchiveBuilder extends Builder
 
         $filesystem = new Filesystem();
         $filesystem->ensureDirectoryExists($targetDir);
-        $targetDir = realpath($targetDir);
+        $targetDir = (string) realpath($targetDir);
 
         if ($overrideDistType) {
             $originalDistType = $package->getDistType();
@@ -201,7 +206,9 @@ class ArchiveBuilder extends Builder
             $downloadPromise = $downloader->download($package, $downloadDir);
             $downloadPromise->then(function ($filename) use ($path, $filesystem) {
                 $filesystem->ensureDirectoryExists(dirname($path));
-                $filesystem->rename($filename, $path);
+                if (is_string($filename)) {
+                    $filesystem->rename($filename, $path);
+                }
             });
             SyncHelper::await($this->composer->getLoop(), $downloadPromise);
             $filesystem->removeDirectory($downloadDir);

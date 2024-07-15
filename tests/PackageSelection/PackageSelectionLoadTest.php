@@ -27,17 +27,13 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionLoadTest extends TestCase
 {
-    /** @var PackageSelection */
-    protected $selection;
+    protected PackageSelection $selection;
 
-    /** @var Package */
-    protected $package;
+    protected Package $package;
 
-    /** @var Package */
-    protected $devPackage;
+    protected Package $devPackage;
 
-    /** @var vfsStreamDirectory */
-    protected $root;
+    protected vfsStreamDirectory $root;
 
     protected function setUp(): void
     {
@@ -91,7 +87,7 @@ class PackageSelectionLoadTest extends TestCase
          * no json filename means empty $packages
          */
         $this->root->removeChild('packages.json');
-        $this->assertEmpty($this->selection->load());
+        self::assertEmpty($this->selection->load());
     }
 
     public function testNoIncludeFile(): void
@@ -100,7 +96,7 @@ class PackageSelectionLoadTest extends TestCase
          * include file not found means output + empty $packages
          */
         $this->root->removeChild('include');
-        $this->assertEmpty($this->selection->load());
+        self::assertEmpty($this->selection->load());
     }
 
     public function testNoPackagesFilter(): void
@@ -109,7 +105,7 @@ class PackageSelectionLoadTest extends TestCase
          * no filterPackages means all $packages
          */
         $this->selection->setPackagesFilter([]);
-        $this->assertNotEmpty($this->selection->load());
+        self::assertNotEmpty($this->selection->load());
     }
 
     public function testPackageInFilter(): void
@@ -118,7 +114,7 @@ class PackageSelectionLoadTest extends TestCase
          * json filename + filterPackages :
          *   package in json + in filter => not selected (because it'll replaced/updated)
          */
-        $this->assertEmpty($this->selection->load());
+        self::assertEmpty($this->selection->load());
     }
 
     public function testPackageNotInFilter(): void
@@ -128,22 +124,22 @@ class PackageSelectionLoadTest extends TestCase
          *   package in json + not in filter => selected (to be merged as is)
          */
         $this->selection->setPackagesFilter(['othervendor/othername']);
-        $this->assertNotEmpty($this->selection->load());
+        self::assertNotEmpty($this->selection->load());
     }
 
     public function testAliasNotSelected(): void
     {
         $this->selection->setPackagesFilter(['othervendor/othername']);
         $packages = $this->selection->load();
-        $this->assertNotEmpty($packages);
+        self::assertNotEmpty($packages);
 
         foreach ($packages as $package) {
-            $this->assertNotInstanceOf(AliasPackage::class, $package);
+            self::assertNotInstanceOf(AliasPackage::class, $package);
 
             if ($package->isDev()) {
-                $this->assertSame('dev-master', $package->getPrettyVersion());
+                self::assertSame('dev-master', $package->getPrettyVersion());
             } else {
-                $this->assertSame('1.0', $package->getPrettyVersion());
+                self::assertSame('1.0', $package->getPrettyVersion());
             }
         }
     }

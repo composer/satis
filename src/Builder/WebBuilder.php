@@ -52,7 +52,7 @@ class WebBuilder extends Builder
             $this->output->writeln('Define a "name" property in your json config to name the repository');
         }
 
-        if (!$this->rootPackage->getHomepage()) {
+        if (is_null($this->rootPackage->getHomepage())) {
             $this->output->writeln('Define a "homepage" property in your json config to configure the repository URL');
         }
 
@@ -68,6 +68,7 @@ class WebBuilder extends Builder
             'packages' => $mappedPackages,
             'dependencies' => $this->dependencies,
             'fieldsToToggle' => $this->fieldsToToggle,
+            'blockIndexing' => !isset($this->config['allow-seo-indexing']) || true !== $this->config['allow-seo-indexing'],
         ]);
 
         file_put_contents($this->outputDir . '/index.html', $content);
@@ -91,14 +92,14 @@ class WebBuilder extends Builder
     {
         if (null === $this->twig) {
             $twigTemplate = $this->config['twig-template'] ?? null;
-            $templateDir = $twigTemplate ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
+            $templateDir = !is_null($twigTemplate) ? pathinfo($twigTemplate, PATHINFO_DIRNAME) : __DIR__ . '/../../views';
             $loader = new FilesystemLoader($templateDir);
-            $options = getenv('SATIS_TWIG_DEBUG') ? ['debug' => true] : [];
+            $options = false !== getenv('SATIS_TWIG_DEBUG') ? ['debug' => true] : [];
 
             $this->twig = new Environment($loader, $options);
             $this->twig->addExtension(new HtmlExtension());
 
-            if (getenv('SATIS_TWIG_DEBUG')) {
+            if (false !== getenv('SATIS_TWIG_DEBUG')) {
                 $this->twig->addExtension(new DebugExtension());
             }
         }
@@ -110,7 +111,7 @@ class WebBuilder extends Builder
     {
         $twigTemplate = $this->config['twig-template'] ?? null;
 
-        return $twigTemplate ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig';
+        return !is_null($twigTemplate) ? pathinfo($twigTemplate, PATHINFO_BASENAME) : 'index.html.twig';
     }
 
     /**
@@ -140,7 +141,7 @@ class WebBuilder extends Builder
      *
      * @param PackageInterface[] $ungroupedPackages List of packages to dump
      *
-     * @return array Grouped list of packages with versions
+     * @return array<string, mixed> Grouped list of packages with versions
      */
     private function getMappedPackageList(array $ungroupedPackages): array
     {
@@ -166,7 +167,7 @@ class WebBuilder extends Builder
      *
      * @param PackageInterface[] $packages List of packages to dump
      *
-     * @return array List of packages grouped by name
+     * @return array<string, mixed> List of packages grouped by name
      */
     private function groupPackagesByName(array $packages): array
     {

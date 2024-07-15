@@ -30,14 +30,11 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class WebBuilderDumpTest extends TestCase
 {
-    /** @var RootPackage */
-    protected $rootPackage;
+    protected RootPackage $rootPackage;
 
-    /** @var CompletePackage */
-    protected $package;
+    protected CompletePackage $package;
 
-    /** @var vfsStreamDirectory */
-    protected $root;
+    protected vfsStreamDirectory $root;
 
     protected function setUp(): void
     {
@@ -67,9 +64,9 @@ class WebBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/index.html');
         $html = $file->getContent();
 
-        $this->assertMatchesRegularExpression('/<title>dummy root package<\/title>/', $html);
-        $this->assertMatchesRegularExpression('{<div id="[^"]+" class="card-header[^"]+">\s*<a href="#vendor/name" class="[^"]+">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</div>}si', $html);
-        $this->assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
+        self::assertMatchesRegularExpression('/<title>dummy root package<\/title>/', $html);
+        self::assertMatchesRegularExpression('{<div id="[^"]+" class="card-header[^"]+">\s*<a href="#vendor/name" class="[^"]+">\s*<svg[^>]*>.+</svg>\s*vendor/name\s*</a>\s*</div>}si', $html);
+        self::assertFalse((bool) preg_match('/<p class="abandoned">/', $html));
     }
 
     public function testRepositoryWithNoName(): void
@@ -83,7 +80,7 @@ class WebBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/index.html');
         $html = $file->getContent();
 
-        $this->assertMatchesRegularExpression('/<title>A<\/title>/', $html);
+        self::assertMatchesRegularExpression('/<title>A<\/title>/', $html);
     }
 
     public function testDependencies(): void
@@ -98,9 +95,12 @@ class WebBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/index.html');
         $html = $file->getContent();
 
-        $this->assertMatchesRegularExpression('/<a href="#dummytest">dummytest<\/a>/', $html);
+        self::assertMatchesRegularExpression('/<a href="#dummytest">dummytest<\/a>/', $html);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function dataAbandoned(): array
     {
         $data = [];
@@ -134,7 +134,7 @@ class WebBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/index.html');
         $html = $file->getContent();
 
-        $this->assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
-        $this->assertMatchesRegularExpression($expected, $html);
+        self::assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
+        self::assertMatchesRegularExpression($expected, $html);
     }
 }

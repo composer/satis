@@ -5,9 +5,9 @@ includes:
   - phpstan-baseline.neon
 
 parameters:
-  level: 5
+  level: 8
   tmpDir: .
-  phpVersion: 70428
+  phpVersion: 80204
 
   paths:
     - src

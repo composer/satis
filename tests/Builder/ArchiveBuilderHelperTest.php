@@ -24,15 +24,17 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class ArchiveBuilderHelperTest extends TestCase
 {
-    /** @var NullOutput */
-    protected $output;
+    protected NullOutput $output;
 
     public function setUp(): void
     {
         $this->output = new NullOutput();
     }
 
-    public function dataDirectories()
+    /**
+     * @return array<string, mixed>
+     */
+    public function dataDirectories(): array
     {
         $data = [];
 
@@ -53,14 +55,19 @@ class ArchiveBuilderHelperTest extends TestCase
 
     /**
      * @dataProvider dataDirectories
+     *
+     * @param array<string, mixed> $config
      */
-    public function testDirectoryConfig(string $expected, string $outputDir, array $config)
+    public function testDirectoryConfig(string $expected, string $outputDir, array $config): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);
-        $this->assertEquals($helper->getDirectory($outputDir), $expected);
+        self::assertEquals($helper->getDirectory($outputDir), $expected);
     }
 
-    public function dataPackages()
+    /**
+     * @return array<string, mixed>
+     */
+    public function dataPackages(): array
     {
         $metapackage = new Package('vendor/name', '1.0.0.0', '1.0');
         $metapackage->setType('metapackage');
@@ -125,10 +132,12 @@ class ArchiveBuilderHelperTest extends TestCase
 
     /**
      * @dataProvider dataPackages
+     *
+     * @param array<string, mixed> $config
      */
-    public function testSkipDump(bool $expected, Package $package, array $config)
+    public function testSkipDump(bool $expected, Package $package, array $config): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);
-        $this->assertEquals($helper->isSkippable($package), $expected);
+        self::assertEquals($helper->isSkippable($package), $expected);
     }
 }

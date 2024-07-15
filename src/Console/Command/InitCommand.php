@@ -68,7 +68,7 @@ class InitCommand extends BaseCommand
 
         $configFile = $input->getArgument('file');
 
-        if (preg_match('{^https?://}i', $configFile)) {
+        if (1 === preg_match('{^https?://}i', $configFile)) {
             $output->writeln('<error>Unable to write to remote file ' . $configFile . '</error>');
 
             return 2;
@@ -117,7 +117,7 @@ class InitCommand extends BaseCommand
         });
 
         $this->prompt($input, $output, 'Home page', 'homepage', function ($value) {
-            if (!preg_match('/https?:\/\/.+/', $value)) {
+            if (1 !== preg_match('/https?:\/\/.+/', $value)) {
                 throw new \InvalidArgumentException('Enter a valid URL it will be used for building your repository');
             }
 
@@ -138,7 +138,7 @@ class InitCommand extends BaseCommand
 
     protected function getQuestion(string $prompt, ?string $default): Question
     {
-        $prompt = ($default && '' !== $default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
+        $prompt = (is_string($default) && '' !== $default ? sprintf('%s (%s)', $prompt, $default) : $prompt) . ': ';
 
         return new Question($prompt, $default);
     }

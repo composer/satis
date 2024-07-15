@@ -38,7 +38,7 @@ class Settings {
         this.settingsFormButton.classList.remove("d-none");
         this.settingsFormButton.addEventListener(
             "click",
-            this.handleButtonActiveState
+            this.handleButtonActiveState,
         );
     }
 }

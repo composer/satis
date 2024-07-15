@@ -26,17 +26,18 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackagesBuilderDumpTest extends TestCase
 {
-    /** @var vfsStreamDirectory */
-    protected $package;
+    protected vfsStreamDirectory $package;
 
-    /** @var vfsStreamDirectory */
-    protected $root;
+    protected vfsStreamDirectory $root;
 
     protected function setUp(): void
     {
         $this->root = vfsStream::setup('build');
     }
 
+    /**
+     * @return array<Package>|array<string, mixed>
+     */
     protected static function createPackages(int $majorVersionNumber, bool $asArray = false): array
     {
         $version = $majorVersionNumber . '.0';
@@ -75,7 +76,7 @@ class PackagesBuilderDumpTest extends TestCase
             /** @var vfsStreamFile $file */
             $file = $this->root->getChild('build/packages.json');
             $packagesJson = JsonFile::parseJson($file->getContent());
-            $this->assertArrayNotHasKey('notify-batch', $packagesJson);
+            self::assertArrayNotHasKey('notify-batch', $packagesJson);
 
             if ($providers) {
                 $packageName = key($arrayPackages);
@@ -87,26 +88,31 @@ class PackagesBuilderDumpTest extends TestCase
                 $includeJson = end($includes);
             }
 
+            // Skip if there is no valid json file
+            if (!is_string($includeJson)) {
+                continue;
+            }
+
             $includeJsonFile = 'build/' . $includeJson;
-            $this->assertTrue(is_file(vfsStream::url($includeJsonFile)));
+            self::assertTrue(is_file(vfsStream::url($includeJsonFile)));
 
             /** @var vfsStreamFile $file */
             $file = $this->root->getChild($includeJsonFile);
             $packagesIncludeJson = JsonFile::parseJson($file->getContent());
-            $this->assertEquals($arrayPackages, $packagesIncludeJson['packages']);
+            self::assertEquals($arrayPackages, $packagesIncludeJson['packages']);
 
-            if ($lastIncludedJsonFile && $lastIncludedJsonFile !== $includeJsonFile) {
-                $this->assertFalse(is_file(vfsStream::url($lastIncludedJsonFile)), 'Previous files not pruned');
+            if (!is_null($lastIncludedJsonFile) && $lastIncludedJsonFile !== $includeJsonFile) {
+                self::assertFalse(is_file(vfsStream::url($lastIncludedJsonFile)), 'Previous files not pruned');
             }
 
             $lastIncludedJsonFile = $includeJsonFile;
 
-            $this->assertArrayHasKey('metadata-url', $packagesJson);
+            self::assertArrayHasKey('metadata-url', $packagesJson);
             $packageName = key($arrayPackages);
             foreach (['', '~dev'] as $suffix) {
                 $includeJson = str_replace('%package%', $packageName.$suffix, $packagesJson['metadata-url']);
                 $includeJsonFile = 'build/' . $includeJson;
-                $this->assertTrue(is_file(vfsStream::url($includeJsonFile)), $includeJsonFile.' file must be created');
+                self::assertTrue(is_file(vfsStream::url($includeJsonFile)), $includeJsonFile.' file must be created');
             }
         }
     }
@@ -137,10 +143,10 @@ class PackagesBuilderDumpTest extends TestCase
             /** @var vfsStreamFile $file */
             $file = $this->root->getChild('build/packages.json');
             $packagesJson = JsonFile::parseJson($file->getContent());
-            if (!$basePath) {
+            if (is_null($basePath)) {
                 $providersUrlWithoutBase = $packagesJson['providers-url'];
             } else {
-                $this->assertEquals($basePath . $providersUrlWithoutBase, $packagesJson['providers-url']);
+                self::assertEquals($basePath . $providersUrlWithoutBase, $packagesJson['providers-url']);
             }
         }
     }
@@ -159,9 +165,12 @@ class PackagesBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/packages.json');
         $packagesJson = JsonFile::parseJson($file->getContent());
 
-        $this->assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
+        self::assertEquals('http://localhost:54715/notify', $packagesJson['notify-batch']);
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function prettyPrintProvider(): array
     {
         return [
@@ -206,6 +215,40 @@ class PackagesBuilderDumpTest extends TestCase
         $file = $this->root->getChild('build/out.json');
         $content = $file->getContent();
 
-        self::assertEquals(trim(json_encode($expected, $jsonOptions)), trim($content));
+        $jsonEncodedObject = json_encode($expected, $jsonOptions);
+        self::assertIsString($jsonEncodedObject);
+        self::assertEquals(trim($jsonEncodedObject), trim($content));
+    }
+
+    public function testComposer2MinifiedProvider(): void
+    {
+        $expected = [
+            'packages' => [
+                'vendor/name' => [
+                    [
+                        'name' => 'vendor/name',
+                        'version' => '1.0',
+                        'version_normalized' => '1.0.0.0',
+                        'type' => 'library',
+                    ],
+                    [
+                        'version' => '2.0',
+                        'version_normalized' => '2.0.0.0',
+                    ],
+                ],
+            ],
+            'minified' => PackagesBuilder::MINIFY_ALGORITHM_V2,
+        ];
+
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false, true);
+        $packagesBuilder->dump(array_merge(self::createPackages(1), self::createPackages(2)));
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/p2/vendor/name.json');
+        $content = $file->getContent();
+
+        self::assertEquals($expected, json_decode($content, true));
     }
 }

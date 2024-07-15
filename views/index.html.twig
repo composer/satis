@@ -5,7 +5,17 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="noindex,nofollow" />
+
+    {% if description %}
+        <meta name="description" content="{{ description|striptags|escape("html_attr") }}">
+    {% else %}
+        <meta name="description" content="This Composer repository is powered by Satis">
+    {% endif %}
+    
+    {% if blockIndexing %}
+        <meta name="robots" content="noindex,nofollow">
+    {% endif %}
+
     <link rel="icon" type="image/png" href="{{ source('assets/img/favicon.png')|data_uri(mime="image/png") }}">
 
     <title>{{ name|default('Composer repository') }}</title>
@@ -42,7 +52,7 @@
                 placeholder="Filter packages"
                 autocomplete="off"
                 autofocus>
-            <select class="form-select filter-field">
+            <select class="form-select filter-field" aria-label="Filter by...">
                 <option value="all" selected disabled hidden>Filter by..</option>
                 <option value="all">All fields</option>
                 <optgroup label="Specific field...">
@@ -59,8 +69,8 @@
                     aria-pressed="false"
                     aria-label="Toggle settings"
                     title="Toggle settings"
-                    data-toggle="collapse"
-                    data-target=".settings"
+                    aria-expanded="false"
+                    aria-controls="package-filter-settings"
                 >
                     <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" role="img">
                         <path d="M11.998 7.66A4.339 4.339 0 007.661 12a4.342 4.342 0 004.337 4.34A4.33 4.33 0 0016.323 12a4.327 4.327 0 00-4.325-4.34zm8.697 6.833l-.782 1.883 1.395 2.739.184.362-1.933 1.933-3.173-1.498-1.883.773-.956 2.927-.122.388h-2.733l-1.183-3.303-1.883-.777-2.743 1.391-.362.181-1.933-1.932 1.497-3.174-.776-1.882-2.921-.954L0 13.425v-2.732L3.306 9.51l.775-1.88-1.39-2.745-.183-.36 1.93-1.93L7.615 4.09l1.88-.778.956-2.924.123-.388h2.732l1.183 3.307 1.879.778 2.744-1.392.365-.184 1.931 1.93-1.496 3.172.773 1.885 2.93.955.385.123v2.73l-3.305 1.189z"/>
@@ -69,7 +79,7 @@
             </div>
         </div>
     </form>
-    <form class="my-3 card collapse settings" aria-expanded="false">
+    <form id="package-filter-settings" class="my-3 card settings">
         <div class="card-body">
             <div class="form-group">
                 <p class="h6">Default package &quot;filter by&quot; field:</p>
@@ -100,7 +110,7 @@
                         name="default-filter"
                         value="custom">
                     <label class="form-check-label" for="package-filter-custom">Use this field:</label>
-                    <select class="custom-select ml-2 default-filter-field">
+                    <select class="custom-select ml-2 default-filter-field" aria-label="Default filter field">
                         <option value="all" selected disabled hidden>Select field...</option>
                         <option value="name">Name</option>
                         {% for fieldName, label in fieldsToToggle %}
@@ -135,12 +145,17 @@
     <div id="repo-help" class="my-3">
         <p class="small">
             This is a private Composer repository.
-            To use it, you have to <a title="Check how to add this repository to your project" data-toggle="collapse" href="#repo-config">add this repository</a> to your <code>composer.json</code> file.
+            To use it, you have to <a
+                title="Check how to add this repository to your project"
+                href="#repo-config"
+                aria-expanded="false"
+                aria-controls="repo-config"
+            >add this repository</a> to your <code>composer.json</code> file.
         </p>
 
-        <div id="repo-config" class="my-3 card card-outline collapse" aria-expanded="false">
+        <div id="repo-config" class="my-3 card card-outline">
             <div class="card-body">
-                <h5 class="card-title">Setting up this repository in your projects</h5>
+                <h2 class="card-title h5">Setting up this repository in your projects</h2>
                 <p>
                     Add this <a href="https://getcomposer.org/" title="Visit getcomposer.org">Composer</a>
                     repository to your project's <code>composer.json</code>
@@ -191,7 +206,7 @@
 </script>
 <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
     <symbol id="octicon-link" viewBox="0 0 16 16">
-        <path d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
+        <path fill="currentColor" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path>
     </symbol>
 </svg>
 </body>

@@ -1,68 +1,105 @@
 class Collapse {
     constructor() {
-        this.toggleElements = Array.prototype.slice.call(
-            document.querySelectorAll('[data-toggle="collapse"]')
+        const controls = Array.prototype.slice.call(
+            document.querySelectorAll("[aria-expanded][aria-controls]"),
         );
-        this.collapsibleElements = Array.prototype.slice.call(
-            document.querySelectorAll(".collapse")
-        );
+        this.collapsibleElements = controls.map((control) => [
+            control,
+            document.getElementById(control.getAttribute("aria-controls")),
+        ]);
         this.handleClick = this.handleClick.bind(this);
         this.init();
     }
-    handleClick(event) {
-        const targetId =
-            event.target.dataset.target || event.target.getAttribute("href");
-        const targetElement = document.querySelector(targetId);
-        if (!targetElement) {
+
+    handleClick({ target: control }) {
+        const container = document.getElementById(
+            control.getAttribute("aria-controls"),
+        );
+        if (!container) {
             return false;
         }
 
         // Collapse this element
-        if (targetElement.getAttribute("aria-expanded") === "true") {
-            targetElement.setAttribute("aria-expanded", "false");
-            targetElement.style.maxHeight = 0;
+        if (control.getAttribute("aria-expanded") === "true") {
+            control.setAttribute("aria-expanded", "false");
+            container.style.maxHeight = 0;
             return true;
         }
 
         // Expand this element
-        const naturalHeight = parseInt(targetElement.dataset.naturalHeight);
+        const naturalHeight = parseInt(container.dataset.naturalHeight);
         if (isNaN(naturalHeight) || !naturalHeight) {
             return false;
         }
-        targetElement.setAttribute("aria-expanded", "true");
-        targetElement.style.maxHeight = naturalHeight + "px";
+        control.setAttribute("aria-expanded", "true");
+        container.hidden = false;
+
+        // Need to use requestAnimationFrame to force the browser to repaint after
+        // making the container visible, or it will skip the max-height transition
+        window.requestAnimationFrame(function () {
+            container.style.maxHeight = naturalHeight + "px";
+        });
 
         return true;
     }
-    init() {
-        var instance = this;
 
-        // Handle click events on the elements that toggle
-        this.toggleElements.forEach(function (element) {
-            element.addEventListener("click", function (event) {
+    handleTransitionEnd({ propertyName, target: container }) {
+        if (propertyName === "max-height") {
+            container.hidden = parseInt(container.style.maxHeight) === 0;
+        }
+    }
+
+    init() {
+        const instance = this;
+
+        this.collapsibleElements.forEach(function ([control, container]) {
+            // Handle click events on the elements that toggle
+            control.addEventListener("click", function (event) {
                 if (instance.handleClick(event)) {
                     event.preventDefault();
                 }
             });
-        });
 
-        // Keep track of the natural heights of the collapsed elements
-        this.collapsibleElements.forEach(function (element) {
-            const initiallyVisible = element.classList.contains("show");
-            element.classList.add("show");
-
-            const naturalHeight = element.getBoundingClientRect().height;
-            element.dataset.naturalHeight = naturalHeight;
-            element.style.overflow = "hidden";
-            element.style.maxHeight = initiallyVisible
-                ? naturalHeight + "px"
-                : 0;
-            element.style.transition = "max-height 0.25s";
-            element.setAttribute(
-                "aria-expanded",
-                initiallyVisible ? "true" : "false"
+            // Keep track of the natural heights of the collapsed elements
+            container.addEventListener(
+                "transitionend",
+                instance.handleTransitionEnd,
             );
+            instance.resetNaturalHeight(control, container);
         });
+
+        // Resets container natural heights on window resize
+        let timer = null;
+        window.addEventListener("resize", function () {
+            window.clearTimeout(timer);
+            timer = window.setTimeout(function () {
+                instance.collapsibleElements.forEach(function ([
+                    control,
+                    container,
+                ]) {
+                    instance.resetNaturalHeight(control, container);
+                });
+            }, 50);
+        });
+    }
+
+    resetNaturalHeight(control, container) {
+        // Default to fully visible
+        container.style.transition = "";
+        container.style.maxHeight = "";
+        container.style.overflow = "";
+        container.hidden = false;
+
+        const initiallyVisible =
+            control.getAttribute("aria-expanded") === "true";
+        const naturalHeight = container.getBoundingClientRect().height;
+        container.dataset.naturalHeight = naturalHeight;
+
+        // Set container dimensions
+        container.style.overflow = "hidden";
+        container.style.maxHeight = initiallyVisible ? naturalHeight + "px" : 0;
+        container.style.transition = "max-height 0.25s";
+        container.hidden = !initiallyVisible;
     }
 }
 

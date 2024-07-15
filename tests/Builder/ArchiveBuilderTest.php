@@ -21,7 +21,9 @@ use Composer\Json\JsonFile;
 use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
 use Composer\Package\CompletePackageInterface;
+use Composer\Package\PackageInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Filesystem\Filesystem;
 
@@ -30,21 +32,24 @@ use Symfony\Component\Filesystem\Filesystem;
  */
 class ArchiveBuilderTest extends TestCase
 {
-    protected $composer;
+    protected Composer $composer;
 
-    protected $output;
+    protected NullOutput $output;
 
-    protected $input;
+    protected InputInterface $input;
 
-    protected $outputDir;
+    protected string $outputDir;
 
-    protected $satisConfig;
+    /**
+     * @var array<string, mixed>
+     */
+    protected array $satisConfig;
 
-    protected $root;
+    protected string $root;
 
-    protected $home;
+    protected string $home;
 
-    protected $target;
+    protected string $target;
 
     public function tearDown(): void
     {
@@ -69,7 +74,7 @@ class ArchiveBuilderTest extends TestCase
 
         $downloadManager = $this->getMockBuilder(DownloadManager::class)->disableOriginalConstructor()->getMock();
         $downloadManager->method('download')->will(
-            $this->returnCallback(
+            self::returnCallback(
                 function ($package, $source) {
                     $filesystem = new Filesystem();
                     $filesystem->dumpFile(realpath($source) . '/README.md', '# The demo archive.');
@@ -82,7 +87,7 @@ class ArchiveBuilderTest extends TestCase
             {
             }
 
-            public function archive(CompletePackageInterface $package, string $format, string $targetDir, ?string $fileName = null, bool $ignoreFilters = false): string
+            public function archive(CompletePackageInterface $package, string $format, string $targetDir, string $fileName = null, bool $ignoreFilters = false): string
             {
                 $target = $targetDir.'/'.$this->getPackageFilename($package).'.'.$format;
                 touch($target);
@@ -97,7 +102,7 @@ class ArchiveBuilderTest extends TestCase
         $this->composer->setArchiveManager($archiveManager);
 
         $this->input = $this->getMockBuilder('Symfony\Component\Console\Input\InputInterface')->disableOriginalConstructor()->getMock();
-        $this->input->method('getOption')->with('stats')->willReturn($this->returnValue(false));
+        $this->input->method('getOption')->with('stats')->willReturn(self::returnValue(false));
 
         $this->output = new NullOutput();
 
@@ -128,8 +133,11 @@ class ArchiveBuilderTest extends TestCase
 
     /**
      * @dataProvider getDataForTestDump
+     *
+     * @param array<string, mixed> $customConfig
+     * @param array<PackageInterface> $packages
      */
-    public function testDumpWithDownloadedArchives(array $customConfig, array $packages, string $expectedFileName)
+    public function testDumpWithDownloadedArchives(array $customConfig, array $packages, string $expectedFileName): void
     {
         $this->initArchives();
 
@@ -140,10 +148,13 @@ class ArchiveBuilderTest extends TestCase
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
-        $this->assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+        self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
     }
 
-    private function getPackages()
+    /**
+     * @return array<CompletePackage>
+     */
+    private function getPackages(): array
     {
         $package = new CompletePackage('monolog/monolog', '1.13.0.0', '1.13.0');
         $package->setId(9);
@@ -167,7 +178,10 @@ class ArchiveBuilderTest extends TestCase
         return [$package];
     }
 
-    public function getDataForTestDump()
+    /**
+     * @return array<mixed>
+     */
+    public function getDataForTestDump(): array
     {
         return [
             [[], $this->getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
@@ -178,8 +192,11 @@ class ArchiveBuilderTest extends TestCase
 
     /**
      * @dataProvider getDataForTestDump
+     *
+     * @param array<string, mixed> $customConfig
+     * @param array<PackageInterface> $packages
      */
-    public function testDumpWithoutDownloadedArchives(array $customConfig, array $packages, string $expectedFileName)
+    public function testDumpWithoutDownloadedArchives(array $customConfig, array $packages, string $expectedFileName): void
     {
         $this->removeArchives();
 
@@ -189,10 +206,10 @@ class ArchiveBuilderTest extends TestCase
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
-        $this->assertSame($expectedFileName, basename($packages[0]->getDistUrl()));
+        self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
     }
 
-    private function initArchives()
+    private function initArchives(): void
     {
         $fs = new Filesystem();
         $fs->mkdir($this->target, 0777);
@@ -200,7 +217,7 @@ class ArchiveBuilderTest extends TestCase
         $fs->dumpFile($this->target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar', 'the package archive.');
     }
 
-    private function removeArchives()
+    private function removeArchives(): void
     {
         $fs = new Filesystem();
         $fs->remove($this->target . '/monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar');

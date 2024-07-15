@@ -39,16 +39,19 @@
     ],
     "replace": {
         "symfony/polyfill-php72": "*",
-        "symfony/polyfill-php73": "*"
+        "symfony/polyfill-php73": "*",
+        "symfony/polyfill-php74": "*",
+        "symfony/polyfill-php80": "*",
+        "symfony/polyfill-php81": "*"
     },
     "require": {
-        "php": "^7.4||^8.0",
-        "composer/composer": "^2.3.10",
+        "php": "^8.1",
+        "ext-zip": "*",
+        "composer/composer": "^2.7.7",
         "composer-plugin-api": "^2.3.0",
-        "symfony/console": "^4.4||^5.0",
-        "symfony/console": "^4.4||^5.0||^6.0",
-        "twig/twig": "^3.3",
-        "twig/html-extra": "^3.3"
+        "symfony/console": "^7.1.2",
+        "twig/twig": "^3.10.3",
+        "twig/html-extra": "^3.10.0"
     },
     "autoload": {
         "psr-4": {
@@ -57,8 +60,8 @@
     },
     "require-dev": {
         "ext-json": "*",
-        "mikey179/vfsstream": "^1.6.8",
-        "phpunit/phpunit": "^9.5"
+        "mikey179/vfsstream": "^1.6.11",
+        "phpunit/phpunit": "^9.6.19"
     },
     "autoload-dev": {
         "psr-4": {
@@ -72,9 +75,6 @@
         "class": "Composer\\Satis\\Plugin\\SatisPlugin"
     },
     "config": {
-        "platform": {
-            "php": "7.4.28"
-        },
         "allow-plugins": {
             "composer/satis": true
         }

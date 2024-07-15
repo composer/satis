@@ -225,6 +225,11 @@
             "type": "string",
             "description": "Path to a template for the static web page."
         },
+        "allow-seo-indexing": {
+            "type": "boolean",
+            "description": "Allow the generated web view to be indexed by search engines",
+            "default": false
+        },
         "config": {
             "type": "object",
             "description": "Composer options.",

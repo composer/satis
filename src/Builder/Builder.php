@@ -18,14 +18,17 @@ use Symfony\Component\Console\Output\OutputInterface;
 abstract class Builder implements BuilderInterface
 {
     /** @var OutputInterface The output Interface. */
-    protected $output;
+    protected OutputInterface $output;
     /** @var string The directory where to build. */
-    protected $outputDir;
-    /** @var array The parameters from ./satis.json. */
-    protected $config;
+    protected string $outputDir;
+    /** @var array<string, mixed> The parameters from ./satis.json. */
+    protected array $config;
     /** @var bool Skips Exceptions if true. */
-    protected $skipErrors;
+    protected bool $skipErrors;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
     {
         $this->output = $output;
