@@ -6,7 +6,7 @@
         "bootstrap": "^5.3.3",
         "date-fns": "^3.6.0",
         "eslint-webpack-plugin": "^4.2.0",
-        "husky": "^8.0.3",
+        "husky": "^9.1.1",
         "lint-staged": "^15.2.7",
         "prettier": "^3.3.3",
         "purgecss-webpack-plugin": "^5.0.0",
