@@ -66,7 +66,10 @@ class PackageSelection
     /** Filter dependencies if true. */
     private bool $requireDependencyFilter;
 
-    /** Minimum stability accepted for Packages in the list. */
+    /**
+     * Minimum stability accepted for Packages in the list.
+     * @var key-of<BasePackage::STABILITIES>
+     */
     private string $minimumStability;
 
     /** @var string[] Minimum stability accepted by Package. */
@@ -171,7 +174,7 @@ class PackageSelection
         $repos = $initialRepos = $composer->getRepositoryManager()->getRepositories();
 
         $stabilityFlags = array_map(function ($value) {
-            return BasePackage::$stabilities[$value];
+            return BasePackage::STABILITIES[$value];
         }, $this->minimumStabilityPerPackage);
 
         if ($this->hasRepositoriesFilter()) {
@@ -742,7 +745,7 @@ class PackageSelection
                     continue;
                 }
 
-                if (BasePackage::$stabilities[$package->getStability()] > BasePackage::$stabilities[$minimumStability]) {
+                if (BasePackage::STABILITIES[$package->getStability()] > BasePackage::STABILITIES[$minimumStability]) {
                     if ($verbose) {
                         $this->output->writeln('Skipped ' . $package->getPrettyName() . ' (' . $package->getStability() . ')');
                     }
