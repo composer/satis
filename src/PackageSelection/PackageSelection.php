@@ -68,6 +68,7 @@ class PackageSelection
 
     /**
      * Minimum stability accepted for Packages in the list.
+     *
      * @var key-of<BasePackage::STABILITIES>
      */
     private string $minimumStability;
