@@ -21,6 +21,10 @@
         {
             "name": "cacert.pem",
             "in": "vendor/composer/ca-bundle"
+        },
+        {
+            "name": "*.json",
+            "in": "vendor/composer/spdx-licenses/res"
         }
     ],
     "compression": "GZ",
