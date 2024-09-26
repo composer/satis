@@ -916,17 +916,26 @@ class PackageSelection
         return array_filter(
             $repositories,
             function ($repository) {
-                if (!($repository instanceof ConfigurableRepositoryInterface)) {
+                if ($repository instanceof ConfigurableRepositoryInterface) {
+
+                    $config = $repository->getRepoConfig();
+                    if (!isset($config['url'])) {
+                        return false;
+                    }
+                    return in_array($config['url'], $this->repositoriesFilter ?? [], true);
+                
+                } else if ($repository instanceof ArrayRepository) {
+                    $packages = $repository->getPackages();
+                    foreach ($packages as $package) {
+                        if (in_array($package->getSourceUrl(), $this->repositoriesFilter ?? [], true)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                } else {
                     return false;
                 }
-
-                $config = $repository->getRepoConfig();
-
-                if (!isset($config['url'])) {
-                    return false;
-                }
-
-                return in_array($config['url'], $this->repositoriesFilter ?? [], true);
             }
         );
     }
