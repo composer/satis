@@ -195,6 +195,11 @@
             "description": "Specify filename instead of default include/all$%hash%.json",
             "default": "include/all$%hash%.json"
         },
+        "includes": {
+            "type": "boolean",
+            "description": "If true, output package includes. This is `true` by default - setting it to `false` allows you to work with Composer v2 metadata URLs only.",
+            "default": true
+        },
         "available-package-patterns": {
             "type": "array",
             "description": "Composer v2 feature. List of patterns like 'vendor/*' for packages available, recommended with many packages. If not set, 'available-packages' will be set with ALL package names.",
