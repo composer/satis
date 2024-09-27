@@ -917,14 +917,13 @@ class PackageSelection
             $repositories,
             function ($repository) {
                 if ($repository instanceof ConfigurableRepositoryInterface) {
-
                     $config = $repository->getRepoConfig();
                     if (!isset($config['url'])) {
                         return false;
                     }
+
                     return in_array($config['url'], $this->repositoriesFilter ?? [], true);
-                
-                } else if ($repository instanceof ArrayRepository) {
+                } elseif ($repository instanceof ArrayRepository) {
                     $packages = $repository->getPackages();
                     foreach ($packages as $package) {
                         if (in_array($package->getSourceUrl(), $this->repositoriesFilter ?? [], true)) {
@@ -933,9 +932,9 @@ class PackageSelection
                     }
 
                     return false;
-                } else {
-                    return false;
                 }
+
+                return false;
             }
         );
     }

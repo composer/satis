@@ -788,8 +788,8 @@ class PackageSelectionTest extends TestCase
                 'source' => [
                     'url' => 'git@github.com:vendor/project-alpha.git',
                     'type' => 'vcs',
-                    'reference' => '1.2.3.1'
-                ]
+                    'reference' => '1.2.3.1',
+                ],
             ],
             'alpha2' => [
                 'name' => 'vendor/project-alpha',
@@ -797,8 +797,8 @@ class PackageSelectionTest extends TestCase
                 'source' => [
                     'url' => 'git@github.com:vendor/project-alpha.git',
                     'type' => 'vcs',
-                    'reference' => '1.2.3.2'
-                ]
+                    'reference' => '1.2.3.2',
+                ],
             ],
             'beta1' => [
                 'name' => 'vendor/project-beta',
@@ -806,8 +806,8 @@ class PackageSelectionTest extends TestCase
                 'source' => [
                     'url' => 'git@github.com:vendor/project-beta.git',
                     'type' => 'vcs',
-                    'reference' => '1.2.3.1'
-                ]
+                    'reference' => '1.2.3.1',
+                ],
             ],
             'gamma1' => [
                 'name' => 'vendor/project-gamma',
@@ -815,8 +815,8 @@ class PackageSelectionTest extends TestCase
                 'source' => [
                     'url' => 'git@github.com:vendor/project-gamma.git',
                     'type' => 'vcs',
-                    'reference' => '1.2.3.1'
-                ]
+                    'reference' => '1.2.3.1',
+                ],
             ],
         ];
 
@@ -826,19 +826,19 @@ class PackageSelectionTest extends TestCase
                 'package' => [
                     $packages['alpha1'],
                     $packages['alpha2'],
-                ]
+                ],
             ],
             'beta_packages' => [
                 'type' => 'package',
                 'package' => [
                     $packages['beta1'],
-                ]
+                ],
             ],
             'gamma_packages' => [
                 'type' => 'package',
                 'package' => [
                     $packages['gamma1'],
-                ]
+                ],
             ],
         ];
 
@@ -868,7 +868,7 @@ class PackageSelectionTest extends TestCase
             ],
             ['git@github.com:vendor/project-beta.git'],
         ];
-       
+
         $data['Filter by two repositories'] = [
             [
                 $packages['alpha1'],
@@ -890,11 +890,9 @@ class PackageSelectionTest extends TestCase
      * @param string[] $expected
      * @param array<string, mixed> $config
      * @param string[]|null $filterRepos
-     * @param string[]|null $filterPackages
      */
     public function testFilterRepos(array $expected, array $config, array $filterRepos = null): void
     {
-
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
         $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
