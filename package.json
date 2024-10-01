@@ -2,7 +2,7 @@
     "devDependencies": {
         "@babel/core": "^7.25.2",
         "@babel/preset-env": "^7.25.4",
-        "@symfony/webpack-encore": "^4.7.0",
+        "@symfony/webpack-encore": "^5.0.0",
         "bootstrap": "^5.3.3",
         "date-fns": "^4.1.0",
         "eslint-webpack-plugin": "^4.2.0",
