@@ -74,7 +74,7 @@
     "scripts": {
         "test": "vendor/bin/phpunit",
         "phpstan": "tools/phpstan/vendor/bin/phpstan",
-        "php-cs-fixer": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix --dry-run --diff",
-        "php-cs-fixer-fix": "tools/php-cs-fixer/vendor/bin/php-cs-fixer fix"
+        "php-cs-fixer": "PHP_CS_FIXER_IGNORE_ENV=true tools/php-cs-fixer/vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "php-cs-fixer-fix": "PHP_CS_FIXER_IGNORE_ENV=true tools/php-cs-fixer/vendor/bin/php-cs-fixer fix"
     }
 }
