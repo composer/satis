@@ -39,11 +39,11 @@
     ],
     "require": {
         "ext-zip": "*",
-        "composer/composer": "^2.7.8",
+        "composer/composer": "^2.8.1",
         "composer-plugin-api": "^2.3.0",
-        "symfony/console": "^7.1.4",
-        "twig/twig": "^3.12.0",
-        "twig/html-extra": "^3.12.0"
+        "symfony/console": "^7.1.5",
+        "twig/twig": "^3.14.0",
+        "twig/html-extra": "^3.13.0"
     },
     "autoload": {
         "psr-4": {
@@ -53,7 +53,7 @@
     "require-dev": {
         "ext-json": "*",
         "mikey179/vfsstream": "^1.6.12",
-        "phpunit/phpunit": "^9.6.20"
+        "phpunit/phpunit": "^9.6.21"
     },
     "autoload-dev": {
         "psr-4": {
