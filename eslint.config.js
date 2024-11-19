@@ -1,5 +1,5 @@
 export default [
     {
-        ignores: ["vendor/", "views/build/"],
+        ignores: ["vendor/*", "views/build/*"],
     },
 ];
