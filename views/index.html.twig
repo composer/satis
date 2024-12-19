@@ -11,7 +11,7 @@
     {% else %}
         <meta name="description" content="This Composer repository is powered by Satis">
     {% endif %}
-    
+
     {% if blockIndexing %}
         <meta name="robots" content="noindex,nofollow">
     {% endif %}
@@ -33,8 +33,8 @@
             <a href="{{ url }}">
                 <h1>{{ name|default('Composer repository') }}</h1>
             </a>
-            <span class="badge bg-light text-dark m-1" title="{{ "now"|date(constant('\DateTime::COOKIE')) }}">
-                Last updated: <br class="d-md-none"> <time datetime="{{ "now"|date(constant('\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
+            <span class="badge bg-light text-dark m-1" title="{{ "now"|date(constant('\\DateTime::COOKIE')) }}">
+                Last updated: <br class="d-md-none"> <time datetime="{{ "now"|date(constant('\\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
             </span>
         </div>
 
