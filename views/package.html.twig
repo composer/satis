@@ -97,7 +97,7 @@
                 {{ version.prettyVersion }}
                 {%- elseif version.distType -%}
                 <a class="badge rounded-pill text-bg-secondary" href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
-                {%- elseif version.sourceUrl matches '#^https?:\/\/#' -%}
+                {%- elseif version.sourceUrl matches '#^https?:\\/\\/#' -%}
                 <a class="badge rounded-pill text-bg-secondary" href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
                 <span class="badge rounded-pill text-bg-secondary" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</span>
