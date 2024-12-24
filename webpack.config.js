@@ -12,7 +12,10 @@ Encore.addEntry("app", "./views/assets/js/app.js")
     .setPublicPath("/build")
     .addPlugin(
         new PurgeCSSPlugin({
-            paths: () => glob.sync([`views/*.html.twig`, `views/assets/js/**/*.js`], { nodir: true }),
+            paths: () =>
+                glob.sync([`views/*.html.twig`, `views/assets/js/**/*.js`], {
+                    nodir: true,
+                }),
         }),
     );
 
