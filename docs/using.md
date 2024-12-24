@@ -252,21 +252,21 @@ and Subversion) your packages, add the following to your `satis.json`:
 
 #### Options explained
 
--   `directory`: required, the location of the dist files (inside the
-    `output-dir`)
--   `format`: optional, `zip` (default) or `tar`
--   `prefix-url`: optional, location of the downloads, homepage (from
-    `satis.json`) followed by `directory` by default
--   `skip-dev`: optional, `false` by default, when enabled (`true`) satis will
-    not create downloads for branches
--   `absolute-directory`: optional, a _local_ directory where the dist files are
-    dumped instead of `output-dir`/`directory`
--   `whitelist`: optional, if set as a list of package names, satis will only
-    dump the dist files of these packages (use `*` for wildcard matching)
--   `blacklist`: optional, if set as a list of package names, satis will not
-    dump the dist files of these packages (use `*` for wildcard matching)
--   `checksum`: optional, `true` by default, when disabled (`false`) satis will
-    not provide the sha1 checksum for the dist files
+- `directory`: required, the location of the dist files (inside the
+  `output-dir`)
+- `format`: optional, `zip` (default) or `tar`
+- `prefix-url`: optional, location of the downloads, homepage (from
+  `satis.json`) followed by `directory` by default
+- `skip-dev`: optional, `false` by default, when enabled (`true`) satis will
+  not create downloads for branches
+- `absolute-directory`: optional, a _local_ directory where the dist files are
+  dumped instead of `output-dir`/`directory`
+- `whitelist`: optional, if set as a list of package names, satis will only
+  dump the dist files of these packages (use `*` for wildcard matching)
+- `blacklist`: optional, if set as a list of package names, satis will not
+  dump the dist files of these packages (use `*` for wildcard matching)
+- `checksum`: optional, `true` by default, when disabled (`false`) satis will
+  not provide the sha1 checksum for the dist files
 
 Once enabled, all downloads (include those from GitHub and BitBucket) will be
 replaced with a _local_ version.
@@ -283,12 +283,12 @@ Example: A `prefix-url` of `https://my-bucket.s3.amazonaws.com` (and
 
 ### Web outputs
 
--   `output-html`: optional, `true` by default, when disabled (`false`) satis
-    will not generate the `output-dir`/index.html page.
--   `twig-template`: optional, a path to a personalized [Twig] template for
-    the `output-dir`/index.html page.
--   `allow-seo-indexing`: optional, `false` by default, when enabled (`true`) satis
-    will allow the generated page to be indexed by search engines.
+- `output-html`: optional, `true` by default, when disabled (`false`) satis
+  will not generate the `output-dir`/index.html page.
+- `twig-template`: optional, a path to a personalized [Twig] template for
+  the `output-dir`/index.html page.
+- `allow-seo-indexing`: optional, `false` by default, when enabled (`true`) satis
+  will allow the generated page to be indexed by search engines.
 
 ### Abandoned packages
 
@@ -333,21 +333,21 @@ is set to true.
 
 ### Other options
 
--   `providers`: optional, `false` by default, when enabled (`true`) each
-    package will be dumped into a separate include file which will be only
-    loaded by composer when the package is really required. Speeds up composer
-    handling for repositories with huge number of packages like f.i. packagist.
--   `output-dir`: optional, defines where to output the repository files if not
-    provided as an argument when calling the `build` command.
--   `config`: optional, lets you define all config options from composer, except
-    `archive-format` and `archive-dir` as the configuration is done through
-    [archive](#downloads) instead. See docs on [config schema] for more details.
--   `notify-batch`: optional, specify a URL that will be called every time a
-    user installs a package. See [notify-batch].
--   `include-types`: optional, an array of [composer types]. When provided
-    only packages with this type will be selected by Satis.
--   `exclude-types`: optional, an array of [composer types]. Any packages
-    with a type in this array will not be selected by Satis.
+- `providers`: optional, `false` by default, when enabled (`true`) each
+  package will be dumped into a separate include file which will be only
+  loaded by composer when the package is really required. Speeds up composer
+  handling for repositories with huge number of packages like f.i. packagist.
+- `output-dir`: optional, defines where to output the repository files if not
+  provided as an argument when calling the `build` command.
+- `config`: optional, lets you define all config options from composer, except
+  `archive-format` and `archive-dir` as the configuration is done through
+  [archive](#downloads) instead. See docs on [config schema] for more details.
+- `notify-batch`: optional, specify a URL that will be called every time a
+  user installs a package. See [notify-batch].
+- `include-types`: optional, an array of [composer types]. When provided
+  only packages with this type will be selected by Satis.
+- `exclude-types`: optional, an array of [composer types]. Any packages
+  with a type in this array will not be selected by Satis.
 
 [ssh2 context options]: https://secure.php.net/manual/en/wrappers.ssh2.php#refsect1-wrappers.ssh2-options
 [ssl context options]: https://secure.php.net/manual/en/context.ssl.php

@@ -12,8 +12,8 @@ registry that can be hosted anywhere (even via Docker, locally).
 
 Satis requires a recent PHP version, it does not run with unsupported PHP versions. Check the `composer.json` file for details.
 
--   Install Satis: `composer create-project --keep-vcs --no-dev composer/satis:dev-main`
--   Build a repository: `php bin/satis build <configuration-file> <output-directory>`
+- Install Satis: `composer create-project --keep-vcs --no-dev composer/satis:dev-main`
+- Build a repository: `php bin/satis build <configuration-file> <output-directory>`
 
 Read the more detailed instructions in the [documentation][].
 
@@ -96,12 +96,12 @@ See the list of [contributors][] who participate(d) in this project.
 
 ## Community Tools
 
--   [satisfy][] - Symfony based composer repository manager with a simple web UI.
+- [satisfy][] - Symfony based composer repository manager with a simple web UI.
 
 ## Examples
 
--   [eventum/composer] - A simple static set of packages hosted in GitHub Pages
--   [satis.spatie.be] - A brief guide to setting up and securing a Satis repository
+- [eventum/composer] - A simple static set of packages hosted in GitHub Pages
+- [satis.spatie.be] - A brief guide to setting up and securing a Satis repository
 
 ## License
 
