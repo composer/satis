@@ -1,10 +1,10 @@
-import Collapse from "./App/Collapse";
-import DateDistance from "./App/DateDistance";
-import PackageFilter from "./App/PackageFilter";
-import PackageFilterSettings from "./App/PackageFilterSettings";
-import ToggleFields from "./App/ToggleFields";
-import Settings from "./App/Settings";
-import CopySnippet from "./App/CopySnippet";
+import Collapse from "./App/Collapse.js";
+import DateDistance from "./App/DateDistance.js";
+import PackageFilter from "./App/PackageFilter.js";
+import PackageFilterSettings from "./App/PackageFilterSettings.js";
+import ToggleFields from "./App/ToggleFields.js";
+import Settings from "./App/Settings.js";
+import CopySnippet from "./App/CopySnippet.js";
 
 function updateTimeElements() {
     DateDistance.calculate("time");
