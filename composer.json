@@ -39,11 +39,11 @@
     ],
     "require": {
         "ext-zip": "*",
-        "composer/composer": "^2.8.4",
+        "composer/composer": "^2.8.5",
         "composer-plugin-api": "^2.3.0",
         "symfony/console": "^7.1.5",
-        "twig/twig": "^3.18.0",
-        "twig/html-extra": "^3.18.0"
+        "twig/twig": "^3.19.0",
+        "twig/html-extra": "^3.19.0"
     },
     "autoload": {
         "psr-4": {
