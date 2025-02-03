@@ -53,7 +53,7 @@
     "require-dev": {
         "ext-json": "*",
         "mikey179/vfsstream": "^1.6.12",
-        "phpunit/phpunit": "^9.6.21"
+        "phpunit/phpunit": "^11.5.6"
     },
     "autoload-dev": {
         "psr-4": {
