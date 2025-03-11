@@ -5,7 +5,7 @@
         "@symfony/webpack-encore": "^5.1.0",
         "bootstrap": "^5.3.3",
         "date-fns": "^4.1.0",
-        "eslint-webpack-plugin": "^4.2.0",
+        "eslint-webpack-plugin": "^5.0.0",
         "glob": "^11.0.1",
         "husky": "^9.1.7",
         "lint-staged": "^15.4.3",
