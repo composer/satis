@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "@babel/core": "^7.26.9",
+        "@babel/core": "^7.26.10",
         "@babel/preset-env": "^7.26.9",
         "@symfony/webpack-encore": "^5.1.0",
         "bootstrap": "^5.3.3",
@@ -8,7 +8,7 @@
         "eslint-webpack-plugin": "^5.0.0",
         "glob": "^11.0.1",
         "husky": "^9.1.7",
-        "lint-staged": "^15.4.3",
+        "lint-staged": "^15.5.0",
         "prettier": "^3.5.3",
         "purgecss-webpack-plugin": "^7.0.2",
         "sass": "^1.85.1",
