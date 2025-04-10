@@ -337,11 +337,11 @@ class BuildCommand extends BaseCommand
             }
             $schema = json_decode($schemaFileContents);
             $validator = new Validator();
-            $validator->check($data, $schema);
+            $validator->validate($data, $schema);
 
             if (!$validator->isValid()) {
                 $errors = [];
-                foreach ((array) $validator->getErrors() as $error) {
+                foreach ($validator->getErrors() as $error) {
                     $errors[] = ($error['property'] ? $error['property'] . ' : ' : '') . $error['message'];
                 }
 
