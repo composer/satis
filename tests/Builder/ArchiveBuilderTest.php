@@ -82,12 +82,12 @@ class ArchiveBuilderTest extends TestCase
             )
         );
 
-        $archiveManager = new class() extends ArchiveManager {
+        $archiveManager = new class extends ArchiveManager {
             public function __construct()
             {
             }
 
-            public function archive(CompletePackageInterface $package, string $format, string $targetDir, string $fileName = null, bool $ignoreFilters = false): string
+            public function archive(CompletePackageInterface $package, string $format, string $targetDir, ?string $fileName = null, bool $ignoreFilters = false): string
             {
                 $target = $targetDir.'/'.$this->getPackageFilename($package).'.'.$format;
                 touch($target);

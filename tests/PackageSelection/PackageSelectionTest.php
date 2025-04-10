@@ -124,31 +124,31 @@ class PackageSelectionTest extends TestCase
         $data = [];
 
         $data['both require false'] = [
-          [],
-          $package,
-          false,
-          false,
+            [],
+            $package,
+            false,
+            false,
         ];
 
         $data['require true'] = [
-          [$link->getTarget() => $link],
-          $package,
-          true,
-          false,
+            [$link->getTarget() => $link],
+            $package,
+            true,
+            false,
         ];
 
         $data['requireDev true'] = [
-          [$devLink->getTarget() => $devLink],
-          $package,
-          false,
-          true,
+            [$devLink->getTarget() => $devLink],
+            $package,
+            false,
+            true,
         ];
 
         $data['both require true'] = [
-          [$link->getTarget() => $link, $devLink->getTarget() => $devLink],
-          $package,
-          true,
-          true,
+            [$link->getTarget() => $link, $devLink->getTarget() => $devLink],
+            $package,
+            true,
+            true,
         ];
 
         return $data;
@@ -747,7 +747,7 @@ class PackageSelectionTest extends TestCase
      * @param string[]|null $filterRepos
      * @param string[]|null $filterPackages
      */
-    public function testSelect(array $expected, array $config, array $filterRepos = null, array $filterPackages = null): void
+    public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null): void
     {
         if (null !== $filterRepos || null !== $filterPackages) {
             // Need to be able to override the default package repository class to allow testing of the filter options.
@@ -891,7 +891,7 @@ class PackageSelectionTest extends TestCase
      * @param array<string, mixed> $config
      * @param string[]|null $filterRepos
      */
-    public function testFilterRepos(array $expected, array $config, array $filterRepos = null): void
+    public function testFilterRepos(array $expected, array $config, ?array $filterRepos = null): void
     {
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
 
@@ -1207,8 +1207,8 @@ class PackageSelectionTest extends TestCase
         $rootLink = new Link('top', 'vendor/a', $rootConstraint, Link::TYPE_REQUIRE);
 
         $config = [
-          'only-best-candidates' => true,
-          'require-dependencies' => true,
+            'only-best-candidates' => true,
+            'require-dependencies' => true,
         ];
         $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
         $reflection = new \ReflectionClass(get_class($builder));
