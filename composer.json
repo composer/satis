@@ -41,9 +41,9 @@
         "ext-zip": "*",
         "composer/composer": "^2.8.8",
         "composer-plugin-api": "^2.3.0",
-        "symfony/console": "^7.2.5",
-        "twig/twig": "^3.20.0",
-        "twig/html-extra": "^3.20.0"
+        "symfony/console": "^7.2.6",
+        "twig/twig": "^3.21.1",
+        "twig/html-extra": "^3.21.0"
     },
     "autoload": {
         "psr-4": {
