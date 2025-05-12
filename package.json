@@ -1,9 +1,9 @@
 {
     "devDependencies": {
         "@babel/core": "^7.27.1",
-        "@babel/preset-env": "^7.27.1",
+        "@babel/preset-env": "^7.27.2",
         "@symfony/webpack-encore": "^5.1.0",
-        "bootstrap": "^5.3.5",
+        "bootstrap": "^5.3.6",
         "date-fns": "^4.1.0",
         "eslint-webpack-plugin": "^5.0.1",
         "glob": "^11.0.2",
@@ -11,9 +11,9 @@
         "lint-staged": "^15.5.1",
         "prettier": "^3.5.3",
         "purgecss-webpack-plugin": "^7.0.2",
-        "sass": "^1.87.0",
+        "sass": "^1.88.0",
         "sass-loader": "^16.0.5",
-        "webpack": "^5.99.7",
+        "webpack": "^5.99.8",
         "webpack-cli": "^5.1.4"
     },
     "license": "MIT",
