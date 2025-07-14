@@ -13,7 +13,7 @@
         "purgecss-webpack-plugin": "^7.0.2",
         "sass": "^1.89.2",
         "sass-loader": "^16.0.5",
-        "webpack": "^5.99.9",
+        "webpack": "^5.100.1",
         "webpack-cli": "^5.1.4"
     },
     "license": "MIT",
