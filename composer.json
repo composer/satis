@@ -39,7 +39,7 @@
     ],
     "require": {
         "ext-zip": "*",
-        "composer/composer": "^2.8.9",
+        "composer/composer": "^2.8.10",
         "composer-plugin-api": "^2.3.0",
         "symfony/console": "^7.3.1",
         "twig/twig": "^3.21.1",
