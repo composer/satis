@@ -151,7 +151,7 @@ class BuildCommand extends BaseCommand
 
             // load project auth file
             $realConfigPath = realpath($configFile);
-            $localAuthFile = new JsonFile(dirname($realConfigPath !== false ? $realConfigPath : $configFile) . '/auth.json', null, $io);
+            $localAuthFile = new JsonFile(dirname(false !== $realConfigPath ? $realConfigPath : $configFile) . '/auth.json', null, $io);
             if ($localAuthFile->exists()) {
                 $io->writeError('Loading project auth file ' . $localAuthFile->getPath(), true, IOInterface::DEBUG);
                 $localAuthFile->validateSchema(JsonFile::AUTH_SCHEMA);
