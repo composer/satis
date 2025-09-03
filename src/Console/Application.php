@@ -86,6 +86,12 @@ class Application extends ComposerApplication
                 }
                 throw $e;
             }
+        } else {
+            if (!is_array($config)) {
+                throw new \InvalidArgumentException('"$config" parameter must be an array');
+            }
+
+            $this->composer->getConfig()->merge($config);
         }
 
         return $this->composer;
