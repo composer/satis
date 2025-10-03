@@ -71,9 +71,22 @@ class ArchiveBuilderHelperTest extends TestCase
     {
         $metapackage = new Package('vendor/name', '1.0.0.0', '1.0');
         $metapackage->setType('metapackage');
+        
+        // Normal package with source information (typical case)
         $package1 = new Package('vendor/name', '1.0.0.0', '1.0');
+        $package1->setSourceType('git');
+        $package1->setSourceUrl('https://github.com/vendor/name.git');
+        $package1->setSourceReference('abc123');
+        
         $package2 = new Package('vendor/name', 'dev-master', 'dev-master');
+        $package2->setSourceType('git');
+        $package2->setSourceUrl('https://github.com/vendor/name.git');
+        $package2->setSourceReference('def456');
+        
         $package3 = new Package('othervendor/othername', '1.0.0.0', '1.0');
+        $package3->setSourceType('git');
+        $package3->setSourceUrl('https://github.com/othervendor/othername.git');
+        $package3->setSourceReference('ghi789');
         $link = new Link('', 'vendor/name', new MatchAllConstraint());
         $package3->setProvides([$link->getTarget() => $link]);
 
@@ -125,6 +138,21 @@ class ArchiveBuilderHelperTest extends TestCase
             true,
             $package3,
             ['blacklist' => ['vendor/name']],
+        ];
+
+        // Package with empty source fields (like phpstan/phpstan)
+        $packageWithEmptySource = new Package('phpstan/phpstan', '1.12.32.0', '1.12.32');
+        $packageWithEmptySource->setSourceType('');
+        $packageWithEmptySource->setSourceUrl('');
+        $packageWithEmptySource->setSourceReference('');
+        $packageWithEmptySource->setDistType('');
+        $packageWithEmptySource->setDistUrl('');
+        $packageWithEmptySource->setDistReference('');
+
+        $data['package with empty source and dist fields'] = [
+            true,
+            $packageWithEmptySource,
+            [],
         ];
 
         return $data;
