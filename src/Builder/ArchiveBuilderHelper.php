@@ -54,6 +54,17 @@ class ArchiveBuilderHelper
 
         $name = $package->getPrettyString();
 
+        // Skip packages with explicitly empty source and no valid dist (like phpstan/phpstan)
+        // This prevents archiving packages that have been configured with empty source fields
+        // to prevent cloning, but have no alternative dist to archive from
+        $hasValidSource = !empty($package->getSourceType()) && !empty($package->getSourceUrl());
+        $hasValidDist = !empty($package->getDistType()) && !empty($package->getDistUrl());
+        
+        if (!$hasValidSource && !$hasValidDist) {
+            $this->output->writeln(sprintf("<info>Skipping '%s' (no valid source or dist available for archiving)</info>", $name));
+            return true;
+        }
+
         if (true === $this->archiveConfig['skip-dev'] && true === $package->isDev()) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is dev)</info>", $name));
 
