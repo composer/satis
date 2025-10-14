@@ -59,9 +59,10 @@ class ArchiveBuilderHelper
         // to prevent cloning, but have no alternative dist to archive from
         $hasValidSource = !empty($package->getSourceType()) && !empty($package->getSourceUrl());
         $hasValidDist = !empty($package->getDistType()) && !empty($package->getDistUrl());
-        
+
         if (!$hasValidSource && !$hasValidDist) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (no valid source or dist available for archiving)</info>", $name));
+
             return true;
         }
 

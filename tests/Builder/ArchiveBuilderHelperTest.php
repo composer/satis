@@ -71,18 +71,18 @@ class ArchiveBuilderHelperTest extends TestCase
     {
         $metapackage = new Package('vendor/name', '1.0.0.0', '1.0');
         $metapackage->setType('metapackage');
-        
+
         // Normal package with source information (typical case)
         $package1 = new Package('vendor/name', '1.0.0.0', '1.0');
         $package1->setSourceType('git');
         $package1->setSourceUrl('https://github.com/vendor/name.git');
         $package1->setSourceReference('abc123');
-        
+
         $package2 = new Package('vendor/name', 'dev-master', 'dev-master');
         $package2->setSourceType('git');
         $package2->setSourceUrl('https://github.com/vendor/name.git');
         $package2->setSourceReference('def456');
-        
+
         $package3 = new Package('othervendor/othername', '1.0.0.0', '1.0');
         $package3->setSourceType('git');
         $package3->setSourceUrl('https://github.com/othervendor/othername.git');
