@@ -11,7 +11,7 @@
         "lint-staged": "^16.2.6",
         "prettier": "^3.6.2",
         "purgecss-webpack-plugin": "^7.0.2",
-        "sass": "^1.93.2",
+        "sass": "^1.93.3",
         "sass-loader": "^16.0.6",
         "webpack": "^5.102.1",
         "webpack-cli": "^5.1.4"
