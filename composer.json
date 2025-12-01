@@ -42,7 +42,7 @@
         "composer/composer": "^2.9.2",
         "composer-plugin-api": "^2.3.0",
         "symfony/console": "^7.3.6",
-        "twig/twig": "^3.22.0",
+        "twig/twig": "^3.22.1",
         "twig/html-extra": "^3.22.1"
     },
     "autoload": {
