@@ -38,7 +38,7 @@ RUN set -eux ; \
     sockets \
     zip
 
-ENV COMPOSER_HOME /composer
+ENV COMPOSER_HOME=/composer
 
 COPY php-cli.ini /usr/local/etc/php/
 COPY --from=build /satis /satis/
