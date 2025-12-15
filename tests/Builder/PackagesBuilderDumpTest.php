@@ -171,7 +171,7 @@ class PackagesBuilderDumpTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function prettyPrintProvider(): array
+    public static function prettyPrintProvider(): array
     {
         return [
             'test pretty print enabled' => [

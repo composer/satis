@@ -101,7 +101,7 @@ class WebBuilderDumpTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataAbandoned(): array
+    public static function dataAbandoned(): array
     {
         $data = [];
 

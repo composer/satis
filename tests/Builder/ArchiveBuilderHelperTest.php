@@ -34,7 +34,7 @@ class ArchiveBuilderHelperTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataDirectories(): array
+    public static function dataDirectories(): array
     {
         $data = [];
 
@@ -67,7 +67,7 @@ class ArchiveBuilderHelperTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataPackages(): array
+    public static function dataPackages(): array
     {
         $metapackage = new Package('vendor/name', '1.0.0.0', '1.0');
         $metapackage->setType('metapackage');

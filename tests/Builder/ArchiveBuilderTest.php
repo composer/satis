@@ -154,7 +154,7 @@ class ArchiveBuilderTest extends TestCase
     /**
      * @return array<CompletePackage>
      */
-    private function getPackages(): array
+    private static function getPackages(): array
     {
         $package = new CompletePackage('monolog/monolog', '1.13.0.0', '1.13.0');
         $package->setId(9);
@@ -181,12 +181,12 @@ class ArchiveBuilderTest extends TestCase
     /**
      * @return array<mixed>
      */
-    public function getDataForTestDump(): array
+    public static function getDataForTestDump(): array
     {
         return [
-            [[], $this->getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
-            [['archive' => ['override-dist-type' => false]], $this->getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
-            [['archive' => ['override-dist-type' => true]], $this->getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar'],
+            [[], self::getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
+            [['archive' => ['override-dist-type' => false]], self::getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
+            [['archive' => ['override-dist-type' => true]], self::getPackages(), 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-tar-d4a976.tar'],
         ];
     }
 

@@ -36,7 +36,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataGetPackages(): array
+    public static function dataGetPackages(): array
     {
         $emptyRepo = new ArrayRepository();
         $vendorRepo = new ArrayRepository();
@@ -105,7 +105,6 @@ class PackageSelectionTest extends TestCase
 
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('getPackages');
-        $method->setAccessible(true);
 
         self::assertSame($expected, $method->invokeArgs($builder, [$repository]));
     }
@@ -113,7 +112,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataGetRequired(): array
+    public static function dataGetRequired(): array
     {
         $package = new Package('vendor/name', '1.0.0.0', '1.0');
         $link = new Link('test', 'name', new MatchAllConstraint());
@@ -165,14 +164,11 @@ class PackageSelectionTest extends TestCase
 
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('getRequired');
-        $method->setAccessible(true);
 
         $property = $reflection->getProperty('requireDependencies');
-        $property->setAccessible(true);
         $property->setValue($builder, $requireDependencies);
 
         $property = $reflection->getProperty('requireDevDependencies');
-        $property->setAccessible(true);
         $property->setValue($builder, $requireDevDependencies);
 
         self::assertSame($expected, $method->invokeArgs($builder, [$package, true]));
@@ -181,7 +177,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataSetSelectedAsAbandoned(): array
+    public static function dataSetSelectedAsAbandoned(): array
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
         $packageAbandoned1 = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
@@ -225,10 +221,8 @@ class PackageSelectionTest extends TestCase
 
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('setSelectedAsAbandoned');
-        $method->setAccessible(true);
 
         $property = $reflection->getProperty('selected');
-        $property->setAccessible(true);
         $property->setValue($builder, [$package->getUniqueName() => $package]);
 
         $method->invokeArgs($builder, []);
@@ -239,7 +233,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataPruneBlacklisted(): array
+    public static function dataPruneBlacklisted(): array
     {
         $package0 = new Package('vendor/name', '1.0.0.0', '1.0');
         $package1 = new Package('vendor/name', '1.1.0.0', '1.1');
@@ -286,11 +280,9 @@ class PackageSelectionTest extends TestCase
         $reflection = new \ReflectionClass(get_class($builder));
 
         $property = $reflection->getProperty('selected');
-        $property->setAccessible(true);
         $property->setValue($builder, $selected);
 
         $method = $reflection->getMethod('pruneBlacklisted');
-        $method->setAccessible(true);
         $method->invokeArgs($builder, [$repositorySet, false]);
 
         self::assertEquals(array_values($expected), array_values($property->getValue($builder)));
@@ -299,7 +291,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataSelect(): array
+    public static function dataSelect(): array
     {
         $packages = [
             'alpha' => [
@@ -770,7 +762,6 @@ class PackageSelectionTest extends TestCase
 
         $selectionRef = new \ReflectionClass(PackageSelection::class);
         $selected = $selectionRef->getProperty('selected');
-        $selected->setAccessible(true);
 
         \sort($expected, \SORT_STRING);
         self::assertEquals($expected, \array_keys($selected->getValue($selection)));
@@ -779,7 +770,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataFilterRepos(): array
+    public static function dataFilterRepos(): array
     {
         $packages = [
             'alpha1' => [
@@ -905,7 +896,6 @@ class PackageSelectionTest extends TestCase
 
         $selectionRef = new \ReflectionClass(PackageSelection::class);
         $selected = $selectionRef->getProperty('selected');
-        $selected->setAccessible(true);
 
         \sort($expected, \SORT_STRING);
         self::assertEquals($expected, \array_keys($selected->getValue($selection)));
@@ -914,7 +904,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataMetadataSupport(): array
+    public static function dataMetadataSupport(): array
     {
         $vendorRepo = new ArrayRepository();
 
@@ -955,7 +945,6 @@ class PackageSelectionTest extends TestCase
         $selectionRef = new \ReflectionClass(\get_class($selection));
 
         $select = $selectionRef->getMethod('select');
-        $select->setAccessible(true);
         $result = $select->invokeArgs($selection, [$composer, true]);
 
         self::assertEquals($expected, array_keys($result));
@@ -964,7 +953,7 @@ class PackageSelectionTest extends TestCase
     /**
      * @return array<string, mixed>
      */
-    public function dataClean(): array
+    public static function dataClean(): array
     {
         $packages = [
             'alpha' => [
@@ -1155,11 +1144,9 @@ class PackageSelectionTest extends TestCase
         }
 
         $selected = $selectionRef->getProperty('selected');
-        $selected->setAccessible(true);
         $selected->setValue($selection, $packages);
 
         $clean = $selectionRef->getMethod('clean');
-        $clean->setAccessible(true);
 
         $cleanPackages = $clean->invokeArgs($selection, []);
         $sources = [];
@@ -1173,7 +1160,7 @@ class PackageSelectionTest extends TestCase
         self::assertEquals($expected, $sources);
     }
 
-    public function testOnlyBestCandidates(): void
+    public static function testOnlyBestCandidates(): void
     {
         $repository = new ArrayRepository();
 
@@ -1213,11 +1200,9 @@ class PackageSelectionTest extends TestCase
         $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
         $reflection = new \ReflectionClass(get_class($builder));
         $method = $reflection->getMethod('selectLinks');
-        $method->setAccessible(true);
         $method->invokeArgs($builder, [$repositorySet, [$rootLink], false, false]);
 
         $property = $reflection->getProperty('selected');
-        $property->setAccessible(true);
 
         self::assertEquals(array_values([$packageA0, $packageB1, $packageC1]), array_values($property->getValue($builder)));
     }
