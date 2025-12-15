@@ -1,12 +1,22 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Construct empty\\(\\) is not allowed\\. Use more strict comparison\\.$#"
+			count: 4
+			path: src/Builder/ArchiveBuilderHelper.php
+
+		-
+			message: "#^Call to function is_a\\(\\) with Composer\\\\Package\\\\Link and 'Composer\\\\\\\\Package\\\\\\\\Link' will always evaluate to true\\.$#"
+			count: 1
+			path: src/PackageSelection/PackageSelection.php
+
+		-
 			message: "#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#"
 			count: 1
 			path: src/PackageSelection/PackageSelection.php
 
 		-
-			message: "#^AnonymousClassdd4f4d5d0a10081f3f8b9c19006facf2\\:\\:__construct\\(\\) does not call parent constructor from Composer\\\\Package\\\\Archiver\\\\ArchiveManager\\.$#"
+			message: "#^AnonymousClass413ff361b2bd143aba48f1b9c433653f\\:\\:__construct\\(\\) does not call parent constructor from Composer\\\\Package\\\\Archiver\\\\ArchiveManager\\.$#"
 			count: 1
 			path: tests/Builder/ArchiveBuilderTest.php
 

@@ -5,7 +5,6 @@
          displayDetailsOnPhpunitDeprecations="true"
          displayDetailsOnTestsThatTriggerDeprecations="true"
          displayDetailsOnTestsThatTriggerErrors="true"
-         failOnPhpunitWarning="false"
 >
   <coverage>
     <report>

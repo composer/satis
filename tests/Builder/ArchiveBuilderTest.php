@@ -73,13 +73,11 @@ class ArchiveBuilderTest extends TestCase
         $composerConfig->setAuthConfigSource(new JsonConfigSource(new JsonFile($this->home . '/.config/composer/auth.json')));
 
         $downloadManager = $this->getMockBuilder(DownloadManager::class)->disableOriginalConstructor()->getMock();
-        $downloadManager->method('download')->will(
-            self::returnCallback(
-                function ($package, $source) {
-                    $filesystem = new Filesystem();
-                    $filesystem->dumpFile(realpath($source) . '/README.md', '# The demo archive.');
-                }
-            )
+        $downloadManager->method('download')->willReturnCallback(
+            function ($package, $source) {
+                $filesystem = new Filesystem();
+                $filesystem->dumpFile(realpath($source) . '/README.md', '# The demo archive.');
+            }
         );
 
         $archiveManager = new class extends ArchiveManager {
@@ -102,7 +100,7 @@ class ArchiveBuilderTest extends TestCase
         $this->composer->setArchiveManager($archiveManager);
 
         $this->input = $this->getMockBuilder('Symfony\Component\Console\Input\InputInterface')->disableOriginalConstructor()->getMock();
-        $this->input->method('getOption')->with('stats')->willReturn(self::returnValue(false));
+        $this->input->method('getOption')->with('stats')->willReturn(false);
 
         $this->output = new NullOutput();
 
