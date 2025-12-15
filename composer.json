@@ -38,10 +38,11 @@
         "bin/satis"
     ],
     "require": {
+        "php": "^8.3",
         "ext-zip": "*",
         "composer/composer": "^2.9.2",
         "composer-plugin-api": "^2.3.0",
-        "symfony/console": "^7.3.6",
+        "symfony/console": "^7.4.1",
         "twig/twig": "^3.22.1",
         "twig/html-extra": "^3.22.1"
     },
@@ -53,7 +54,7 @@
     "require-dev": {
         "ext-json": "*",
         "mikey179/vfsstream": "^1.6.12",
-        "phpunit/phpunit": "^9.6.29"
+        "phpunit/phpunit": "^9.6.31"
     },
     "autoload-dev": {
         "psr-4": {
