@@ -22,6 +22,7 @@ use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
 use org\bovigo\vfs\vfsStreamWrapper;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -119,10 +120,9 @@ class WebBuilderDumpTest extends TestCase
     }
 
     /**
-     * @dataProvider dataAbandoned
-     *
      * @param bool|string $abandoned
      */
+    #[DataProvider('dataAbandoned')]
     public function testAbandoned($abandoned, string $expected): void
     {
         $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);

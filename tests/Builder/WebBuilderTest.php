@@ -15,6 +15,7 @@ namespace Composer\Test\Satis;
 
 use Composer\Package\Package;
 use Composer\Satis\Builder\WebBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 use Twig\Environment;
@@ -101,11 +102,10 @@ class WebBuilderTest extends TestCase
     }
 
     /**
-     * @dataProvider dataGetDescSortedVersions
-     *
      * @param string[] $expected
      * @param array<string, mixed> $packages
      */
+    #[DataProvider('dataGetDescSortedVersions')]
     public function testGetDescSortedVersions(array $expected, array $packages): void
     {
         $reflection = new \ReflectionClass(get_class($this->webBuilder));
@@ -137,10 +137,9 @@ class WebBuilderTest extends TestCase
     }
 
     /**
-     * @dataProvider dataGetHighestVersion
-     *
      * @param array<string, mixed> $packages
      */
+    #[DataProvider('dataGetHighestVersion')]
     public function testGetHighestVersion(Package $expected, array $packages): void
     {
         $reflection = new \ReflectionClass(get_class($this->webBuilder));
@@ -181,11 +180,10 @@ class WebBuilderTest extends TestCase
     }
 
     /**
-     * @dataProvider dataGroupPackagesByName
-     *
      * @param string[] $expected
      * @param array<string, mixed> $packages
      */
+    #[DataProvider('dataGroupPackagesByName')]
     public function testGroupPackagesByName(array $expected, array $packages): void
     {
         $reflection = new \ReflectionClass(get_class($this->webBuilder));

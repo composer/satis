@@ -25,6 +25,7 @@ use Composer\Repository\PackageRepository;
 use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\Constraint;
 use Composer\Semver\Constraint\MatchAllConstraint;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -91,11 +92,10 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataGetPackages
-     *
      * @param string[] $expected
      * @param string[] $filter
      */
+    #[DataProvider('dataGetPackages')]
     public function testGetPackages(array $expected, array $filter, ArrayRepository $repository): void
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
@@ -154,10 +154,9 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataGetRequired
-     *
      * @param string[] $expected
      */
+    #[DataProvider('dataGetRequired')]
     public function testGetRequired(array $expected, Package $package, bool $requireDependencies, bool $requireDevDependencies): void
     {
         $builder = new PackageSelection(new NullOutput(), 'build', [], false);
@@ -206,11 +205,10 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataSetSelectedAsAbandoned
-     *
      * @param string[] $expected
      * @param array<string, mixed> $config
      */
+    #[DataProvider('dataSetSelectedAsAbandoned')]
     public function testSetSelectedAsAbandoned(array $expected, array $config): void
     {
         $package = new CompletePackage('vendor/name', '1.0.0.0', '1.0');
@@ -265,12 +263,11 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataPruneBlacklisted
-     *
      * @param string[] $expected
      * @param string[] $selected
      * @param array<string, mixed> $config
      */
+    #[DataProvider('dataPruneBlacklisted')]
     public function testPruneBlacklisted(array $expected, array $selected, array $config): void
     {
         $repositorySet = new RepositorySet();
@@ -732,13 +729,12 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataSelect
-     *
      * @param string[] $expected
      * @param array<string, mixed> $config
      * @param string[]|null $filterRepos
      * @param string[]|null $filterPackages
      */
+    #[DataProvider('dataSelect')]
     public function testSelect(array $expected, array $config, ?array $filterRepos = null, ?array $filterPackages = null): void
     {
         if (null !== $filterRepos || null !== $filterPackages) {
@@ -876,12 +872,11 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataFilterRepos
-     *
      * @param string[] $expected
      * @param array<string, mixed> $config
      * @param string[]|null $filterRepos
      */
+    #[DataProvider('dataFilterRepos')]
     public function testFilterRepos(array $expected, array $config, ?array $filterRepos = null): void
     {
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
@@ -930,10 +925,9 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataMetadataSupport
-     *
      * @param string[] $expected
      */
+    #[DataProvider('dataMetadataSupport')]
     public function testMetadataSupport(array $expected, ArrayRepository $repository): void
     {
         unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
@@ -1124,12 +1118,11 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
-     * @dataProvider dataClean
-     *
      * @param string[] $expected
      * @param array<string, mixed> $config
      * @param array<string, mixed> $packages
      */
+    #[DataProvider('dataClean')]
     public function testClean(array $expected, array $config, array $packages): void
     {
         $selection = new PackageSelection(new NullOutput(), 'build', $config, false);

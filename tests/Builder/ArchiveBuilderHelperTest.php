@@ -16,6 +16,7 @@ namespace Composer\Satis\Builder;
 use Composer\Package\Link;
 use Composer\Package\Package;
 use Composer\Semver\Constraint\MatchAllConstraint;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -54,10 +55,9 @@ class ArchiveBuilderHelperTest extends TestCase
     }
 
     /**
-     * @dataProvider dataDirectories
-     *
      * @param array<string, mixed> $config
      */
+    #[DataProvider('dataDirectories')]
     public function testDirectoryConfig(string $expected, string $outputDir, array $config): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);
@@ -159,10 +159,9 @@ class ArchiveBuilderHelperTest extends TestCase
     }
 
     /**
-     * @dataProvider dataPackages
-     *
      * @param array<string, mixed> $config
      */
+    #[DataProvider('dataPackages')]
     public function testSkipDump(bool $expected, Package $package, array $config): void
     {
         $helper = new ArchiveBuilderHelper($this->output, $config);

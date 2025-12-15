@@ -18,6 +18,7 @@ use Composer\Package\Package;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -185,9 +186,7 @@ class PackagesBuilderDumpTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider prettyPrintProvider
-     */
+    #[DataProvider('prettyPrintProvider')]
     public function testPrettyPrintOption(int $jsonOptions, bool $shouldPrettyPrint = true): void
     {
         $expected = [

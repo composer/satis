@@ -43,7 +43,7 @@
         "composer/composer": "^2.9.2",
         "composer-plugin-api": "^2.3.0",
         "symfony/console": "^7.4.1",
-        "twig/twig": "^3.22.1",
+        "twig/twig": "^3.22.2",
         "twig/html-extra": "^3.22.1"
     },
     "autoload": {
@@ -54,7 +54,7 @@
     "require-dev": {
         "ext-json": "*",
         "mikey179/vfsstream": "^1.6.12",
-        "phpunit/phpunit": "^10.5.60"
+        "phpunit/phpunit": "^11.5.46"
     },
     "autoload-dev": {
         "psr-4": {

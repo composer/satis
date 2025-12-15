@@ -22,6 +22,7 @@ use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
 use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\NullOutput;
@@ -130,11 +131,10 @@ class ArchiveBuilderTest extends TestCase
     }
 
     /**
-     * @dataProvider getDataForTestDump
-     *
      * @param array<string, mixed> $customConfig
      * @param array<PackageInterface> $packages
      */
+    #[DataProvider('getDataForTestDump')]
     public function testDumpWithDownloadedArchives(array $customConfig, array $packages, string $expectedFileName): void
     {
         $this->initArchives();
@@ -189,11 +189,10 @@ class ArchiveBuilderTest extends TestCase
     }
 
     /**
-     * @dataProvider getDataForTestDump
-     *
      * @param array<string, mixed> $customConfig
      * @param array<PackageInterface> $packages
      */
+    #[DataProvider('getDataForTestDump')]
     public function testDumpWithoutDownloadedArchives(array $customConfig, array $packages, string $expectedFileName): void
     {
         $this->removeArchives();
