@@ -28,7 +28,7 @@ jobs:
         id: composer-cache
         run: "echo \"directory=$(composer config cache-dir)\" >> $GITHUB_OUTPUT"
       - name: cache dependencies installed with composer
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.directory }}
           key: php-${{ matrix.php-version }}-${{ matrix.stability }}-composer-${{ hashFiles('**/composer.lock') }}
