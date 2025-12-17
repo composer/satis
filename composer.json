@@ -63,7 +63,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-main": "3.0-dev"
+            "dev-main": "4.x-dev"
         },
         "class": "Composer\\Satis\\Plugin\\SatisPlugin"
     },
