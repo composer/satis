@@ -1,7 +1,7 @@
 {
     "devDependencies": {
-        "@babel/core": "^7.28.5",
-        "@babel/preset-env": "^7.28.5",
+        "@babel/core": "^7.28.6",
+        "@babel/preset-env": "^7.28.6",
         "@symfony/webpack-encore": "^5.3.1",
         "bootstrap": "^5.3.8",
         "date-fns": "^4.1.0",
@@ -9,7 +9,7 @@
         "glob": "^13.0.0",
         "husky": "^9.1.7",
         "lint-staged": "^16.2.7",
-        "prettier": "^3.7.4",
+        "prettier": "^3.8.0",
         "purgecss-webpack-plugin": "^7.0.2",
         "sass": "^1.97.2",
         "sass-loader": "^16.0.6",
