@@ -10,7 +10,7 @@
         "husky": "^9.1.7",
         "lint-staged": "^16.2.7",
         "prettier": "^3.8.1",
-        "purgecss-webpack-plugin": "^7.0.2",
+        "purgecss-webpack-plugin": "^8.0.0",
         "sass": "^1.97.3",
         "sass-loader": "^16.0.6",
         "webpack": "^5.104.1",
