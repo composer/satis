@@ -17,6 +17,7 @@ use Composer\Command\BaseCommand;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
 use Composer\Console\Application as ComposerApplication;
+use Composer\IO\IOInterface;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonValidationException;
 use Composer\Package\Loader\RootPackageLoader;
@@ -127,7 +128,7 @@ class BuildCommand extends BaseCommand
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
-        $io->loadConfiguration($this->getConfiguration());
+        $baseConfig = $this->getConfiguration();
         $config = [];
 
         if (1 === preg_match('{^https?://}i', $configFile)) {
@@ -147,7 +148,19 @@ class BuildCommand extends BaseCommand
                 return 1;
             }
             $config = $file->read();
+
+            // load project auth file
+            $realConfigPath = realpath($configFile);
+            $localAuthFile = new JsonFile(dirname(false !== $realConfigPath ? $realConfigPath : $configFile) . '/auth.json', null, $io);
+            if ($localAuthFile->exists()) {
+                $io->writeError('Loading project auth file ' . $localAuthFile->getPath(), true, IOInterface::DEBUG);
+                $localAuthFile->validateSchema(JsonFile::AUTH_SCHEMA);
+                $baseConfig->merge(['config' => $localAuthFile->read()], $localAuthFile->getPath());
+                $baseConfig->setLocalAuthConfigSource(new JsonConfigSource($localAuthFile, true));
+            }
         }
+
+        $io->loadConfiguration($baseConfig);
 
         try {
             $this->check($configFile);
