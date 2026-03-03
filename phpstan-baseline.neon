@@ -16,11 +16,6 @@ parameters:
 			path: src/PackageSelection/PackageSelection.php
 
 		-
-			message: "#^AnonymousClass413ff361b2bd143aba48f1b9c433653f\\:\\:__construct\\(\\) does not call parent constructor from Composer\\\\Package\\\\Archiver\\\\ArchiveManager\\.$#"
-			count: 1
-			path: tests/Builder/ArchiveBuilderTest.php
-
-		-
 			message: "#^Offset 'url' on array\\{package\\: array\\} on left side of \\?\\? does not exist\\.$#"
 			count: 1
 			path: tests/PackageSelection/PackageSelectionTest.php
