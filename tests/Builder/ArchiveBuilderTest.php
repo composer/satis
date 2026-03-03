@@ -20,6 +20,7 @@ use Composer\Downloader\DownloadManager;
 use Composer\Json\JsonFile;
 use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
+use Composer\Util\Loop;
 use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -81,9 +82,11 @@ class ArchiveBuilderTest extends TestCase
             }
         );
 
-        $archiveManager = new class extends ArchiveManager {
-            public function __construct()
+        $loop = $this->getMockBuilder(Loop::class)->disableOriginalConstructor()->getMock();
+        $archiveManager = new class($downloadManager, $loop) extends ArchiveManager {
+            public function __construct(DownloadManager $downloadManager, Loop $loop)
             {
+                parent::__construct($downloadManager, $loop);
             }
 
             public function archive(CompletePackageInterface $package, string $format, string $targetDir, ?string $fileName = null, bool $ignoreFilters = false): string
