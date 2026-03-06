@@ -14,9 +14,3 @@ parameters:
 			message: "#^Call to function is_string\\(\\) with string will always evaluate to true\\.$#"
 			count: 1
 			path: src/PackageSelection/PackageSelection.php
-
-		-
-			message: "#^Offset 'url' on array\\{package\\: array\\} on left side of \\?\\? does not exist\\.$#"
-			count: 1
-			path: tests/PackageSelection/PackageSelectionTest.php
-

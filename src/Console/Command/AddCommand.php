@@ -82,13 +82,13 @@ class AddCommand extends BaseCommand
         }
 
         foreach ($config['repositories'] as $repository) {
-            if (isset($repository['url']) && $repository['url'] == $repositoryUrl) {
+            if (isset($repository['url']) && $repository['url'] === $repositoryUrl) {
                 $output->writeln('<error>Repository url already added to the file</error>');
 
                 return 4;
             }
 
-            if (isset($repository['name']) && $repository['name'] == $repositoryName) {
+            if (isset($repository['name']) && $repository['name'] === $repositoryName) {
                 $output->writeln('<error>Repository name already added to the file</error>');
 
                 return 5;

@@ -72,7 +72,7 @@ class ArchiveBuilderHelper
             return true;
         }
 
-        $names = $package->getNames();
+        $names = array_values($package->getNames());
 
         if (0 !== count($this->archiveConfig['whitelist']) && !$this->isOneOfNamesInList($names, $this->archiveConfig['whitelist'])) {
             $this->output->writeln(sprintf("<info>Skipping '%s' (is not in whitelist)</info>", $name));
