@@ -1197,7 +1197,7 @@ class PackageSelectionTest extends TestCase
 
         $property = $reflection->getProperty('selected');
 
-        self::assertEquals(array_values([$packageA0, $packageB1, $packageC1]), array_values($property->getValue($builder)));
+        self::assertEquals([$packageA0, $packageB1, $packageC1], array_values($property->getValue($builder)));
     }
 }
 
@@ -1212,14 +1212,13 @@ final class MockPackageSelectionPackageRepository extends PackageRepository impl
     /*
      * Constructor.
      *
-     * @param array{package: mixed[], ?url: string} $config package definition
+     * @param array{package: mixed[], url?: string} $config package definition
      */
     public function __construct(array $config)
     {
         $this->name = $config['package']['name'] ?? $config['package'][0]['name'];
-        // Composer\Repository\PackageRepository has a definition without the "url" key
-        // phpstan does not pick the amended schema above
-        $this->url = $config['url'] ?? '';
+        $configWithUrl = array_merge(['url' => ''], $config);
+        $this->url = $configWithUrl['url'];
 
         parent::__construct($config);
     }
