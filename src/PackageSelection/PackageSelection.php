@@ -435,8 +435,14 @@ class PackageSelection
             $host = @inet_pton($parts[0]);
             $mask = $parts[1] ?? null;
 
-            if (false === $host || (null !== $mask && (string) (int) $mask !== $mask)) {
-                $this->output->writeln(sprintf('<error>Invalid subnet "%s"</error>', $entry));
+            if (false === $host) {
+                $this->output->writeln(sprintf('<error>Host syntactically invalid "%s"</error>', $entry));
+                continue;
+            }
+
+            // casting to int and back to string to check if mask is a pure number
+            if (null !== $mask && (string) (int) $mask !== $mask) {
+                $this->output->writeln(sprintf('<error>Invalid subnet mask "%s"</error>', $entry));
                 continue;
             }
 
