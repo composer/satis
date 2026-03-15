@@ -867,9 +867,11 @@ class PackageSelection
             $repositoryManager = $composer->getRepositoryManager();
 
             foreach ($this->depRepositories as $index => $config) {
-                $name = \is_int($index) && isset($config['url']) ? $config['url'] : $index;
-                $type = $config['type'] ?? '';
-                $repositories[$index] = $repositoryManager->createRepository($type, $config, $name);
+                if (!isset($config['type'])) {
+                    continue;
+                }
+                $name = \is_int($index) && isset($config['url']) ? $config['url'] : (string) $index;
+                $repositories[$index] = $repositoryManager->createRepository($config['type'], $config, $name);
             }
         }
 
