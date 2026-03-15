@@ -22,6 +22,8 @@ use Composer\Json\JsonValidationException;
 use Composer\Package\Loader\RootPackageLoader;
 use Composer\Package\Version\VersionGuesser;
 use Composer\Package\Version\VersionParser;
+use Composer\Repository\ConfigurableRepositoryInterface;
+use Composer\Repository\RepositoryManager;
 use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
@@ -211,10 +213,21 @@ class BuildCommand extends BaseCommand
             $composer->setConfig($composerConfig);
         }
 
-        // Feed repo manager with satis' repos
+        // Feed repo manager with satis' repos and process disable directives
         $manager = $composer->getRepositoryManager();
+        $disabledRepoNames = [];
         foreach ($config['repositories'] as $repo) {
+            if (is_array($repo) && !isset($repo['type']) && 1 === count($repo) && false === current($repo)) {
+                $disabledRepoNames[] = (string) key($repo);
+                continue;
+            }
+            if (!isset($repo['type'])) {
+                continue;
+            }
             $manager->addRepository($manager->createRepository($repo['type'], $repo, $repo['name'] ?? null));
+        }
+        if ([] !== $disabledRepoNames) {
+            $this->removeDisabledRepositories($manager, $disabledRepoNames);
         }
         // Make satis' config file pretend it is the root package
         $parser = new VersionParser();
@@ -271,6 +284,40 @@ class BuildCommand extends BaseCommand
         }
 
         return 0;
+    }
+
+    /**
+     * Remove repositories matching disable directives from the RepositoryManager.
+     *
+     * Handles the {"name": false} pattern used to disable named repositories
+     * (e.g. {"packagist.org": false}).
+     *
+     * @param string[] $disabledRepoNames
+     */
+    private function removeDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames): void
+    {
+        $refl = new \ReflectionProperty($manager, 'repositories');
+        $repositories = $refl->getValue($manager);
+
+        $repositories = array_values(array_filter(
+            $repositories,
+            static function ($repo) use ($disabledRepoNames): bool {
+                if (!$repo instanceof ConfigurableRepositoryInterface) {
+                    return true;
+                }
+                $url = rtrim((string) preg_replace('{^https?://}i', '', $repo->getRepoConfig()['url'] ?? ''), '/');
+                foreach ($disabledRepoNames as $name) {
+                    $name = rtrim((string) preg_replace('{^https?://}i', '', $name), '/');
+                    if ('' !== $name && ($url === $name || str_ends_with($url, '.' . $name))) {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        ));
+
+        $refl->setValue($manager, $repositories);
     }
 
     private function getConfiguration(): Config

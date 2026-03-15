@@ -1199,6 +1199,116 @@ class PackageSelectionTest extends TestCase
 
         self::assertEquals([$packageA0, $packageB1, $packageC1], array_values($property->getValue($builder)));
     }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public static function dataGetDepReposWithDisableDirectives(): array
+    {
+        $data = [];
+
+        $data['disable directive only'] = [
+            0,
+            [
+                'repositories' => [],
+                'repositories-dep' => [
+                    ['packagist.org' => false],
+                ],
+                'require-all' => true,
+            ],
+        ];
+
+        $data['disable directive with valid repos'] = [
+            1,
+            [
+                'repositories' => [],
+                'repositories-dep' => [
+                    ['packagist.org' => false],
+                    [
+                        'type' => 'package',
+                        'package' => [
+                            'name' => 'vendor/dep-alpha',
+                            'version' => '1.0.0',
+                            'dist' => ['url' => 'https://example.com/alpha.zip', 'type' => 'zip'],
+                        ],
+                    ],
+                ],
+                'require-all' => true,
+            ],
+        ];
+
+        $data['multiple disable directives mixed with valid repos'] = [
+            1,
+            [
+                'repositories' => [],
+                'repositories-dep' => [
+                    ['packagist.org' => false],
+                    ['my-private-repo' => false],
+                    [
+                        'type' => 'package',
+                        'package' => [
+                            'name' => 'vendor/dep-beta',
+                            'version' => '2.0.0',
+                            'dist' => ['url' => 'https://example.com/beta.zip', 'type' => 'zip'],
+                        ],
+                    ],
+                ],
+                'require-all' => true,
+            ],
+        ];
+
+        $data['no disable directives'] = [
+            2,
+            [
+                'repositories' => [],
+                'repositories-dep' => [
+                    [
+                        'type' => 'package',
+                        'package' => [
+                            'name' => 'vendor/dep-alpha',
+                            'version' => '1.0.0',
+                            'dist' => ['url' => 'https://example.com/alpha.zip', 'type' => 'zip'],
+                        ],
+                    ],
+                    [
+                        'type' => 'package',
+                        'package' => [
+                            'name' => 'vendor/dep-beta',
+                            'version' => '2.0.0',
+                            'dist' => ['url' => 'https://example.com/beta.zip', 'type' => 'zip'],
+                        ],
+                    ],
+                ],
+                'require-all' => true,
+            ],
+        ];
+
+        return $data;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    #[DataProvider('dataGetDepReposWithDisableDirectives')]
+    public function testGetDepReposSkipsDisableDirectives(int $expectedRepoCount, array $config): void
+    {
+        unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
+
+        $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
+
+        $selection = new PackageSelection(new NullOutput(), 'build', $config, false);
+
+        $reflection = new \ReflectionClass(PackageSelection::class);
+        $method = $reflection->getMethod('getDepRepos');
+
+        $repos = $method->invokeArgs($selection, [$composer]);
+
+        self::assertCount($expectedRepoCount, $repos);
+
+        foreach ($repos as $repo) {
+            self::assertInstanceOf(\Composer\Repository\RepositoryInterface::class, $repo);
+        }
+    }
 }
 
 final class MockPackageSelectionPackageRepository extends PackageRepository implements ConfigurableRepositoryInterface
