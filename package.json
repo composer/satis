@@ -8,10 +8,10 @@
         "eslint-webpack-plugin": "^5.0.3",
         "glob": "^13.0.6",
         "husky": "^9.1.7",
-        "lint-staged": "^16.3.2",
+        "lint-staged": "^16.4.0",
         "prettier": "^3.8.1",
         "purgecss-webpack-plugin": "^8.0.0",
-        "sass": "^1.97.3",
+        "sass": "^1.98.0",
         "sass-loader": "^16.0.7",
         "webpack": "^5.105.4",
         "webpack-cli": "^5.1.4"
