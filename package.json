@@ -4,7 +4,7 @@
         "@babel/preset-env": "^7.29.5",
         "@symfony/webpack-encore": "^6.0.0",
         "bootstrap": "^5.3.8",
-        "date-fns": "^4.1.0",
+        "date-fns": "^4.2.1",
         "eslint-webpack-plugin": "^6.0.0",
         "glob": "^13.0.6",
         "husky": "^9.1.7",
