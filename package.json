@@ -8,7 +8,7 @@
         "eslint-webpack-plugin": "^6.0.0",
         "glob": "^13.0.6",
         "husky": "^9.1.7",
-        "lint-staged": "^16.4.0",
+        "lint-staged": "^17.0.5",
         "prettier": "^3.8.3",
         "purgecss-webpack-plugin": "^8.0.0",
         "sass": "^1.100.0",
