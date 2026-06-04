@@ -30,9 +30,11 @@ jobs:
           extensions: mbstring
           coverage: xdebug
       - name: setup problem matchers
+        env:
+          RUNNER_TOOL_CACHE: ${{ runner.tool_cache }}
         run: |
-          echo "::add-matcher::${{ runner.tool_cache }}/php.json"
-          echo "::add-matcher::${{ runner.tool_cache }}/phpunit.json"
+          echo "::add-matcher::${RUNNER_TOOL_CACHE}/php.json"
+          echo "::add-matcher::${RUNNER_TOOL_CACHE}/phpunit.json"
       - name: determine composer cache directory
         id: composer-cache
         run: "echo \"directory=$(composer config cache-dir)\" >> $GITHUB_OUTPUT"
@@ -42,5 +44,7 @@ jobs:
           path: ${{ steps.composer-cache.outputs.directory }}
           key: php-${{ matrix.php-version }}-${{ matrix.stability }}-composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: ${{ matrix.php }}-${{ matrix.stability }}-composer
-      - run: composer update --${{ matrix.stability }} --prefer-dist --no-interaction
+      - env:
+          COMPOSER_STABILITY: ${{ matrix.stability }}
+        run: composer update "--${COMPOSER_STABILITY}" --prefer-dist --no-interaction
       - run: composer run test
