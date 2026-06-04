@@ -2,6 +2,13 @@ name: lint
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
 
   javascript:
@@ -25,7 +32,7 @@ jobs:
         with:
           persist-credentials: false
       - name: setup php
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: 8.4
           extensions: mbstring
@@ -42,7 +49,7 @@ jobs:
         with:
           persist-credentials: false
       - name: setup php
-        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # v2.37.1
+        uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: 8.4
           extensions: mbstring

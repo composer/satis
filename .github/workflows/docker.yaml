@@ -2,9 +2,13 @@ name: docker
 
 on: [push, pull_request]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
-  packages: write
+  packages: write # pushes image layers to ghcr.io via GITHUB_TOKEN
 
 jobs:
 

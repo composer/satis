@@ -8,6 +8,8 @@ updates:
       interval: "weekly"
     assignees:
       - "alcohol"
+    cooldown:
+      default-days: 7
 
   # npm dependencies
   - package-ecosystem: "npm"
@@ -24,6 +26,8 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 7
 
   # composer dependencies
   - package-ecosystem: "composer"
@@ -40,3 +44,5 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    cooldown:
+      default-days: 7
