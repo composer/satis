@@ -16,7 +16,7 @@ RUN set -eux ; \
     --no-suggest \
     --classmap-authoritative
 
-FROM php:8-cli-alpine
+FROM php:8.4-cli-alpine
 
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/local/bin/
 
