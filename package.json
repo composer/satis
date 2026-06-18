@@ -9,7 +9,7 @@
         "glob": "^13.0.6",
         "husky": "^9.1.7",
         "lint-staged": "^17.0.7",
-        "prettier": "^3.8.3",
+        "prettier": "^3.8.4",
         "purgecss-webpack-plugin": "^8.0.0",
         "sass": "^1.100.0",
         "sass-loader": "^17.0.0",
