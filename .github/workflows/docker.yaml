@@ -23,14 +23,14 @@ jobs:
         persist-credentials: false
     - run: docker build --pull --no-cache --tag composer/satis --tag ghcr.io/composer/satis .
     - if: github.ref == 'refs/heads/main'
-      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+      uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4.3.0
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
     - if: github.ref == 'refs/heads/main'
       run: docker push composer/satis
     - if: github.ref == 'refs/heads/main'
-      uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
+      uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4.3.0
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
