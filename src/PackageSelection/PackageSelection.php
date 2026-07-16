@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Composer\Satis\PackageSelection;
 
 use Composer\Composer;
+use Composer\DependencyResolver\Pool;
 use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
@@ -260,7 +261,7 @@ class PackageSelection
 
         $this->setSelectedAsAbandoned();
 
-        $this->pruneBlacklisted($repositorySet, $verbose);
+        $this->pruneBlacklisted($verbose);
         $this->pruneByType($verbose);
 
         ksort($this->selected, SORT_STRING);
@@ -630,12 +631,15 @@ class PackageSelection
      *
      * @return PackageInterface[]
      */
-    private function pruneBlacklisted(RepositorySet $repositorySet, bool $verbose): array
+    private function pruneBlacklisted(bool $verbose): array
     {
         $blacklisted = [];
         if ($this->hasBlacklist()) {
             $parser = new VersionParser();
-            $pool = $repositorySet->createPoolWithAllPackages();
+            // Pool::match() only inspects the candidate package itself, so an
+            // empty pool suffices; loading all packages would fail on composer
+            // repositories using providers (which can not list their packages)
+            $pool = new Pool();
             /** @var BasePackage $package */
             foreach ($this->selected as $selectedKey => $package) {
                 foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
