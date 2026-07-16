@@ -237,6 +237,10 @@ class PackageSelectionTest extends TestCase
         $package1 = new Package('vendor/name', '1.1.0.0', '1.1');
         $package2 = new Package('vendor/name', '1.2.0.0', '1.2');
         $packageOther = new Package('vendor/other', '1.0.0.0', '1.0');
+        $packageReplacing = new Package('vendor/replacer', '1.0.0.0', '1.0');
+        $packageReplacing->setReplaces([
+            'vendor/replaced' => new Link('vendor/replacer', 'vendor/replaced', new Constraint('==', '1.0.0.0'), Link::TYPE_REPLACE, '1.0'),
+        ]);
 
         $data = [];
         $selected = [$package0, $package1, $package2, $packageOther];
@@ -259,6 +263,12 @@ class PackageSelectionTest extends TestCase
             ['vendor/name' => '>1.1'],
         ];
 
+        $data['Blacklist Replaced Package'] = [
+            [$packageOther],
+            [$packageReplacing, $packageOther],
+            ['vendor/replaced' => '*'],
+        ];
+
         return $data;
     }
 
@@ -270,7 +280,6 @@ class PackageSelectionTest extends TestCase
     #[DataProvider('dataPruneBlacklisted')]
     public function testPruneBlacklisted(array $expected, array $selected, array $config): void
     {
-        $repositorySet = new RepositorySet();
         $builder = new PackageSelection(new NullOutput(), 'build', [
             'blacklist' => $config,
         ], false);
@@ -280,7 +289,7 @@ class PackageSelectionTest extends TestCase
         $property->setValue($builder, $selected);
 
         $method = $reflection->getMethod('pruneBlacklisted');
-        $method->invokeArgs($builder, [$repositorySet, false]);
+        $method->invokeArgs($builder, [false]);
 
         self::assertEquals(array_values($expected), array_values($property->getValue($builder)));
     }
