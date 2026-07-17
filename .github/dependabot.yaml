@@ -22,6 +22,9 @@ updates:
     allow:
       - dependency-type: "all"
     groups:
+      babel:
+        patterns:
+          - "@babel/*"
       minor-patch:
         update-types:
           - "minor"
