@@ -31,6 +31,7 @@ RUN set -eux ; \
     openssl \
     p7zip \
     subversion \
+    tini \
     unzip \
     zip ; \
   install-php-extensions \
@@ -45,6 +46,6 @@ COPY --from=build /satis /satis/
 
 WORKDIR /build
 
-ENTRYPOINT ["/satis/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "--", "/satis/bin/docker-entrypoint.sh"]
 
 CMD ["--ansi", "-vvv", "build", "/build/satis.json", "/build/output"]
