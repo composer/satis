@@ -779,6 +779,7 @@ class PackageSelection
     private function selectLinks(RepositorySet $repositorySet, array $links, bool $isRoot, bool $verbose): array
     {
         $depsLinks = $isRoot ? [] : $links;
+        $poolsByName = [];
 
         reset($links);
 
@@ -795,7 +796,10 @@ class PackageSelection
                     $matches = false !== $match ? [$match] : [];
                 } elseif (PlatformRepository::isPlatformPackage($name)) {
                 } else {
-                    $matches = $repositorySet->createPoolForPackage($link->getTarget())->whatProvides($name, $link->getConstraint());
+                    // the pool only depends on the target name, so reuse it across
+                    // links with different constraints
+                    $poolsByName[$name] ??= $repositorySet->createPoolForPackage($name);
+                    $matches = $poolsByName[$name]->whatProvides($name, $link->getConstraint());
                 }
 
                 if (0 === \count($matches)) {
