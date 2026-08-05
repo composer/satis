@@ -23,6 +23,7 @@ const config = Encore.getWebpackConfig();
 
 // Set IE11-friendly defaults
 // https://webpack.js.org/configuration/output/#outputenvironment
+config.output = config.output || {};
 config.output.environment = config.output.environment || {};
 config.output.environment.arrowFunction = false;
 config.output.environment.const = false;
