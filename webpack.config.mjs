@@ -1,17 +1,17 @@
-import Encore from "@symfony/webpack-encore";
-import { PurgeCSSPlugin } from "purgecss-webpack-plugin";
-import { glob } from "glob";
+import Encore from '@symfony/webpack-encore'
+import { PurgeCSSPlugin } from 'purgecss-webpack-plugin'
+import { glob } from 'glob'
 
-Encore.addEntry("app", "./views/assets/js/app.js")
-    .addStyleEntry("style", "./views/assets/css/style.scss")
+Encore.addEntry('app', './views/assets/js/app.js')
+    .addStyleEntry('style', './views/assets/css/style.scss')
     .cleanupOutputBeforeBuild()
     .disableSingleRuntimeChunk()
     .enableSassLoader((options) => {
         options.sassOptions = { ...options.sassOptions, charset: false }
     })
     .enableSourceMaps(!Encore.isProduction())
-    .setOutputPath("views/build/")
-    .setPublicPath("/build")
+    .setOutputPath('views/build/')
+    .setPublicPath('/build')
     .addPlugin(
         new PurgeCSSPlugin({
             paths: () =>
@@ -19,16 +19,16 @@ Encore.addEntry("app", "./views/assets/js/app.js")
                     nodir: true,
                 }),
         }),
-    );
+    )
 
-const config = Encore.getWebpackConfig();
+const config = Encore.getWebpackConfig()
 
 // Set IE11-friendly defaults
 // https://webpack.js.org/configuration/output/#outputenvironment
-config.output = config.output || {};
-config.output.environment = config.output.environment || {};
-config.output.environment.arrowFunction = false;
-config.output.environment.const = false;
-config.output.environment.destructuring = false;
+config.output = config.output || {}
+config.output.environment = config.output.environment || {}
+config.output.environment.arrowFunction = false
+config.output.environment.const = false
+config.output.environment.destructuring = false
 
-export { config as default };
+export { config as default }

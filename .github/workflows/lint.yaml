@@ -22,7 +22,7 @@ jobs:
           node-version: '24'
       - run: npm --version
       - run: npm ci
-      - run: npm run eslint
+      - run: npm run eslint:ci
       - run: npm run prettier:ci
 
   php-cs-fixer:
