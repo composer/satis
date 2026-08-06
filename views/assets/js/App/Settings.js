@@ -9,10 +9,10 @@ class Settings {
      * @param {string} settingsFormButton - Button that toggles the form
      */
     constructor(settingsForm, settingsFormButton) {
-        this.settingsForm = document.querySelector(settingsForm);
-        this.settingsFormButton = document.querySelector(settingsFormButton);
+        this.settingsForm = document.querySelector(settingsForm)
+        this.settingsFormButton = document.querySelector(settingsFormButton)
         if (this.settingsForm && this.settingsFormButton) {
-            this.init();
+            this.init()
         }
     }
 
@@ -22,12 +22,12 @@ class Settings {
      * @listens MouseEvent
      */
     handleButtonActiveState(event) {
-        if (event.target.classList.contains("active")) {
-            event.target.classList.remove("active");
-            event.target.setAttribute("aria-pressed", "false");
+        if (event.target.classList.contains('active')) {
+            event.target.classList.remove('active')
+            event.target.setAttribute('aria-pressed', 'false')
         } else {
-            event.target.classList.add("active");
-            event.target.setAttribute("aria-pressed", "true");
+            event.target.classList.add('active')
+            event.target.setAttribute('aria-pressed', 'true')
         }
     }
 
@@ -35,12 +35,9 @@ class Settings {
      * Sets up event handlers and initial state
      */
     init() {
-        this.settingsFormButton.classList.remove("d-none");
-        this.settingsFormButton.addEventListener(
-            "click",
-            this.handleButtonActiveState,
-        );
+        this.settingsFormButton.classList.remove('d-none')
+        this.settingsFormButton.addEventListener('click', this.handleButtonActiveState)
     }
 }
 
-export default Settings;
+export default Settings

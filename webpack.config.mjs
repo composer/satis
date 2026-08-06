@@ -6,7 +6,9 @@ Encore.addEntry("app", "./views/assets/js/app.js")
     .addStyleEntry("style", "./views/assets/css/style.scss")
     .cleanupOutputBeforeBuild()
     .disableSingleRuntimeChunk()
-    .enableSassLoader()
+    .enableSassLoader((options) => {
+        options.sassOptions = { ...options.sassOptions, charset: false }
+    })
     .enableSourceMaps(!Encore.isProduction())
     .setOutputPath("views/build/")
     .setPublicPath("/build")

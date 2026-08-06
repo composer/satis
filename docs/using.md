@@ -128,9 +128,7 @@ will update itself.
 
 ```json
 {
-    "repositories": [
-        { "type": "composer", "url": "http://packages.example.org/" }
-    ],
+    "repositories": [{ "type": "composer", "url": "http://packages.example.org/" }],
     "require": {
         "company/package": "1.2.0",
         "company/package2": "1.5.2",

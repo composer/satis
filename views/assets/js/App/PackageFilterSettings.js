@@ -10,18 +10,12 @@ class PackageFilterSettings {
      * @param {string} useThisField - For when the user wants to choose a specific field
      */
     constructor(defaultFilterBy, activeFilter, useThisField) {
-        this.defaultFilterBy = Array.prototype.slice.call(
-            document.querySelectorAll(defaultFilterBy),
-        );
-        this.activeFilter = document.querySelector(activeFilter);
-        this.useThisField = document.querySelector(useThisField);
-        if (
-            this.activeFilter &&
-            this.useThisField &&
-            this.defaultFilterBy.length
-        ) {
-            this.initEventHandlers();
-            this.initDefaultFields();
+        this.defaultFilterBy = Array.prototype.slice.call(document.querySelectorAll(defaultFilterBy))
+        this.activeFilter = document.querySelector(activeFilter)
+        this.useThisField = document.querySelector(useThisField)
+        if (this.activeFilter && this.useThisField && this.defaultFilterBy.length) {
+            this.initEventHandlers()
+            this.initDefaultFields()
         }
     }
 
@@ -30,48 +24,29 @@ class PackageFilterSettings {
      */
     initEventHandlers() {
         this.defaultFilterBy.forEach((elem) =>
-            elem.addEventListener("change", (event) =>
-                window.localStorage.setItem(
-                    "satisDefaultFilterBy",
-                    event.target.value,
-                ),
-            ),
-        );
-        this.useThisField.addEventListener("change", (event) =>
-            window.localStorage.setItem(
-                "satisUseThisField",
-                event.target.value,
-            ),
-        );
-        this.activeFilter.addEventListener("change", (event) =>
-            window.localStorage.setItem(
-                "satisActiveFilter",
-                event.target.value,
-            ),
-        );
+            elem.addEventListener('change', (event) => window.localStorage.setItem('satisDefaultFilterBy', event.target.value)),
+        )
+        this.useThisField.addEventListener('change', (event) => window.localStorage.setItem('satisUseThisField', event.target.value))
+        this.activeFilter.addEventListener('change', (event) => window.localStorage.setItem('satisActiveFilter', event.target.value))
     }
 
     /**
      * Sets values of all form elements from storage
      */
     initDefaultFields() {
-        const defaultFilterBy =
-            window.localStorage.getItem("satisDefaultFilterBy") || "all";
-        this.defaultFilterBy.forEach(
-            (elem) => (elem.checked = defaultFilterBy === elem.value),
-        );
-        const useThisField = window.localStorage.getItem("satisUseThisField");
+        const defaultFilterBy = window.localStorage.getItem('satisDefaultFilterBy') || 'all'
+        this.defaultFilterBy.forEach((elem) => (elem.checked = defaultFilterBy === elem.value))
+        const useThisField = window.localStorage.getItem('satisUseThisField')
         if (useThisField) {
-            this.useThisField.value = useThisField;
+            this.useThisField.value = useThisField
         }
-        if ("recent" === defaultFilterBy) {
-            this.activeFilter.value =
-                window.localStorage.getItem("satisActiveFilter") || "all";
+        if ('recent' === defaultFilterBy) {
+            this.activeFilter.value = window.localStorage.getItem('satisActiveFilter') || 'all'
         }
-        if ("custom" === defaultFilterBy && useThisField) {
-            this.activeFilter.value = useThisField;
+        if ('custom' === defaultFilterBy && useThisField) {
+            this.activeFilter.value = useThisField
         }
     }
 }
 
-export default PackageFilterSettings;
+export default PackageFilterSettings

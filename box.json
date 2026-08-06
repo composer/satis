@@ -28,10 +28,7 @@
         }
     ],
     "compression": "GZ",
-    "compactors": [
-        "KevinGH\\Box\\Compactor\\Json",
-        "KevinGH\\Box\\Compactor\\Php"
-    ],
+    "compactors": ["KevinGH\\Box\\Compactor\\Json", "KevinGH\\Box\\Compactor\\Php"],
     "chmod": "0755",
     "algorithm": "SHA1"
 }

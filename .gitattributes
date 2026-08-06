@@ -17,4 +17,5 @@
 /box.json export-ignore
 /docs/ export-ignore
 /tests/ export-ignore
-/webpack.config.js export-ignore
+/prettier.config.mjs export-ignore
+/webpack.config.mjs export-ignore
