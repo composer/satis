@@ -68,6 +68,11 @@ jobs:
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+    - name: Prepare
+      env:
+        PLATFORM: ${{ matrix.platform }}
+      run: |
+        echo "PLATFORM_SLUG=${PLATFORM//\//-}" >> "$GITHUB_ENV"
     - name: Set up QEMU
       uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
       with:
@@ -98,13 +103,13 @@ jobs:
       env:
         DIGEST: ${{ steps.build.outputs.digest }}
       run: |
-        mkdir -p /tmp/digest
-        touch "/tmp/digest/${DIGEST#sha256:}"
+        mkdir -p /tmp/digests
+        touch "/tmp/digests/${DIGEST#sha256:}"
     - name: Upload digest
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
-        name: digest-composer-satis
-        path: /tmp/digest/*
+        name: digests-${{ env.PLATFORM_SLUG }}
+        path: /tmp/digests/*
         if-no-files-found: error
         retention-days: 1
 
@@ -122,7 +127,7 @@ jobs:
     - name: Download digest
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
       with:
-        path: /tmp/digest
+        path: /tmp/digests
         pattern: digest-*
         merge-multiple: true
     - name: Set up Docker Buildx
@@ -139,7 +144,7 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
     - name: Create manifest list for image and push
-      working-directory: /tmp/digest
+      working-directory: /tmp/digests
       env:
         JSON: ${{ needs.prepare.outputs.json }}
       run: |
