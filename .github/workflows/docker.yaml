@@ -9,31 +9,140 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  DOCKERHUB_SLUG: composer/satis
+  GHCR_SLUG: ghcr.io/composer/satis
+
 jobs:
 
-  docker:
+  prepare:
+    name: "Prepare metadata"
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      annotations: ${{ steps.metadata.outputs.annotations }}
+      labels: ${{ steps.metadata.outputs.labels }}
+      json: ${{ steps.metadata.outputs.json }}
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        persist-credentials: false
+    - name: Docker metadata
+      id: metadata
+      uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+      with:
+        images: |
+          ${{ env.DOCKERHUB_SLUG }}
+          ${{ env.GHCR_SLUG }}
+        flavor: latest=false
+        tags: |
+          edge
+          latest
+        labels: |
+          org.opencontainers.image.vendor=Composer
+          org.opencontainers.image.title=Satis
+          org.opencontainers.image.description=Satis is a static Composer repository generator.
+
+  build:
+    name: "Build images"
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
       packages: write # pushes image layers to ghcr.io via GITHUB_TOKEN
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    needs:
+      - prepare
+    strategy:
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm/v6
+          - linux/arm/v7
+          - linux/arm64/v8
+          - linux/i386
+          - linux/ppc64le
+          - linux/riscv64
+          - linux/s390x
+    - name: Checkout
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - run: docker build --pull --no-cache --tag composer/satis --tag ghcr.io/composer/satis .
-    - if: github.ref == 'refs/heads/main'
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      with:
+        platforms: ${{ matrix.platform }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+    - name: Login to Docker Hub
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
       uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-    - if: github.ref == 'refs/heads/main'
-      run: docker push composer/satis
-    - if: github.ref == 'refs/heads/main'
+    - name: Login to Github Container Registry
+      if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
       uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
       with:
         registry: ghcr.io
-        username: ${{ github.actor }}
+        username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - if: github.ref == 'refs/heads/main'
-      run: docker push ghcr.io/composer/satis
+    - name: Build images
+      id: build
+      uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+      with:
+        annotations: ${{ needs.prepare.outputs.annotations }}
+        platforms: ${{ matrix.platform }}
+        outputs: type=image,"name=${{ env.DOCKERHUB_SLUG }},${{ env.GHCR_SLUG }}",push-by-digest=true,name-canonical=true,push=${{ github.ref == 'refs/heads/main' && github.event_name != 'pull_request' }}
+    - name: Export digest
+      env:
+        DIGEST: ${{ steps.build.outputs.digest }}
+      run: |
+        mkdir -p /tmp/digest
+        touch "/tmp/digest/${DIGEST#sha256:}"
+    - name: Upload digest
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: digest-ghcr.io-composer-satis
+        path: /tmp/digest/*
+        if-no-files-found: error
+        retention-days: 1
+
+  merge:
+    name: "Merge & push manifests"
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # pushes the manifest list to ghcr.io via GITHUB_TOKEN
+    needs:
+      - prepare
+      - build
+    steps:
+      - name: Download digest
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          path: /tmp/digest
+          pattern: digest-*
+          merge-multiple: true
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+      - name: Login to Docker Hub
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Login to Github Container Registry
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create manifest list for image and push
+        working-directory: /tmp/digest
+        env:
+          JSON: ${{ needs.prepare.outputs.json }}
+        run: |
+          docker buildx imagetools create $(jq -cr --arg slug "$DOCKERHUB_SLUG" '.tags | map(select(startswith($slug)) | "--tag " + .) | join(" ")' <<< "$JSON") \
+            $(printf "$DOCKERHUB_SLUG@sha256:%s " *)
+          docker buildx imagetools create $(jq -cr --arg slug "$GHCR_SLUG" '.tags | map(select(startswith($slug)) | "--tag " + .) | join(" ")' <<< "$JSON") \
+            $(printf "$GHCR_SLUG@sha256:%s " *)
