@@ -21,13 +21,15 @@ FROM php:8.4-cli-alpine
 RUN set -eux ; \
   apk upgrade --no-cache ; \
   apk add --no-cache --upgrade \
+    7zip \
     bash \
+    coreutils \
     curl \
     git \
     mercurial \
-    openssh \
+    openssh-client \
     openssl \
-    p7zip \
+    patch \
     subversion \
     tini \
     unzip \
