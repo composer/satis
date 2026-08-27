@@ -69,6 +69,7 @@ class Application extends ComposerApplication
             new Command\AddCommand(),
             new Command\BuildCommand(),
             new Command\PurgeCommand(),
+            new Command\RemoveCommand(),
         ]);
 
         return $commands;

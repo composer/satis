@@ -18,6 +18,7 @@ use Composer\Satis\Console\Command\AddCommand;
 use Composer\Satis\Console\Command\BuildCommand;
 use Composer\Satis\Console\Command\InitCommand;
 use Composer\Satis\Console\Command\PurgeCommand;
+use Composer\Satis\Console\Command\RemoveCommand;
 
 /**
  * Register commands for the Composer CLI
@@ -31,6 +32,7 @@ class CommandProvider implements CommandProviderCapability
             new BuildCommand('satis:build'),
             new InitCommand('satis:init'),
             new PurgeCommand('satis:purge'),
+            new RemoveCommand('satis:remove'),
         ];
     }
 }
