@@ -18,6 +18,7 @@ use Composer\Satis\Console\Command\AddCommand;
 use Composer\Satis\Console\Command\BuildCommand;
 use Composer\Satis\Console\Command\InitCommand;
 use Composer\Satis\Console\Command\PurgeCommand;
+use Composer\Satis\Console\Command\RemoveCommand;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
@@ -59,6 +60,7 @@ class CommandProviderTest extends TestCase
             ['satis:build', BuildCommand::class],
             ['satis:init', InitCommand::class],
             ['satis:purge', PurgeCommand::class],
+            ['satis:remove', RemoveCommand::class],
         ];
     }
 }
