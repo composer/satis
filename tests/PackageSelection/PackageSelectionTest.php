@@ -25,6 +25,7 @@ use Composer\Repository\PackageRepository;
 use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\Constraint;
 use Composer\Semver\Constraint\MatchAllConstraint;
+use Composer\Util\Filesystem;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Output\NullOutput;
@@ -34,6 +35,16 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackageSelectionTest extends TestCase
 {
+    private const REPOSITORY_TYPE_ARTIFACT = 'artifact';
+    private const REPOSITORY_TYPE_PATH = 'path';
+    private const REPOSITORY_TYPE_PACKAGE = 'package';
+
+    /** Version declared by the local repository fixtures. */
+    private const FIXTURE_VERSION = '1.0.0';
+
+    /** Same version as {@see self::FIXTURE_VERSION}, as Composer normalizes it. */
+    private const FIXTURE_NORMALIZED_VERSION = '1.0.0.0';
+
     /**
      * @return array<string, mixed>
      */
@@ -1317,6 +1328,174 @@ class PackageSelectionTest extends TestCase
         foreach ($repos as $repo) {
             self::assertInstanceOf(\Composer\Repository\RepositoryInterface::class, $repo);
         }
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function dataSelectWithPackagesFilterOnLocalRepositories(): array
+    {
+        return [
+            'artifact repository' => [self::REPOSITORY_TYPE_ARTIFACT, 'vendor/artifact-package'],
+            'path repository' => [self::REPOSITORY_TYPE_PATH, 'vendor/path-package'],
+            'package repository' => [self::REPOSITORY_TYPE_PACKAGE, 'vendor/inline-package'],
+        ];
+    }
+
+    /**
+     * A partial update (`satis build satis.json web/ vendor/package`) must keep
+     * repositories Satis can read without any network access, even though those
+     * repositories carry no "name" in their config.
+     *
+     * @see https://github.com/composer/satis/issues/983
+     */
+    #[DataProvider('dataSelectWithPackagesFilterOnLocalRepositories')]
+    public function testSelectWithPackagesFilterKeepsLocalRepositories(string $repositoryType, string $packageName): void
+    {
+        $this->runPackagesFilterSelection(
+            fn (string $workDir): array => [$this->createLocalRepositoryConfig($repositoryType, $packageName, $workDir)],
+            [$packageName],
+            [$packageName]
+        );
+    }
+
+    /**
+     * The filter must still filter: a local repository that does not hold any of
+     * the requested packages has to be dropped like any other.
+     *
+     * @see https://github.com/composer/satis/issues/983
+     */
+    public function testSelectWithPackagesFilterDropsLocalRepositoriesWithoutTheFilteredPackage(): void
+    {
+        $wantedPackage = 'vendor/wanted-package';
+        $otherPackage = 'vendor/other-package';
+
+        $this->runPackagesFilterSelection(
+            fn (string $workDir): array => [
+                $this->createLocalRepositoryConfig(self::REPOSITORY_TYPE_ARTIFACT, $wantedPackage, $workDir),
+                $this->createLocalRepositoryConfig(self::REPOSITORY_TYPE_ARTIFACT, $otherPackage, $workDir),
+            ],
+            [$wantedPackage],
+            [$wantedPackage]
+        );
+    }
+
+    /**
+     * Regression guard for the pre-existing behaviour: a repository declaring a
+     * matching "name" in its Satis config is still selected through that name.
+     * This one already passes without the local-repository matching.
+     */
+    public function testSelectWithPackagesFilterStillMatchesTheRepositoryConfigName(): void
+    {
+        $packageName = 'vendor/named-package';
+
+        $this->runPackagesFilterSelection(
+            function (string $workDir) use ($packageName): array {
+                $repository = $this->createLocalRepositoryConfig(self::REPOSITORY_TYPE_ARTIFACT, $packageName, $workDir);
+                $repository['name'] = $packageName;
+
+                return [$repository];
+            },
+            [$packageName],
+            [$packageName]
+        );
+    }
+
+    /**
+     * Runs `select()` with a packages filter over a throwaway working directory
+     * and asserts which packages came out.
+     *
+     * @param callable(string): list<array<string, mixed>> $buildRepositories
+     * @param list<string> $packagesFilter
+     * @param list<string> $expectedPackageNames
+     */
+    private function runPackagesFilterSelection(
+        callable $buildRepositories,
+        array $packagesFilter,
+        array $expectedPackageNames,
+    ): void {
+        $filesystem = new Filesystem();
+        $workDir = sys_get_temp_dir() . '/satis-package-filter-' . uniqid('', true);
+        $filesystem->ensureDirectoryExists($workDir);
+
+        try {
+            $config = [
+                'name' => 'test/satis',
+                'homepage' => 'http://localhost',
+                'repositories' => $buildRepositories($workDir),
+                'require-all' => true,
+            ];
+
+            unset(Config::$defaultRepositories['packagist'], Config::$defaultRepositories['packagist.org']);
+
+            $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
+
+            $selection = new PackageSelection(new NullOutput(), $workDir . '/build', $config, false);
+            $selection->setPackagesFilter($packagesFilter);
+
+            $selected = $selection->select($composer, false);
+
+            $expected = array_map(
+                static fn (string $name): string => $name . '-' . self::FIXTURE_NORMALIZED_VERSION,
+                $expectedPackageNames
+            );
+            self::assertSame($expected, array_keys($selected));
+        } finally {
+            $filesystem->removeDirectory($workDir);
+        }
+    }
+
+    /**
+     * Builds the repository fixture on disk and returns its Satis config entry.
+     *
+     * @return array<string, mixed>
+     */
+    private function createLocalRepositoryConfig(string $repositoryType, string $packageName, string $workDir): array
+    {
+        $composerJson = json_encode(
+            ['name' => $packageName, 'version' => self::FIXTURE_VERSION],
+            \JSON_THROW_ON_ERROR
+        );
+
+        if (self::REPOSITORY_TYPE_PACKAGE === $repositoryType) {
+            return [
+                'type' => self::REPOSITORY_TYPE_PACKAGE,
+                'package' => ['name' => $packageName, 'version' => self::FIXTURE_VERSION],
+            ];
+        }
+
+        $filesystem = new Filesystem();
+        // One directory per package: an `artifact` repository is a directory, so
+        // two of them must not end up sharing one.
+        $repositoryDir = sprintf('%s/%s/%s', $workDir, $repositoryType, str_replace('/', '-', $packageName));
+        $filesystem->ensureDirectoryExists($repositoryDir);
+
+        if (self::REPOSITORY_TYPE_PATH === $repositoryType) {
+            if (false === file_put_contents($repositoryDir . '/composer.json', $composerJson)) {
+                self::fail('Could not write the path repository fixture in ' . $repositoryDir);
+            }
+
+            return ['type' => self::REPOSITORY_TYPE_PATH, 'url' => $repositoryDir];
+        }
+
+        $archivePath = sprintf(
+            '%s/%s-%s.zip',
+            $repositoryDir,
+            str_replace('/', '-', $packageName),
+            self::FIXTURE_VERSION
+        );
+        $archive = new \ZipArchive();
+        if (true !== $archive->open($archivePath, \ZipArchive::CREATE)) {
+            self::fail('Could not create the artifact repository fixture ' . $archivePath);
+        }
+
+        try {
+            $archive->addFromString('composer.json', $composerJson);
+        } finally {
+            $archive->close();
+        }
+
+        return ['type' => self::REPOSITORY_TYPE_ARTIFACT, 'url' => $repositoryDir];
     }
 }
 

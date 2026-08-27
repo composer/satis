@@ -25,8 +25,11 @@ use Composer\Package\PackageInterface;
 use Composer\Package\Version\VersionSelector;
 use Composer\PartialComposer;
 use Composer\Repository\ArrayRepository;
+use Composer\Repository\ArtifactRepository;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
+use Composer\Repository\PackageRepository;
+use Composer\Repository\PathRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Repository\RepositorySet;
@@ -967,18 +970,31 @@ class PackageSelection
         return array_filter(
             $repositories,
             static function ($repository) use ($packages) {
-                if (!$repository instanceof ConfigurableRepositoryInterface) {
-                    return false;
+                if ($repository instanceof ConfigurableRepositoryInterface) {
+                    $config = $repository->getRepoConfig();
+
+                    // We need name to be set on repo config as it would otherwise be too slow on remote repos (VCS, ..)
+                    if (isset($config['name']) && in_array($config['name'], $packages, true)) {
+                        return true;
+                    }
                 }
 
-                $config = $repository->getRepoConfig();
-
-                // We need name to be set on repo config as it would otherwise be too slow on remote repos (VCS, ..)
-                if (!isset($config['name']) || !in_array($config['name'], $packages, true)) {
-                    return false;
+                // "artifact", "path" and "package" repositories resolve their whole
+                // package list from the local filesystem or from the Satis config
+                // itself, so matching the names they really provide costs no network
+                // round trip and needs no "name" in the repository config.
+                if ($repository instanceof ArtifactRepository
+                    || $repository instanceof PathRepository
+                    || $repository instanceof PackageRepository
+                ) {
+                    foreach ($repository->getPackages() as $package) {
+                        if (in_array($package->getName(), $packages, true)) {
+                            return true;
+                        }
+                    }
                 }
 
-                return true;
+                return false;
             }
         );
     }

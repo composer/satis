@@ -88,8 +88,14 @@ Note that this will still need to pull and scan all of your VCS repositories
 because any VCS repository might contain (on any branch) one of the selected
 packages.
 
-If you want to scan only the selected package and not all VCS repositories you need
-to declare a _name_ for all your package (this only work on VCS repositories type) :
+Repositories that Satis can read without any network access — `artifact`, `path`
+and `package` — are matched on the package names they actually contain, so they
+are picked up by a partial update without any extra configuration.
+
+For remote repository types, scanning every repository is the only way to know
+what they hold. If you want to scan only the selected package and not all VCS
+repositories, you need to declare a _name_ for all your package (this only works
+on VCS repositories type) :
 
 ```json
 {
