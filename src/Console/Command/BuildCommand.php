@@ -241,6 +241,7 @@ class BuildCommand extends BaseCommand
         $loader = new RootPackageLoader($manager, $composerConfig, $parser, $guesser);
         $satisConfigAsRootPackage = $loader->load($config);
         $composer->setPackage($satisConfigAsRootPackage);
+        $this->deduplicateRepositories($manager, $output, (bool) $verbose);
 
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
 
@@ -321,6 +322,58 @@ class BuildCommand extends BaseCommand
         if ($verbose) {
             foreach ($removedNames as $name) {
                 $output->writeln(sprintf('<info>Removed repository %s (disabled by config)</info>', $name));
+            }
+        }
+    }
+
+    /**
+     * Drop repositories that are registered more than once in the RepositoryManager.
+     *
+     * The repositories of a Satis config reach the manager up to three times: through
+     * Factory::create() in standalone mode, through the loop above, and through
+     * RootPackageLoader::load(). Each duplicate makes PackageSelection scan the very
+     * same VCS repository again - one more `git remote update`, one more
+     * `git remote show origin` and one more composer.json read per tag and branch -
+     * which multiplies build time and load on the git servers.
+     */
+    private function deduplicateRepositories(RepositoryManager $manager, OutputInterface $output, bool $verbose = false): void
+    {
+        $refl = new \ReflectionProperty($manager, 'repositories');
+        $repositories = $refl->getValue($manager);
+
+        $seen = [];
+        $removedKeys = [];
+
+        $repositories = array_values(array_filter(
+            $repositories,
+            static function ($repo) use (&$seen, &$removedKeys): bool {
+                if (!$repo instanceof ConfigurableRepositoryInterface) {
+                    return true;
+                }
+
+                $repoConfig = $repo->getRepoConfig();
+                $url = $repoConfig['url'] ?? null;
+                $key = is_string($url) && '' !== $url
+                    ? ($repoConfig['type'] ?? '') . ' ' . rtrim($url, '/')
+                    : (string) json_encode($repoConfig);
+
+                if (isset($seen[$key])) {
+                    $removedKeys[] = $key;
+
+                    return false;
+                }
+
+                $seen[$key] = true;
+
+                return true;
+            }
+        ));
+
+        $refl->setValue($manager, $repositories);
+
+        if ($verbose) {
+            foreach (array_count_values($removedKeys) as $key => $count) {
+                $output->writeln(sprintf('<info>Removed %d duplicate registration(s) of repository %s</info>', $count, $key));
             }
         }
     }

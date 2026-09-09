@@ -18,9 +18,13 @@ use Composer\Console\Application;
 use Composer\Factory;
 use Composer\IO\NullIO;
 use Composer\Json\JsonValidationException;
+use Composer\Package\Loader\RootPackageLoader;
+use Composer\Package\Version\VersionGuesser;
+use Composer\Package\Version\VersionParser;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\RepositoryManager;
 use Composer\Satis\Console\Application as SatisApplication;
+use Composer\Util\ProcessExecutor;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
@@ -321,6 +325,111 @@ class BuildCommandTest extends TestCase
         $this->invokeRemoveDisabledRepositories($manager, ['packagist.org'], $output, false);
 
         self::assertSame('', $output->fetch());
+    }
+
+    #[TestDox('Repositories registered several times are only kept once')]
+    public function testDeduplicateRepositoriesRemovesDuplicates(): void
+    {
+        $repoConfig = ['type' => 'composer', 'url' => 'https://example.com/repo'];
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [$repoConfig],
+        ];
+
+        $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
+        $manager = $composer->getRepositoryManager();
+
+        // the same registration Factory::create(), BuildCommand and RootPackageLoader each perform
+        $manager->addRepository($manager->createRepository($repoConfig['type'], $repoConfig));
+        $manager->addRepository($manager->createRepository($repoConfig['type'], $repoConfig));
+
+        self::assertSame(3, $this->countRepositoriesWithUrl($manager, 'https://example.com/repo'));
+
+        $output = new BufferedOutput();
+        $this->invokeDeduplicateRepositories($manager, $output, true);
+
+        self::assertSame(1, $this->countRepositoriesWithUrl($manager, 'https://example.com/repo'));
+        self::assertStringContainsString(
+            'Removed 2 duplicate registration(s) of repository composer https://example.com/repo',
+            $output->fetch()
+        );
+    }
+
+    #[TestDox('The registration sequence of the build command yields a single repository')]
+    public function testRepositoriesOfTheConfigAreRegisteredOnce(): void
+    {
+        $repoConfig = ['type' => 'composer', 'url' => 'https://example.com/repo'];
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [$repoConfig],
+        ];
+
+        // 1. the Composer instance built from the Satis config, as in standalone mode
+        $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
+        $manager = $composer->getRepositoryManager();
+
+        // 2. the repositories the build command feeds into the manager
+        $manager->addRepository($manager->createRepository($repoConfig['type'], $repoConfig));
+
+        // 3. the root package load, which adds the repositories of the config once more
+        $parser = new VersionParser();
+        $process = new ProcessExecutor(new NullIO());
+        $process->enableAsync();
+        $guesser = new VersionGuesser($composer->getConfig(), $process, $parser);
+        $loader = new RootPackageLoader($manager, $composer->getConfig(), $parser, $guesser);
+        $loader->load($config);
+
+        self::assertSame(3, $this->countRepositoriesWithUrl($manager, 'https://example.com/repo'));
+
+        $this->invokeDeduplicateRepositories($manager);
+
+        self::assertSame(1, $this->countRepositoriesWithUrl($manager, 'https://example.com/repo'));
+    }
+
+    #[TestDox('Deduplication keeps distinct repositories')]
+    public function testDeduplicateRepositoriesKeepsDistinctRepositories(): void
+    {
+        $first = ['type' => 'composer', 'url' => 'https://example.com/first'];
+        $second = ['type' => 'composer', 'url' => 'https://example.com/second'];
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [$first, $second],
+        ];
+
+        $composer = (new Factory())->createComposer(new NullIO(), $config, true, null, false);
+        $manager = $composer->getRepositoryManager();
+
+        $output = new BufferedOutput();
+        $this->invokeDeduplicateRepositories($manager, $output, false);
+
+        self::assertSame(1, $this->countRepositoriesWithUrl($manager, 'https://example.com/first'));
+        self::assertSame(1, $this->countRepositoriesWithUrl($manager, 'https://example.com/second'));
+        self::assertSame('', $output->fetch());
+    }
+
+    private function invokeDeduplicateRepositories(RepositoryManager $manager, ?\Symfony\Component\Console\Output\OutputInterface $output = null, bool $verbose = false): void
+    {
+        $command = new BuildCommand();
+        $method = new \ReflectionMethod($command, 'deduplicateRepositories');
+        $method->invokeArgs($command, [$manager, $output ?? new NullOutput(), $verbose]);
+    }
+
+    private function countRepositoriesWithUrl(RepositoryManager $manager, string $url): int
+    {
+        $count = 0;
+        foreach ($manager->getRepositories() as $repo) {
+            if ($repo instanceof ConfigurableRepositoryInterface && ($repo->getRepoConfig()['url'] ?? null) === $url) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 
     /**
