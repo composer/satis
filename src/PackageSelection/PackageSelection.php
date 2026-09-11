@@ -221,12 +221,17 @@ class PackageSelection
             }
         }
 
-        if ($this->hasFilterForPackages()) {
-            $repos = $this->filterPackages($repos);
+        $reposDroppedByPackagesFilter = [];
 
-            if (0 === count($repos)) {
+        if ($this->hasFilterForPackages()) {
+            $filteredRepos = $this->filterPackages($repos);
+
+            if (0 === count($filteredRepos)) {
                 throw new \InvalidArgumentException(sprintf('Could not find any repositories config with "name" matching your package(s) filter: %s', implode(', ', $this->packagesFilter)));
             }
+
+            $reposDroppedByPackagesFilter = array_filter($repos, static fn ($repo) => !in_array($repo, $filteredRepos, true));
+            $repos = $filteredRepos;
         }
 
         $repositorySet = new RepositorySet($this->minimumStability, $stabilityFlags);
@@ -252,6 +257,9 @@ class PackageSelection
                     )
                 );
             }
+
+            // the packages filter picks what to request, not who may answer a dependency
+            $this->addRepositories($repositorySet, $reposDroppedByPackagesFilter);
 
             // additional repositories for dependencies
             if (!$this->hasRepositoriesFilter() || true !== $this->repositoryFilterDep) {
