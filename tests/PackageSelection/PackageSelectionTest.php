@@ -1402,24 +1402,52 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
+     * `require-dependencies` resolves through the repositories the filter dropped.
+     *
+     * @see https://github.com/composer/satis/issues/706
+     */
+    public function testSelectWithPackagesFilterStillResolvesDependencies(): void
+    {
+        $filteredPackage = 'vendor/filtered-package';
+        $dependency = 'vendor/dependency-package';
+
+        $this->runPackagesFilterSelection(
+            fn (string $workDir): array => [
+                $this->createLocalRepositoryConfig(
+                    self::REPOSITORY_TYPE_PACKAGE,
+                    $filteredPackage,
+                    $workDir,
+                    [$dependency => self::FIXTURE_VERSION]
+                ),
+                $this->createLocalRepositoryConfig(self::REPOSITORY_TYPE_PACKAGE, $dependency, $workDir),
+            ],
+            [$filteredPackage],
+            [$dependency, $filteredPackage],
+            ['require-dependencies' => true]
+        );
+    }
+
+    /**
      * Runs `select()` with a packages filter over a throwaway working directory
      * and asserts which packages came out.
      *
      * @param callable(string): list<array<string, mixed>> $buildRepositories
      * @param list<string> $packagesFilter
      * @param list<string> $expectedPackageNames
+     * @param array<string, mixed> $extraConfig
      */
     private function runPackagesFilterSelection(
         callable $buildRepositories,
         array $packagesFilter,
         array $expectedPackageNames,
+        array $extraConfig = [],
     ): void {
         $filesystem = new Filesystem();
         $workDir = sys_get_temp_dir() . '/satis-package-filter-' . uniqid('', true);
         $filesystem->ensureDirectoryExists($workDir);
 
         try {
-            $config = [
+            $config = $extraConfig + [
                 'name' => 'test/satis',
                 'homepage' => 'http://localhost',
                 'repositories' => $buildRepositories($workDir),
@@ -1448,19 +1476,28 @@ class PackageSelectionTest extends TestCase
     /**
      * Builds the repository fixture on disk and returns its Satis config entry.
      *
+     * @param array<string, string> $requires
+     *
      * @return array<string, mixed>
      */
-    private function createLocalRepositoryConfig(string $repositoryType, string $packageName, string $workDir): array
-    {
-        $composerJson = json_encode(
-            ['name' => $packageName, 'version' => self::FIXTURE_VERSION],
-            \JSON_THROW_ON_ERROR
-        );
+    private function createLocalRepositoryConfig(
+        string $repositoryType,
+        string $packageName,
+        string $workDir,
+        array $requires = [],
+    ): array {
+        $manifest = ['name' => $packageName, 'version' => self::FIXTURE_VERSION];
+
+        if ([] !== $requires) {
+            $manifest['require'] = $requires;
+        }
+
+        $composerJson = json_encode($manifest, \JSON_THROW_ON_ERROR);
 
         if (self::REPOSITORY_TYPE_PACKAGE === $repositoryType) {
             return [
                 'type' => self::REPOSITORY_TYPE_PACKAGE,
-                'package' => ['name' => $packageName, 'version' => self::FIXTURE_VERSION],
+                'package' => $manifest,
             ];
         }
 
