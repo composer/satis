@@ -230,7 +230,7 @@ class PackageSelection
                 throw new \InvalidArgumentException(sprintf('Could not find any repositories config with "name" matching your package(s) filter: %s', implode(', ', $this->packagesFilter)));
             }
 
-            $reposDroppedByPackagesFilter = array_filter($repos, static fn ($repo) => !in_array($repo, $filteredRepos, true));
+            $reposDroppedByPackagesFilter = array_filter($repos, static fn (RepositoryInterface|ConfigurableRepositoryInterface $repo): bool => !in_array($repo, $filteredRepos, true));
             $repos = $filteredRepos;
         }
 
