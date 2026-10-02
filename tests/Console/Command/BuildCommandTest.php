@@ -554,6 +554,54 @@ class BuildCommandTest extends TestCase
         self::assertTrue($method->invoke($command, $this->configPath));
     }
 
+    /**
+     * @return array<string, array{array<string, mixed>}>
+     */
+    public static function dataRelativeUriReferences(): array
+    {
+        return [
+            'relative homepage' => [['homepage' => '/satis']],
+            'relative archive prefix-url' => [['archive' => ['directory' => 'dist', 'prefix-url' => '/satis']]],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $overrides
+     */
+    #[DataProvider('dataRelativeUriReferences')]
+    #[TestDox('check() accepts a relative URI reference for homepage and archive prefix-url')]
+    public function testCheckAcceptsRelativeUriReferences(array $overrides): void
+    {
+        $this->writeConfig(array_replace([
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [],
+        ], $overrides));
+
+        $command = new BuildCommand();
+        $method = new \ReflectionMethod($command, 'check');
+
+        self::assertTrue($method->invoke($command, $this->configPath));
+    }
+
+    #[TestDox('check() still rejects an archive prefix-url that is not a URI reference')]
+    public function testCheckRejectsInvalidPrefixUrl(): void
+    {
+        $this->writeConfig([
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [],
+            'archive' => ['directory' => 'dist', 'prefix-url' => 'not a uri'],
+        ]);
+
+        $command = new BuildCommand();
+        $method = new \ReflectionMethod($command, 'check');
+
+        $this->expectException(JsonValidationException::class);
+
+        $method->invoke($command, $this->configPath);
+    }
+
     #[TestDox('check() throws ParsingException for invalid JSON')]
     public function testCheckThrowsParsingExceptionForInvalidJson(): void
     {

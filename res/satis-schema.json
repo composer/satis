@@ -16,7 +16,7 @@
         "homepage": {
             "type": "string",
             "description": "Homepage URL for the Repository.",
-            "format": "uri"
+            "format": "uri-reference"
         },
         "require": {
             "type": "object",
@@ -69,7 +69,7 @@
                 "prefix-url": {
                     "type": "string",
                     "description": "Location of the downloads.",
-                    "format": "uri"
+                    "format": "uri-reference"
                 },
                 "checksum": {
                     "type": "boolean",
