@@ -13,9 +13,12 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Builder;
 
+use Composer\Cache;
 use Composer\Composer;
 use Composer\Downloader\DownloadManager;
 use Composer\Factory;
+use Composer\IO\IOInterface;
+use Composer\IO\NullIO;
 use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
 use Composer\Package\CompletePackageInterface;
@@ -31,6 +34,8 @@ class ArchiveBuilder extends Builder
     private Composer $composer;
 
     private InputInterface $input;
+
+    private IOInterface $io;
 
     /**
      * @param array<PackageInterface> $packages
@@ -49,6 +54,7 @@ class ArchiveBuilder extends Builder
         /** @var ArchiveManager $archiveManager */
         $archiveManager = $this->composer->getArchiveManager();
         $archiveManager->setOverwriteFiles(false);
+        $checksumCache = $this->createChecksumCache($basedir);
 
         shuffle($packages);
 
@@ -120,8 +126,7 @@ class ArchiveBuilder extends Builder
                 $distUrl = sprintf('%s/%s/%s/%s', $endpoint, $this->config['archive']['directory'], $intermediatePath, $archive);
                 $package->setDistType($archiveFormat);
                 $package->setDistUrl($distUrl);
-                $hashedPath = hash_file('sha1', $path);
-                $package->setDistSha1Checksum($includeArchiveChecksum ? (is_string($hashedPath) ? $hashedPath : null) : null);
+                $package->setDistSha1Checksum($includeArchiveChecksum ? $checksumCache->getChecksum($path) : null);
                 $package->setDistReference($package->getSourceReference());
 
                 if ($renderProgress) {
@@ -143,6 +148,8 @@ class ArchiveBuilder extends Builder
             }
         }
 
+        $checksumCache->save();
+
         if (!is_null($progressBar)) {
             $progressBar->finish();
         }
@@ -163,6 +170,22 @@ class ArchiveBuilder extends Builder
         $this->input = $input;
 
         return $this;
+    }
+
+    public function setIO(IOInterface $io): self
+    {
+        $this->io = $io;
+
+        return $this;
+    }
+
+    private function createChecksumCache(string $archiveDirectory): ArchiveChecksumCache
+    {
+        $composerConfig = $this->composer->getConfig();
+        $cache = new Cache($this->io ?? new NullIO(), $composerConfig->get('cache-dir') . '/satis');
+        $cache->setReadOnly((bool) $composerConfig->get('cache-read-only'));
+
+        return new ArchiveChecksumCache($cache, $archiveDirectory);
     }
 
     private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, CompletePackageInterface $package, string $targetDir): string

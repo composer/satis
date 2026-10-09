@@ -273,6 +273,7 @@ class BuildCommand extends BaseCommand
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
             $downloads->setComposer($composer);
             $downloads->setInput($input);
+            $downloads->setIO($io);
             $downloads->dump($packages);
         }
 
