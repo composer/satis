@@ -67,9 +67,11 @@ class ArchiveBuilderTest extends TestCase
 
         $composerConfig = new Config(true, $this->home . '/satis.server');
         $composerConfig->merge([
-            'cache-dir' => $this->home . '/.cache/composer',
-            'data-dir' => $this->home . '/.local/share/composer',
-            'home' => $this->home . '/.config/composer',
+            'config' => [
+                'cache-dir' => $this->home . '/.cache/composer',
+                'data-dir' => $this->home . '/.local/share/composer',
+                'home' => $this->home . '/.config/composer',
+            ],
         ]);
         $composerConfig->setConfigSource(new JsonConfigSource(new JsonFile($this->home . '/.config/composer/config.json')));
         $composerConfig->setAuthConfigSource(new JsonConfigSource(new JsonFile($this->home . '/.config/composer/auth.json')));
@@ -150,6 +152,24 @@ class ArchiveBuilderTest extends TestCase
         $builder->dump($packages);
 
         self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
+    }
+
+    public function testDumpCachesArchiveChecksumsInComposerCache(): void
+    {
+        $this->initArchives();
+        $packages = self::getPackages();
+
+        $builder = new ArchiveBuilder($this->output, $this->outputDir, $this->satisConfig, true);
+        $builder->setInput($this->input);
+        $builder->setComposer($this->composer);
+        $builder->dump($packages);
+
+        $cacheFiles = glob($this->home . '/.cache/composer/satis/archive-checksums-*.json');
+        self::assertIsArray($cacheFiles);
+        self::assertCount(1, $cacheFiles);
+        $entries = json_decode((string) file_get_contents($cacheFiles[0]), true);
+        self::assertIsArray($entries);
+        self::assertSame([$packages[0]->getDistSha1Checksum()], array_column($entries, 'sha1'));
     }
 
     /**
