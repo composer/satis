@@ -19,6 +19,7 @@ use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -532,6 +533,121 @@ class PurgeCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
         self::assertStringContainsString('Removed archive', $tester->getDisplay());
         self::assertStringContainsString('Removed empty directory', $tester->getDisplay());
+    }
+
+    #[TestDox('execute() skips unreferenced archives that are already gone when they are about to be removed')]
+    public function testExecuteSkipsArchivesThatDisappearDuringPurge(): void
+    {
+        $outputDir = vfsStream::url('satis/output-vanished');
+        mkdir($outputDir);
+        $archiveDir = $outputDir . '/dist';
+        mkdir($archiveDir . '/vendor', 0755, true);
+
+        $archives = [
+            $archiveDir . '/vendor/first.tar.gz',
+            $archiveDir . '/vendor/second.tar.gz',
+        ];
+        foreach ($archives as $archive) {
+            file_put_contents($archive, 'x');
+        }
+
+        $this->writeOutputRepository($outputDir, $this->packageEntry(
+            'vendor/other',
+            '1.0.0',
+            'https://example.com/dist/vendor/other.tar.gz'
+        ));
+
+        $this->writeSatisConfig([
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'output-dir' => $outputDir,
+            'archive' => [
+                'directory' => 'dist',
+                'prefix-url' => 'https://example.com',
+            ],
+        ]);
+
+        // Simulates a concurrent build or purge: once the first archive is removed, the others vanish too.
+        $output = new class($archives) extends BufferedOutput {
+            /**
+             * @param list<string> $archives
+             */
+            public function __construct(private readonly array $archives)
+            {
+                parent::__construct();
+            }
+
+            protected function doWrite(string $message, bool $newline): void
+            {
+                parent::doWrite($message, $newline);
+
+                if (str_contains($message, 'Removed archive')) {
+                    foreach ($this->archives as $archive) {
+                        if (file_exists($archive)) {
+                            unlink($archive);
+                        }
+                    }
+                }
+            }
+        };
+
+        $input = new ArrayInput([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ]);
+        $input->setInteractive(false);
+
+        $app = new Application();
+        $app->addCommand(new PurgeCommand());
+
+        $statusCode = $app->find('purge')->run($input, $output);
+
+        $display = $output->fetch();
+        self::assertSame(0, $statusCode);
+        self::assertSame(1, substr_count($display, 'Removed archive'));
+        self::assertStringContainsString('Skipped missing archive', $display);
+        self::assertStringContainsString('Done.', $display);
+        foreach ($archives as $archive) {
+            self::assertFileDoesNotExist($archive);
+        }
+    }
+
+    #[TestDox('execute() throws when an unreferenced archive exists but cannot be removed')]
+    public function testExecuteThrowsWhenArchiveCannotBeRemoved(): void
+    {
+        $outputDir = vfsStream::url('satis/output-locked');
+        mkdir($outputDir);
+        $archiveDir = $outputDir . '/dist';
+        mkdir($archiveDir . '/vendor', 0755, true);
+
+        $unreferencedFile = $archiveDir . '/vendor/unreferenced.tar.gz';
+        file_put_contents($unreferencedFile, 'x');
+        chmod($archiveDir . '/vendor', 0555);
+
+        $this->writeOutputRepository($outputDir, $this->packageEntry(
+            'vendor/other',
+            '1.0.0',
+            'https://example.com/dist/vendor/other.tar.gz'
+        ));
+
+        $this->writeSatisConfig([
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'output-dir' => $outputDir,
+            'archive' => [
+                'directory' => 'dist',
+                'prefix-url' => 'https://example.com',
+            ],
+        ]);
+
+        $tester = $this->createTester();
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Could not delete ' . $unreferencedFile);
+        $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ]);
     }
 
     // --- Dry-run ---

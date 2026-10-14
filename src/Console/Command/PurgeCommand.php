@@ -16,6 +16,7 @@ namespace Composer\Satis\Console\Command;
 use Composer\Command\BaseCommand;
 use Composer\Json\JsonFile;
 use Composer\Satis\PackageSelection\PackageSelection;
+use Composer\Util\Filesystem;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -127,9 +128,24 @@ class PurgeCommand extends BaseCommand
             return 0;
         }
 
+        $filesystem = new Filesystem();
         foreach ($unreferenced as $currentFile) {
             if (!$dryRun) {
-                unlink($currentFile->getPathname());
+                try {
+                    $filesystem->unlink($currentFile->getPathname());
+                } catch (\RuntimeException $exception) {
+                    // Another process, e.g. a concurrent build or purge, may have removed the archive already.
+                    if (file_exists($currentFile->getPathname())) {
+                        throw $exception;
+                    }
+
+                    $output->writeln(sprintf(
+                        '<warning>Skipped missing archive</warning>: <comment>%s</comment>',
+                        $currentFile->getRelativePathname()
+                    ));
+
+                    continue;
+                }
             }
 
             $output->writeln(sprintf(
@@ -166,7 +182,7 @@ class PurgeCommand extends BaseCommand
             if (is_dir($path)
                 && $depth > 0
                 && $this->removeEmptyDirectories($output, $path, $depth - 1)
-                && rmdir($path)
+                && @rmdir($path)
             ) {
                 $output->writeln(sprintf('<info>Removed empty directory</info>: <comment>%s</comment>', $path));
             } else {
