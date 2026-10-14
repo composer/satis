@@ -135,6 +135,24 @@ If true, will only resolve and add dependencies, not the root projects listed in
 
 Returns a minimal set of dependencies needed to satisfy the configuration. The resulting satis repository will contain only one or two versions of each project.
 
+### filter-tags-by-require
+
+If true, tags of VCS repositories that do not match the version constraint in "require" are skipped without reading their `composer.json`, which speeds up builds of repositories with many tags. Branches are always read. If skipping the tags would leave no package at all, all tags are read. Defaults to false.
+
+This only applies to repositories that set `name` to a package listed in "require". It has no effect if "require-all", "require-dependencies" or "require-dev-dependencies" is enabled, on repositories using `only`, `exclude` or `canonical`, or on packages required with an inline alias.
+
+```
+{
+  "repositories": [
+    { "type": "vcs", "url": "https://github.com/acme/library", "name": "acme/library" }
+  ],
+  "require": {
+    "acme/library": "^2.0"
+  },
+  "filter-tags-by-require": true
+}
+```
+
 ### blacklist
 
 Define a list of packages and versions to suppress in the final packages list. Takes the same format as the `require` section.
