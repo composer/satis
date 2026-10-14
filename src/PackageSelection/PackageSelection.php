@@ -15,6 +15,8 @@ namespace Composer\Satis\PackageSelection;
 
 use Composer\Composer;
 use Composer\DependencyResolver\Pool;
+use Composer\IO\IOInterface;
+use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
@@ -28,11 +30,13 @@ use Composer\Repository\ArrayRepository;
 use Composer\Repository\ArtifactRepository;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
+use Composer\Repository\InvalidRepositoryException;
 use Composer\Repository\PackageRepository;
 use Composer\Repository\PathRepository;
 use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Repository\RepositorySet;
+use Composer\Repository\VcsRepository;
 use Composer\Semver\Constraint\MatchAllConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
@@ -69,6 +73,12 @@ class PackageSelection
 
     /** Filter dependencies if true. */
     private bool $requireDependencyFilter;
+
+    /** Skips tags of VCS repositories not matching the required constraint if true. */
+    private bool $filterTagsByRequire;
+
+    /** Passed to the VCS repositories rebuilt for the tag filter. */
+    private IOInterface $io;
 
     /**
      * Minimum stability accepted for Packages in the list.
@@ -118,10 +128,13 @@ class PackageSelection
 
     /**
      * @param array<string, mixed> $config
+     * @param IOInterface|null     $io     Holds the credentials of private VCS repositories rebuilt for the tag filter,
+     *                                     which fail to authenticate with the default NullIO
      */
-    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors)
+    public function __construct(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, ?IOInterface $io = null)
     {
         $this->output = $output;
+        $this->io = $io ?? new NullIO();
         $this->skipErrors = $skipErrors;
         $this->filename = $outputDir . '/packages.json';
         $this->repositories = $config['repositories'] ?? [];
@@ -232,6 +245,11 @@ class PackageSelection
 
             $reposDroppedByPackagesFilter = array_filter($repos, static fn (RepositoryInterface|ConfigurableRepositoryInterface $repo): bool => !in_array($repo, $filteredRepos, true));
             $repos = $filteredRepos;
+        }
+
+        // Dependencies may require versions outside the constraints of the root package
+        if ($this->filterTagsByRequire && !$this->requireAll && !$this->requireDependencies && !$this->requireDevDependencies) {
+            $repos = $this->filterVcsTagsByRequire($repos, $composer, $verbose);
         }
 
         $repositorySet = new RepositorySet($this->minimumStability, $stabilityFlags);
@@ -388,6 +406,7 @@ class PackageSelection
         $this->onlyDependencies = isset($config['only-dependencies']) && true === $config['only-dependencies'];
         $this->onlyBestCandidates = isset($config['only-best-candidates']) && true === $config['only-best-candidates'];
         $this->requireDependencyFilter = (bool) ($config['require-dependency-filter'] ?? true);
+        $this->filterTagsByRequire = isset($config['filter-tags-by-require']) && true === $config['filter-tags-by-require'];
 
         if (!$this->requireAll && !isset($config['require'])) {
             $this->output->writeln('No explicit requires defined, enabling require-all');
@@ -625,6 +644,71 @@ class PackageSelection
                 $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
             }
         }
+    }
+
+    /**
+     * Lets VCS repositories of required packages skip tags outside the required constraint, before their composer.json
+     * is read.
+     *
+     * The repositories are rebuilt, as a VcsRepository takes its version cache in the constructor only and the
+     * RepositoryManager cannot pass one. They are loaded right away, which costs nothing extra, as the package is
+     * required. If skipping the tags leaves no package, e.g. as only tags outside the constraint contain a
+     * composer.json, the unfiltered repository is kept, so the build behaves as without the option. Repositories
+     * wrapped by a FilterRepository (only, exclude, canonical) are left as they are.
+     *
+     * @param array<RepositoryInterface|ConfigurableRepositoryInterface> $repositories
+     *
+     * @return array<RepositoryInterface|ConfigurableRepositoryInterface>
+     */
+    private function filterVcsTagsByRequire(array $repositories, PartialComposer $composer, bool $verbose): array
+    {
+        $rootPackage = $composer->getPackage();
+        $requires = $rootPackage->getRequires();
+        $aliasedPackages = array_column($rootPackage->getAliases(), 'package');
+        $loop = $composer->getLoop();
+
+        foreach ($repositories as $index => $repository) {
+            if (VcsRepository::class !== $repository::class) {
+                continue;
+            }
+
+            /** @var array{url: string, type?: string, name?: mixed} $repoConfig The constructor requires and expands the url */
+            $repoConfig = $repository->getRepoConfig();
+            $name = is_string($repoConfig['name'] ?? null) ? strtolower($repoConfig['name']) : null;
+            // Inline aliases make versions outside the constraint selectable
+            if (null === $name || !isset($requires[$name]) || in_array($name, $aliasedPackages, true)) {
+                continue;
+            }
+
+            $filteredRepository = new VcsRepository(
+                $repoConfig,
+                $this->io,
+                $composer->getConfig(),
+                $loop->getHttpDownloader(),
+                $composer->getEventDispatcher(),
+                $loop->getProcessExecutor(),
+                null,
+                new RequireConstraintVersionCache($requires[$name]->getConstraint()),
+            );
+
+            try {
+                $filteredRepository->getPackages();
+            } catch (InvalidRepositoryException) {
+                if ($verbose) {
+                    $this->output->writeln(sprintf('<info>No package left in repository %s when reading only tags matching %s, reading all tags</info>', $name, $requires[$name]->getPrettyConstraint()));
+                }
+
+                continue;
+            }
+
+            $repositories[$index] = $filteredRepository;
+
+            if ($verbose) {
+                $this->output->writeln(sprintf('<info>Reading only tags matching %s of repository %s</info>', $requires[$name]->getPrettyConstraint(), $name));
+            }
+        }
+
+        return $repositories;
     }
 
     private function setSelectedAsAbandoned(): void
