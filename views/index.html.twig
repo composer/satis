@@ -20,6 +20,17 @@
 
     <title>{{ name|default('Composer repository') }}</title>
 
+    <script type="text/javascript">
+        {# Set the color theme before the page renders to avoid a flash of the light theme #}
+        (function () {
+            var theme = window.localStorage.getItem('satisColorTheme') || 'auto';
+            if ('auto' === theme) {
+                theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-bs-theme', theme);
+        })();
+    </script>
+
     <style type="text/css">
         {% include 'build/style.css' %}
     </style>
@@ -33,7 +44,7 @@
             <a href="{{ url }}">
                 <h1>{{ name|default('Composer repository') }}</h1>
             </a>
-            <span class="badge bg-light text-dark m-1" title="{{ "now"|date(constant('\\DateTime::COOKIE')) }}">
+            <span class="badge bg-body-tertiary text-body m-1" title="{{ "now"|date(constant('\\DateTime::COOKIE')) }}">
                 Last updated: <br class="d-md-none"> <time datetime="{{ "now"|date(constant('\\DateTime::RFC3339')) }}">{{ "now"|date('l, d M Y H:i:s T') }}</time>
             </span>
         </div>
@@ -80,8 +91,8 @@
         </div>
     </form>
     <form id="package-filter-settings" class="my-3 card settings">
-        <div class="card-body">
-            <div class="form-group">
+        <div class="card-body d-flex flex-column gap-3">
+            <div>
                 <p class="h6">Default package &quot;filter by&quot; field:</p>
                 <div class="form-check form-check-inline">
                     <input
@@ -110,7 +121,7 @@
                         name="default-filter"
                         value="custom">
                     <label class="form-check-label" for="package-filter-custom">Use this field:</label>
-                    <select class="custom-select ml-2 default-filter-field" aria-label="Default filter field">
+                    <select class="form-select form-select-sm d-inline-block w-auto ms-2 default-filter-field" aria-label="Default filter field">
                         <option value="all" selected disabled hidden>Select field...</option>
                         <option value="name">Name</option>
                         {% for fieldName, label in fieldsToToggle %}
@@ -119,9 +130,9 @@
                     </select>
                 </div>
             </div>
-            <div class="form-group mb-0">
+            <div>
                 <p class="h6">Fields to display on packages:</p>
-                <div class="form-check form-check-inline">
+                <div class="form-check-inline">
                     <button
                         id="toggle-field-all"
                         class="btn btn-sm btn-primary"
@@ -136,6 +147,21 @@
                         value="{{ fieldName }}"
                         checked>
                     <label class="form-check-label" for="toggle-field-{{ fieldName }}">{{ label }}</label>
+                </div>
+                {% endfor %}
+            </div>
+            <div>
+                <p class="h6">Color theme:</p>
+                {% for theme, label in {auto: 'Use system setting', light: 'Light', dark: 'Dark'} %}
+                <div class="form-check form-check-inline">
+                    <input
+                        id="color-theme-{{ theme }}"
+                        class="form-check-input"
+                        type="radio"
+                        name="color-theme"
+                        value="{{ theme }}"
+                        {% if theme == 'auto' %}checked{% endif %}>
+                    <label class="form-check-label" for="color-theme-{{ theme }}">{{ label }}</label>
                 </div>
                 {% endfor %}
             </div>

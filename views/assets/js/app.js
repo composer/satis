@@ -5,6 +5,7 @@ import PackageFilterSettings from './App/PackageFilterSettings.js'
 import ToggleFields from './App/ToggleFields.js'
 import Settings from './App/Settings.js'
 import CopySnippet from './App/CopySnippet.js'
+import ColorTheme from './App/ColorTheme.js'
 
 function updateTimeElements() {
     DateDistance.calculate('time')
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     new ToggleFields('#toggle-field-all', '.toggle-field')
     new Settings('.settings', '.toggle-settings')
+    new ColorTheme('[name="color-theme"]')
     updateTimeElements()
     window.setInterval(updateTimeElements, 5000)
 })
