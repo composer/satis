@@ -1,7 +1,7 @@
 ARG AWS_ACCOUNT_ID
 ARG AWS_REGION
 ARG ECR_REPOSITORY=docker-images
-ARG FPM_IMAGE_TAG=php8.3-fpm-alpine
+ARG FPM_IMAGE_TAG=php8.5-fpm-alpine
 
 FROM ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPOSITORY}:${FPM_IMAGE_TAG}
 
