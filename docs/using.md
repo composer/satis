@@ -124,6 +124,17 @@ it, pass the VCS repository URL as an optional argument:
 
     php bin/satis build --repository-url https://only.my/repo.git satis.json web/
 
+You can also narrow the update to a single branch or version range of specific
+packages:
+
+    php bin/satis build --branch main satis.json web/ acme/pkg
+    php bin/satis build --branch 1.x satis.json web/ acme/pkg
+
+When `--branch` is given with a package filter, only the versions matching the
+given branch (e.g. `dev-main`) or constraint (e.g. `~1.0`) of the specified
+packages are refreshed. All other packages and branches are left untouched,
+preserved from the existing repository dump.
+
 ## Usage
 
 In your projects all you need to add now is your own composer repository using
