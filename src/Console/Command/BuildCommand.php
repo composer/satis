@@ -20,8 +20,10 @@ use Composer\Console\Application as ComposerApplication;
 use Composer\Json\JsonFile;
 use Composer\Json\JsonValidationException;
 use Composer\Package\Loader\RootPackageLoader;
+use Composer\Package\PackageInterface;
 use Composer\Package\Version\VersionGuesser;
 use Composer\Package\Version\VersionParser;
+use Composer\Semver\Constraint\Constraint;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\RepositoryManager;
 use Composer\Satis\Builder\ArchiveBuilder;
@@ -52,6 +54,7 @@ class BuildCommand extends BaseCommand
                 new InputArgument('packages', InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Packages that should be built. If not provided, all packages are built.', null),
                 new InputOption('repository-url', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Only update the repository at given URL(s).', null),
                 new InputOption('repository-strict', null, InputOption::VALUE_NONE, 'Also apply the repository filter when resolving dependencies'),
+                new InputOption('branch', null, InputOption::VALUE_REQUIRED, 'Only update the given branch or version range of the specified package(s)'),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
@@ -124,6 +127,7 @@ class BuildCommand extends BaseCommand
         $configFile = $input->getArgument('file');
         $packagesFilter = $input->getArgument('packages');
         $repositoryUrl = $input->getOption('repository-url');
+        $branch = $input->getOption('branch');
         $skipErrors = (bool) $input->getOption('skip-errors');
         $minify = (bool) $input->getOption('minify');
 
@@ -173,8 +177,16 @@ class BuildCommand extends BaseCommand
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
         }
 
+        if (null !== $branch && (null !== $repositoryUrl && [] !== $repositoryUrl)) {
+            throw new \InvalidArgumentException('The "--branch" and "--repository-url" options cannot be used together.');
+        }
+
         if ((null !== $repositoryUrl && [] !== $repositoryUrl) && count($packagesFilter) > 0) {
             throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
+        }
+
+        if (null !== $branch && count($packagesFilter) === 0) {
+            throw new \InvalidArgumentException('The "--branch" option requires at least one package to be specified.');
         }
 
         // disable packagist by default
@@ -253,6 +265,10 @@ class BuildCommand extends BaseCommand
 
         $packages = $packageSelection->select($composer, $verbose);
 
+        if (null !== $branch && count($packagesFilter) > 0) {
+            $packages = $this->filterPackagesByBranch($packages, $packagesFilter, $branch, $output);
+        }
+
         if (isset($config['archive']['directory'])) {
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
             $downloads->setComposer($composer);
@@ -263,6 +279,9 @@ class BuildCommand extends BaseCommand
         $packages = $packageSelection->clean();
 
         if ($packageSelection->hasFilterForPackages() || $packageSelection->hasRepositoriesFilter()) {
+            if (null !== $branch && count($packagesFilter) > 0) {
+                $packageSelection->setPackagesFilter([]);
+            }
             // in case of an active filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $packageSelection->load();
@@ -290,7 +309,7 @@ class BuildCommand extends BaseCommand
      *
      * @param string[] $disabledRepoNames
      */
-    private function removeDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames, OutputInterface $output, bool $verbose = false): void
+    protected function removeDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames, OutputInterface $output, bool $verbose = false): void
     {
         $refl = new \ReflectionProperty($manager, 'repositories');
         $repositories = $refl->getValue($manager);
@@ -336,7 +355,7 @@ class BuildCommand extends BaseCommand
      * `git remote show origin` and one more composer.json read per tag and branch -
      * which multiplies build time and load on the git servers.
      */
-    private function deduplicateRepositories(RepositoryManager $manager, OutputInterface $output, bool $verbose = false): void
+    protected function deduplicateRepositories(RepositoryManager $manager, OutputInterface $output, bool $verbose = false): void
     {
         $refl = new \ReflectionProperty($manager, 'repositories');
         $repositories = $refl->getValue($manager);
@@ -381,7 +400,7 @@ class BuildCommand extends BaseCommand
     /**
      * @param array<string, mixed> $config
      */
-    private function shouldBuildHtml(InputInterface $input, array $config): bool
+    protected function shouldBuildHtml(InputInterface $input, array $config): bool
     {
         if ((bool) $input->getOption('no-html-output')) {
             return false;
@@ -394,7 +413,7 @@ class BuildCommand extends BaseCommand
         return true;
     }
 
-    private function getConfiguration(): Config
+    protected function getConfiguration(): Config
     {
         $config = new Config();
 
@@ -411,7 +430,7 @@ class BuildCommand extends BaseCommand
         return $config;
     }
 
-    private function getComposerHome(): string
+    protected function getComposerHome(): string
     {
         $home = getenv('COMPOSER_HOME');
         if (false === $home) {
@@ -438,7 +457,7 @@ class BuildCommand extends BaseCommand
      * @throws JsonValidationException  if the json file doesn't match the schema
      * @throws \UnexpectedValueException if the json file is not UTF-8
      */
-    private function check(string $configFile): bool
+    protected function check(string $configFile): bool
     {
         $content = file_get_contents($configFile);
 
@@ -473,5 +492,67 @@ class BuildCommand extends BaseCommand
         }
 
         throw new ParsingException('"' . $configFile . '" does not contain valid JSON' . "\n" . $result->getMessage(), $result->getDetails());
+    }
+
+    /**
+     * Filters packages to only those matching the given branch name or version range.
+     * Packages not in the target set are kept as-is.
+     *
+     * A value such as "main" is matched against dev branch versions ("dev-main"),
+     * while a version range such as "1.x" is matched against the package version.
+     *
+     * @param PackageInterface[] $packages
+     * @param string[]           $packageNames
+     *
+     * @return PackageInterface[]
+     */
+    private function filterPackagesByBranch(array $packages, array $packageNames, string $branch, OutputInterface $output): array
+    {
+        $parser = new VersionParser();
+        $expectedDevVersion = 'dev-' . $branch;
+
+        $constraint = null;
+        try {
+            $constraint = $parser->parseConstraints($branch);
+        } catch (\UnexpectedValueException $e) {
+            $constraint = null;
+        }
+
+        $filtered = [];
+
+        foreach ($packages as $uniqueName => $package) {
+            if (!in_array($package->getName(), $packageNames, true)) {
+                $filtered[$uniqueName] = $package;
+
+                continue;
+            }
+
+            $prettyVersion = $package->getPrettyVersion();
+            if (!is_string($prettyVersion)) {
+                continue;
+            }
+
+            $matched = $expectedDevVersion === $prettyVersion;
+
+            if (!$matched && null !== $constraint && $constraint->matches(new Constraint('==', $package->getVersion()))) {
+                $matched = true;
+            }
+
+            if ($matched) {
+                $filtered[$uniqueName] = $package;
+                $output->writeln(
+                    sprintf('<info>Matched branch version: %s (%s)</info>', $package->getPrettyName(), $prettyVersion),
+                    OutputInterface::VERBOSITY_VERBOSE
+                );
+
+                continue;
+            }
+
+            if (0 === strpos($prettyVersion, 'dev-') && $package->isDev()) {
+                continue;
+            }
+        }
+
+        return $filtered;
     }
 }

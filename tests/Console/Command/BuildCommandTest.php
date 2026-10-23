@@ -32,6 +32,7 @@ use PHPUnit\Framework\TestCase;
 use Seld\JsonLint\ParsingException;
 use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 
 #[TestDox('BuildCommand')]
@@ -1120,5 +1121,170 @@ class BuildCommandTest extends TestCase
         ]);
 
         self::assertSame(0, $tester->getStatusCode());
+    }
+
+    #[TestDox('execute() with --branch filters to dev branch versions')]
+    public function testExecuteWithBranchFiltersDevVersions(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                [
+                    'type' => 'package',
+                    'package' => [
+                        ['name' => 'vendor/package-a', 'version' => '1.0.0'],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-main'],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-feature-x'],
+                        ['name' => 'vendor/package-b', 'version' => '2.0.0'],
+                    ],
+                ],
+            ],
+            'require-all' => true,
+            'output-html' => false,
+        ];
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ], $config);
+
+        self::assertFileExists($outputDir . '/packages.json');
+
+        $this->writeConfig($config);
+        $tester = $this->createSatisTester();
+        $status = $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => 'main',
+            'packages' => ['vendor/package-a'],
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        self::assertSame(0, $status);
+        self::assertStringContainsString('Matched branch version', $tester->getDisplay());
+    }
+
+    #[TestDox('execute() with --branch preserves other packages')]
+    public function testExecuteWithBranchPreservesOtherPackages(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                [
+                    'type' => 'package',
+                    'package' => [
+                        ['name' => 'vendor/package-a', 'version' => '1.0.0'],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-main'],
+                        ['name' => 'vendor/package-b', 'version' => '2.0.0'],
+                    ],
+                ],
+            ],
+            'require-all' => true,
+            'output-html' => false,
+        ];
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ], $config);
+
+        $packagesBefore = json_decode(file_get_contents($outputDir . '/packages.json'), true);
+        self::assertIsArray($packagesBefore);
+
+        $this->writeConfig($config);
+        $tester = $this->createSatisTester();
+        $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => 'main',
+            'packages' => ['vendor/package-a'],
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        $packagesAfter = json_decode(file_get_contents($outputDir . '/packages.json'), true);
+        self::assertIsArray($packagesAfter);
+        self::assertEquals(
+            $packagesBefore['available-packages'],
+            $packagesAfter['available-packages']
+        );
+    }
+
+    #[TestDox('execute() with --branch preserves other branches of the same package')]
+    public function testExecuteWithBranchPreservesOtherBranches(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                [
+                    'type' => 'package',
+                    'package' => [
+                        ['name' => 'vendor/package-a', 'version' => '1.0.0'],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-main'],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-feature-x'],
+                    ],
+                ],
+            ],
+            'require-all' => true,
+            'output-html' => false,
+        ];
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ], $config);
+
+        $this->writeConfig($config);
+        $tester = $this->createSatisTester();
+        $status = $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => 'main',
+            'packages' => ['vendor/package-a'],
+        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+
+        self::assertSame(0, $status);
+
+        $packagesAfter = json_decode(file_get_contents($outputDir . '/packages.json'), true);
+        self::assertIsArray($packagesAfter);
+        self::assertContains('vendor/package-a', $packagesAfter['available-packages']);
+    }
+
+    #[TestDox('execute() --branch fails without packages')]
+    public function testExecuteBranchFailsWithoutPackages(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('requires at least one package');
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => 'main',
+        ], $this->baseSatisConfig());
+    }
+
+    #[TestDox('execute() --branch and --repository-url are mutually exclusive')]
+    public function testExecuteBranchAndRepositoryUrlAreMutuallyExclusive(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('cannot be used together');
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => 'main',
+            '--repository-url' => ['https://example.com/repo.git'],
+            'packages' => ['vendor/package-a'],
+        ], $this->baseSatisConfig());
     }
 }
