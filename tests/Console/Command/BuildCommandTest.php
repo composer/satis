@@ -1193,7 +1193,7 @@ class BuildCommandTest extends TestCase
             'output-dir' => $outputDir,
         ], $config);
 
-        $packagesBefore = json_decode(file_get_contents($outputDir . '/packages.json'), true);
+        $packagesBefore = json_decode((string) file_get_contents($outputDir . '/packages.json'), true);
         self::assertIsArray($packagesBefore);
 
         $this->writeConfig($config);
@@ -1205,7 +1205,7 @@ class BuildCommandTest extends TestCase
             'packages' => ['vendor/package-a'],
         ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
 
-        $packagesAfter = json_decode(file_get_contents($outputDir . '/packages.json'), true);
+        $packagesAfter = json_decode((string) file_get_contents($outputDir . '/packages.json'), true);
         self::assertIsArray($packagesAfter);
         self::assertEquals(
             $packagesBefore['available-packages'],
@@ -1251,7 +1251,7 @@ class BuildCommandTest extends TestCase
 
         self::assertSame(0, $status);
 
-        $packagesAfter = json_decode(file_get_contents($outputDir . '/packages.json'), true);
+        $packagesAfter = json_decode((string) file_get_contents($outputDir . '/packages.json'), true);
         self::assertIsArray($packagesAfter);
         self::assertContains('vendor/package-a', $packagesAfter['available-packages']);
     }

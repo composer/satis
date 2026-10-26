@@ -528,9 +528,6 @@ class BuildCommand extends BaseCommand
             }
 
             $prettyVersion = $package->getPrettyVersion();
-            if (!is_string($prettyVersion)) {
-                continue;
-            }
 
             $matched = $expectedDevVersion === $prettyVersion;
 
