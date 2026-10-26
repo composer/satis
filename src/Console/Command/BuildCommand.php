@@ -23,7 +23,6 @@ use Composer\Package\Loader\RootPackageLoader;
 use Composer\Package\PackageInterface;
 use Composer\Package\Version\VersionGuesser;
 use Composer\Package\Version\VersionParser;
-use Composer\Semver\Constraint\Constraint;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\RepositoryManager;
 use Composer\Satis\Builder\ArchiveBuilder;
@@ -31,6 +30,7 @@ use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\Console\Application as SatisApplication;
 use Composer\Satis\PackageSelection\PackageSelection;
+use Composer\Semver\Constraint\Constraint;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
@@ -185,7 +185,7 @@ class BuildCommand extends BaseCommand
             throw new \InvalidArgumentException('The arguments "package" and "repository-url" can not be used together.');
         }
 
-        if (null !== $branch && count($packagesFilter) === 0) {
+        if (null !== $branch && 0 === count($packagesFilter)) {
             throw new \InvalidArgumentException('The "--branch" option requires at least one package to be specified.');
         }
 

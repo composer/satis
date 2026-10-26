@@ -414,7 +414,7 @@ class BuildCommandTest extends TestCase
         self::assertSame('', $output->fetch());
     }
 
-    private function invokeDeduplicateRepositories(RepositoryManager $manager, ?\Symfony\Component\Console\Output\OutputInterface $output = null, bool $verbose = false): void
+    private function invokeDeduplicateRepositories(RepositoryManager $manager, ?OutputInterface $output = null, bool $verbose = false): void
     {
         $command = new BuildCommand();
         $method = new \ReflectionMethod($command, 'deduplicateRepositories');
@@ -436,7 +436,7 @@ class BuildCommandTest extends TestCase
     /**
      * @param string[] $disabledRepoNames
      */
-    private function invokeRemoveDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames, ?\Symfony\Component\Console\Output\OutputInterface $output = null, bool $verbose = false): void
+    private function invokeRemoveDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames, ?OutputInterface $output = null, bool $verbose = false): void
     {
         $command = new BuildCommand();
         $method = new \ReflectionMethod($command, 'removeDisabledRepositories');
