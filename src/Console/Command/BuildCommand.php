@@ -289,6 +289,16 @@ class BuildCommand extends BaseCommand
             // in case of an active filter we need to load the dumped packages.json and merge the
             // updated packages in
             $oldPackages = $packageSelection->load();
+
+            if (null !== $branch && count($packagesFilter) > 0) {
+                $oldTargetPackages = array_filter(
+                    $oldPackages,
+                    static fn (PackageInterface $package): bool => in_array($package->getName(), $packagesFilter, true)
+                );
+                $oldMatchingPackages = $this->filterPackagesByBranch($oldTargetPackages, $packagesFilter, $branch, $output);
+                $oldPackages = array_diff_key($oldPackages, $oldMatchingPackages);
+            }
+
             $packages += $oldPackages;
             ksort($packages);
         }
