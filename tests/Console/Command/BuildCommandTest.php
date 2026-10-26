@@ -1247,13 +1247,81 @@ class BuildCommandTest extends TestCase
             'output-dir' => $outputDir,
             '--branch' => 'main',
             'packages' => ['vendor/package-a'],
-        ], ['verbosity' => OutputInterface::VERBOSITY_VERBOSE]);
+        ]);
 
         self::assertSame(0, $status);
 
         $packagesAfter = json_decode((string) file_get_contents($outputDir . '/packages.json'), true);
         self::assertIsArray($packagesAfter);
         self::assertContains('vendor/package-a', $packagesAfter['available-packages']);
+    }
+
+    #[TestDox('execute() with --branch only updates the requested branch version metadata')]
+    public function testExecuteWithBranchOnlyUpdatesRequestedBranchReference(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                [
+                    'type' => 'package',
+                    'package' => [
+                        ['name' => 'vendor/package-a', 'version' => '1.0.0', 'dist' => ['url' => 'https://old.example.com/1.0.zip', 'type' => 'zip']],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-main', 'dist' => ['url' => 'https://old.example.com/dev-main.zip', 'type' => 'zip']],
+                        ['name' => 'vendor/package-a', 'version' => 'dev-feature-x', 'dist' => ['url' => 'https://old.example.com/feat-x.zip', 'type' => 'zip']],
+                        ['name' => 'vendor/other-pkg', 'version' => '1.0.0', 'dist' => ['url' => 'https://old.example.com/other.zip', 'type' => 'zip']],
+                    ],
+                ],
+            ],
+            'require-all' => true,
+            'output-html' => false,
+        ];
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ], $config);
+
+        $config['repositories'][0]['package'][1]['dist']['url'] = 'https://new.example.com/dev-main.zip';
+
+        $this->writeConfig($config);
+        $tester = $this->createSatisTester();
+        $status = $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => 'main',
+            'packages' => ['vendor/package-a'],
+        ]);
+
+        self::assertSame(0, $status);
+
+        $devJson = json_decode((string) file_get_contents($outputDir . '/p2/vendor/package-a~dev.json'), true);
+        self::assertIsArray($devJson);
+
+        $devMain = array_values(array_filter(
+            $devJson['packages']['vendor/package-a'],
+            static fn (array $pkg): bool => 'dev-main' === $pkg['version']
+        ));
+        self::assertCount(1, $devMain);
+        self::assertSame('https://new.example.com/dev-main.zip', $devMain[0]['dist']['url']);
+
+        $devFeatureX = array_values(array_filter(
+            $devJson['packages']['vendor/package-a'],
+            static fn (array $pkg): bool => 'dev-feature-x' === $pkg['version']
+        ));
+        self::assertCount(1, $devFeatureX);
+        self::assertSame('https://old.example.com/feat-x.zip', $devFeatureX[0]['dist']['url']);
+
+        $stableJson = json_decode((string) file_get_contents($outputDir . '/p2/vendor/package-a.json'), true);
+        self::assertIsArray($stableJson);
+        $v1 = array_values(array_filter(
+            $stableJson['packages']['vendor/package-a'],
+            static fn (array $pkg): bool => '1.0.0' === $pkg['version']
+        ));
+        self::assertCount(1, $v1);
+        self::assertSame('https://old.example.com/1.0.zip', $v1[0]['dist']['url']);
     }
 
     #[TestDox('execute() --branch fails without packages')]
