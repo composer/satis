@@ -309,7 +309,7 @@ class BuildCommand extends BaseCommand
      *
      * @param string[] $disabledRepoNames
      */
-    protected function removeDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames, OutputInterface $output, bool $verbose = false): void
+    private function removeDisabledRepositories(RepositoryManager $manager, array $disabledRepoNames, OutputInterface $output, bool $verbose = false): void
     {
         $refl = new \ReflectionProperty($manager, 'repositories');
         $repositories = $refl->getValue($manager);
@@ -355,7 +355,7 @@ class BuildCommand extends BaseCommand
      * `git remote show origin` and one more composer.json read per tag and branch -
      * which multiplies build time and load on the git servers.
      */
-    protected function deduplicateRepositories(RepositoryManager $manager, OutputInterface $output, bool $verbose = false): void
+    private function deduplicateRepositories(RepositoryManager $manager, OutputInterface $output, bool $verbose = false): void
     {
         $refl = new \ReflectionProperty($manager, 'repositories');
         $repositories = $refl->getValue($manager);
@@ -400,7 +400,7 @@ class BuildCommand extends BaseCommand
     /**
      * @param array<string, mixed> $config
      */
-    protected function shouldBuildHtml(InputInterface $input, array $config): bool
+    private function shouldBuildHtml(InputInterface $input, array $config): bool
     {
         if ((bool) $input->getOption('no-html-output')) {
             return false;
@@ -413,7 +413,7 @@ class BuildCommand extends BaseCommand
         return true;
     }
 
-    protected function getConfiguration(): Config
+    private function getConfiguration(): Config
     {
         $config = new Config();
 
@@ -430,7 +430,7 @@ class BuildCommand extends BaseCommand
         return $config;
     }
 
-    protected function getComposerHome(): string
+    private function getComposerHome(): string
     {
         $home = getenv('COMPOSER_HOME');
         if (false === $home) {
@@ -457,7 +457,7 @@ class BuildCommand extends BaseCommand
      * @throws JsonValidationException  if the json file doesn't match the schema
      * @throws \UnexpectedValueException if the json file is not UTF-8
      */
-    protected function check(string $configFile): bool
+    private function check(string $configFile): bool
     {
         $content = file_get_contents($configFile);
 
