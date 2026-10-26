@@ -278,6 +278,10 @@ class BuildCommand extends BaseCommand
 
         $packages = $packageSelection->clean();
 
+        if (null !== $branch && count($packagesFilter) > 0) {
+            $packages = $this->filterPackagesByBranch($packages, $packagesFilter, $branch, $output);
+        }
+
         if ($packageSelection->hasFilterForPackages() || $packageSelection->hasRepositoriesFilter()) {
             if (null !== $branch && count($packagesFilter) > 0) {
                 $packageSelection->setPackagesFilter([]);
