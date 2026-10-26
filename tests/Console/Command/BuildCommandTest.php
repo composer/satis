@@ -1287,4 +1287,74 @@ class BuildCommandTest extends TestCase
             'packages' => ['vendor/package-a'],
         ], $this->baseSatisConfig());
     }
+
+    /**
+     * @return array<string, array{string, string, string}>
+     */
+    public static function branchEdgeCasesProvider(): array
+    {
+        return [
+            'branch with slash' => [
+                'feat/super-power-feature',
+                'dev-feat/super-power-feature',
+                'vendor/edge-pkg',
+            ],
+            'version range 3.x' => [
+                '3.x',
+                '3.0.0',
+                'vendor/edge-pkg',
+            ],
+            'branch with dots' => [
+                'my.new-feat',
+                'dev-my.new-feat',
+                'vendor/edge-pkg',
+            ],
+        ];
+    }
+
+    #[DataProvider('branchEdgeCasesProvider')]
+    #[TestDox('execute() with --branch handles edge-case branch names')]
+    public function testExecuteBranchHandlesEdgeCaseNames(string $branch, string $matchingVersion, string $packageName): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                [
+                    'type' => 'package',
+                    'package' => [
+                        ['name' => $packageName, 'version' => '1.0.0'],
+                        ['name' => $packageName, 'version' => $matchingVersion],
+                        ['name' => $packageName, 'version' => '2.0.0'],
+                        ['name' => 'vendor/other-pkg', 'version' => '1.0.0'],
+                    ],
+                ],
+            ],
+            'require-all' => true,
+            'output-html' => false,
+        ];
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ], $config);
+
+        $this->writeConfig($config);
+        $tester = $this->createSatisTester();
+        $status = $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--branch' => $branch,
+            'packages' => [$packageName],
+        ]);
+
+        self::assertSame(0, $status);
+
+        $packagesAfter = json_decode((string) file_get_contents($outputDir . '/packages.json'), true);
+        self::assertIsArray($packagesAfter);
+        self::assertContains($packageName, $packagesAfter['available-packages']);
+        self::assertContains('vendor/other-pkg', $packagesAfter['available-packages']);
+    }
 }
