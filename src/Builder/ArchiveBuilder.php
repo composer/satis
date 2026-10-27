@@ -25,6 +25,7 @@ use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 use Composer\Util\SyncHelper;
+use React\Promise\PromiseInterface;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -57,6 +58,8 @@ class ArchiveBuilder extends Builder
         $checksumCache = $this->createChecksumCache($basedir);
 
         shuffle($packages);
+
+        $this->prefetchDistArchives($helper, $downloadManager, $archiveManager, $packages, $basedir);
 
         /** @var ProgressBar|null $progressBar Should only remain `null` if $renderProgress is `false` */
         $progressBar = null;
@@ -110,7 +113,7 @@ class ArchiveBuilder extends Builder
                     $this->output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
                 }
 
-                $intermediatePath = preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
+                $intermediatePath = $this->getIntermediatePath($package);
 
                 if ('pear-library' === $package->getType()) {
                     /* @see https://github.com/composer/composer/commit/44a4429978d1b3c6223277b875762b2930e83e8c */
@@ -193,11 +196,84 @@ class ArchiveBuilder extends Builder
         $format = (string) ($this->config['archive']['format'] ?? 'zip');
         $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);
         $overrideDistType = (bool) ($this->config['archive']['override-dist-type'] ?? false);
-        $rearchive = (bool) ($this->config['archive']['rearchive'] ?? true);
 
         $filesystem = new Filesystem();
+        $targetDir = $this->prepareTargetDir($filesystem, $targetDir);
+
+        $path = $this->getArchivePath($archiveManager, $package, $targetDir);
+        if (file_exists($path)) {
+            return $path;
+        }
+
+        $distArchivePath = $this->getDistArchivePath($archiveManager, $package, $targetDir);
+        if (null !== $distArchivePath) {
+            if (!file_exists($distArchivePath)) {
+                SyncHelper::await($this->composer->getLoop(), $this->downloadDistArchive($downloadManager, $package, $distArchivePath));
+            }
+
+            return $distArchivePath;
+        }
+
+        if ($overrideDistType) {
+            $downloaded = $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
+            $filesystem->rename($downloaded, $path);
+
+            return $path;
+        }
+
+        return $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
+    }
+
+    /**
+     * Downloads all missing dist archives concurrently, so the sequential archive() calls find them in place.
+     * Failed downloads are ignored here and retried by archive(), which reports errors as usual.
+     *
+     * @param array<PackageInterface> $packages
+     */
+    private function prefetchDistArchives(ArchiveBuilderHelper $helper, DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir): void
+    {
+        $filesystem = new Filesystem();
+        $promises = [];
+
+        foreach ($packages as $package) {
+            if (!$package instanceof CompletePackageInterface || $helper->isSkippable($package)) {
+                continue;
+            }
+
+            $targetDir = $this->prepareTargetDir($filesystem, sprintf('%s/%s', $basedir, $this->getIntermediatePath($package)));
+            $distArchivePath = $this->getDistArchivePath($archiveManager, $package, $targetDir);
+            if (null === $distArchivePath || file_exists($distArchivePath) || file_exists($this->getArchivePath($archiveManager, $package, $targetDir))) {
+                continue;
+            }
+
+            $promises[] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath)->then(null, static function (): void {
+            });
+        }
+
+        if ([] === $promises) {
+            return;
+        }
+
+        $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($promises)));
+        $this->composer->getLoop()->wait($promises);
+    }
+
+    private function getIntermediatePath(PackageInterface $package): string
+    {
+        return (string) preg_replace('#[^a-z0-9-_/]#i', '-', $package->getName());
+    }
+
+    private function prepareTargetDir(Filesystem $filesystem, string $targetDir): string
+    {
         $filesystem->ensureDirectoryExists($targetDir);
-        $targetDir = (string) realpath($targetDir);
+
+        return (string) realpath($targetDir);
+    }
+
+    private function getArchivePath(ArchiveManager $archiveManager, CompletePackageInterface $package, string $targetDir): string
+    {
+        $format = (string) ($this->config['archive']['format'] ?? 'zip');
+        $overrideDistType = (bool) ($this->config['archive']['override-dist-type'] ?? false);
 
         if ($overrideDistType) {
             $originalDistType = $package->getDistType();
@@ -208,45 +284,47 @@ class ArchiveBuilder extends Builder
             $packageName = $archiveManager->getPackageFilename($package);
         }
 
-        $path = $targetDir . '/' . $packageName . '.' . $format;
-        if (file_exists($path)) {
-            return $path;
+        return $targetDir . '/' . $packageName . '.' . $format;
+    }
+
+    /**
+     * Returns the path of the dist archive if it is used as is, or null if the package needs to be archived.
+     */
+    private function getDistArchivePath(ArchiveManager $archiveManager, CompletePackageInterface $package, string $targetDir): ?string
+    {
+        $rearchive = (bool) ($this->config['archive']['rearchive'] ?? true);
+        $distType = $package->getDistType();
+
+        if ($rearchive || !in_array($distType, ['tar', 'zip'], true)) {
+            return null;
         }
 
-        if (!$rearchive && in_array($distType = $package->getDistType(), ['tar', 'zip'], true)) {
-            if ($overrideDistType) {
-                $packageName = $archiveManager->getPackageFilename($package);
-            }
+        return $targetDir . '/' . $archiveManager->getPackageFilename($package) . '.' . $distType;
+    }
 
-            $path = $targetDir . '/' . $packageName . '.' . $distType;
-            if (file_exists($path)) {
-                return $path;
-            }
+    /**
+     * @return PromiseInterface<void>
+     */
+    private function downloadDistArchive(DownloadManager $downloadManager, CompletePackageInterface $package, string $path): PromiseInterface
+    {
+        $filesystem = new Filesystem();
+        $downloadDir = sys_get_temp_dir() . '/composer_archiver' . uniqid();
+        $filesystem->ensureDirectoryExists($downloadDir);
+        $downloader = $downloadManager->getDownloader('file');
 
-            $downloadDir = sys_get_temp_dir() . '/composer_archiver' . uniqid();
-            $filesystem->ensureDirectoryExists($downloadDir);
-            $downloader = $downloadManager->getDownloader('file');
-            $downloadPromise = $downloader->download($package, $downloadDir);
-            $downloadPromise->then(function ($filename) use ($path, $filesystem) {
+        return $downloader->download($package, $downloadDir)->then(
+            static function ($filename) use ($path, $filesystem, $downloadDir): void {
                 $filesystem->ensureDirectoryExists(dirname($path));
                 if (is_string($filename)) {
                     $filesystem->rename($filename, $path);
                 }
-            });
-            SyncHelper::await($this->composer->getLoop(), $downloadPromise);
-            $filesystem->removeDirectory($downloadDir);
+                $filesystem->removeDirectory($downloadDir);
+            },
+            static function (\Throwable $exception) use ($filesystem, $downloadDir): void {
+                $filesystem->removeDirectory($downloadDir);
 
-            return $path;
-        }
-
-        if ($overrideDistType) {
-            $path = $targetDir . '/' . $packageName . '.' . $format;
-            $downloaded = $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
-            $filesystem->rename($downloaded, $path);
-
-            return $path;
-        }
-
-        return $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
+                throw $exception;
+            }
+        );
     }
 }
