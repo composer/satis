@@ -16,7 +16,9 @@ namespace Composer\Satis\Builder;
 use Composer\Composer;
 use Composer\Config;
 use Composer\Config\JsonConfigSource;
+use Composer\Downloader\DownloaderInterface;
 use Composer\Downloader\DownloadManager;
+use Composer\Downloader\TransportException;
 use Composer\Json\JsonFile;
 use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
@@ -25,6 +27,8 @@ use Composer\Package\PackageInterface;
 use Composer\Util\Loop;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use React\Promise\PromiseInterface;
+
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Filesystem\Filesystem;
@@ -52,6 +56,13 @@ class ArchiveBuilderTest extends TestCase
     protected string $home;
 
     protected string $target;
+
+    /**
+     * Downloads and waits on the loop, in the order they happened.
+     *
+     * @var list<string>
+     */
+    private array $events = [];
 
     public function tearDown(): void
     {
@@ -227,6 +238,176 @@ class ArchiveBuilderTest extends TestCase
         $builder->dump($packages);
 
         self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
+    }
+
+    public function testDumpDownloadsMissingDistArchivesConcurrently(): void
+    {
+        $packages = self::getDistPackages();
+        $this->useFileDownloader(static fn (): bool => true);
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertSame(['download', 'download', 'download', 'wait 3'], $this->getEventNames());
+        foreach ($packages as $package) {
+            self::assertFileExists($this->getDistArchivePath($package));
+            self::assertSame(basename($this->getDistArchivePath($package)), basename((string) $package->getDistUrl()));
+        }
+    }
+
+    public function testDumpDoesNotDownloadExistingDistArchives(): void
+    {
+        $packages = self::getDistPackages();
+        $this->useFileDownloader(static fn (): bool => true);
+        $existingArchive = $this->getDistArchivePath($packages[0]);
+        (new Filesystem())->dumpFile($existingArchive, 'the package archive.');
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertSame(['download', 'download', 'wait 2'], $this->getEventNames());
+        self::assertNotContains('download 1.0.0', $this->events);
+        self::assertStringEqualsFile($existingArchive, 'the package archive.');
+    }
+
+    public function testDumpRetriesFailedDownloadsSequentially(): void
+    {
+        $packages = self::getDistPackages();
+        $attempts = [];
+        $this->useFileDownloader(static function (PackageInterface $package) use (&$attempts): bool {
+            $attempts[$package->getPrettyVersion()] = ($attempts[$package->getPrettyVersion()] ?? 0) + 1;
+
+            return '1.1.0' !== $package->getPrettyVersion() || $attempts['1.1.0'] > 1;
+        });
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertSame(['download', 'download', 'download', 'wait 3', 'download', 'wait 1'], $this->getEventNames());
+        self::assertSame('download 1.1.0', $this->events[4]);
+        foreach ($packages as $package) {
+            self::assertFileExists($this->getDistArchivePath($package));
+        }
+    }
+
+    public function testDumpFailsIfRetriedDownloadFails(): void
+    {
+        $this->useFileDownloader(static fn (PackageInterface $package): bool => '1.1.0' !== $package->getPrettyVersion());
+
+        $this->expectException(TransportException::class);
+        $this->expectExceptionMessage('Download of 1.1.0 failed');
+
+        $this->createDistArchiveBuilder(false)->dump(self::getDistPackages());
+    }
+
+    public function testDumpSkipsFailedDownloadsIfErrorsAreSkipped(): void
+    {
+        $packages = self::getDistPackages();
+        $this->useFileDownloader(static fn (PackageInterface $package): bool => '1.1.0' !== $package->getPrettyVersion());
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        foreach ($packages as $package) {
+            if ('1.1.0' === $package->getPrettyVersion()) {
+                self::assertFileDoesNotExist($this->getDistArchivePath($package));
+            } else {
+                self::assertFileExists($this->getDistArchivePath($package));
+            }
+        }
+    }
+
+    /**
+     * @return list<CompletePackage>
+     */
+    private static function getDistPackages(): array
+    {
+        $packages = [];
+        foreach (['1.0.0', '1.1.0', '1.2.0'] as $version) {
+            $reference = sha1($version);
+            $package = new CompletePackage('monolog/monolog', $version . '.0', $version);
+            $package->setType('library');
+            $package->setSourceType('git');
+            $package->setSourceUrl('https://github.com/Seldaek/monolog.git');
+            $package->setSourceReference($reference);
+            $package->setDistType('zip');
+            $package->setDistUrl('https://api.github.com/repos/Seldaek/monolog/zipball/' . $reference);
+            $package->setDistReference($reference);
+            $packages[] = $package;
+        }
+
+        return $packages;
+    }
+
+    private function createDistArchiveBuilder(bool $skipErrors = true): ArchiveBuilder
+    {
+        $config = array_replace_recursive($this->satisConfig, ['archive' => ['rearchive' => false]]);
+
+        $builder = new ArchiveBuilder($this->output, $this->outputDir, $config, $skipErrors);
+        $builder->setInput($this->input);
+        $builder->setComposer($this->composer);
+
+        return $builder;
+    }
+
+    /**
+     * Replaces the file downloader and the loop with doubles recording their calls. The loop rethrows rejections like
+     * Composer's loop does.
+     *
+     * @param callable(PackageInterface): bool $succeeds
+     */
+    private function useFileDownloader(callable $succeeds): void
+    {
+        $downloadDir = $this->root . '/downloads';
+        $events = &$this->events;
+
+        $downloader = $this->createMock(DownloaderInterface::class);
+        $downloader->method('download')->willReturnCallback(
+            static function (PackageInterface $package) use ($succeeds, $downloadDir, &$events): PromiseInterface {
+                $events[] = 'download ' . $package->getPrettyVersion();
+                if (!$succeeds($package)) {
+                    return \React\Promise\reject(new TransportException('Download of ' . $package->getPrettyVersion() . ' failed'));
+                }
+
+                $file = $downloadDir . '/' . $package->getPrettyVersion() . '.zip';
+                (new Filesystem())->dumpFile($file, 'the downloaded archive of ' . $package->getPrettyVersion());
+
+                return \React\Promise\resolve($file);
+            }
+        );
+
+        $downloadManager = $this->createMock(DownloadManager::class);
+        $downloadManager->method('getDownloader')->with('file')->willReturn($downloader);
+
+        $loop = $this->createMock(Loop::class);
+        $loop->method('wait')->willReturnCallback(
+            static function (array $promises) use (&$events): void {
+                $events[] = 'wait ' . count($promises);
+                $uncaught = null;
+                foreach ($promises as $promise) {
+                    $promise->then(null, static function (\Throwable $exception) use (&$uncaught): void {
+                        $uncaught = $exception;
+                    });
+                }
+                if (null !== $uncaught) {
+                    throw $uncaught;
+                }
+            }
+        );
+
+        $this->composer->setDownloadManager($downloadManager);
+        $this->composer->setLoop($loop);
+    }
+
+    /**
+     * Returns the recorded events without the package versions, as packages are dumped in random order.
+     *
+     * @return list<string>
+     */
+    private function getEventNames(): array
+    {
+        return array_map(static fn (string $event): string => (string) preg_replace('/^download .+$/', 'download', $event), $this->events);
+    }
+
+    private function getDistArchivePath(CompletePackageInterface $package): string
+    {
+        return $this->target . '/' . $this->composer->getArchiveManager()->getPackageFilename($package) . '.zip';
     }
 
     private function initArchives(): void
