@@ -27,6 +27,7 @@ use Composer\Package\PackageInterface;
 use Composer\Util\Loop;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\NullOutput;
@@ -62,6 +63,13 @@ class ArchiveBuilderTest extends TestCase
      * @var list<string>
      */
     private array $events = [];
+
+    /**
+     * The directories the file downloader was asked to download into.
+     *
+     * @var list<string>
+     */
+    private array $downloadDirs = [];
 
     public function tearDown(): void
     {
@@ -267,6 +275,35 @@ class ArchiveBuilderTest extends TestCase
         self::assertStringEqualsFile($existingArchive, 'the package archive.');
     }
 
+    public function testDumpDownloadsSharedDistArchivesOnce(): void
+    {
+        $packages = self::getDistPackages();
+        // A branch pointing to the same commit as a tag resolves to the same archive
+        $branch = clone $packages[2];
+        $branch->replaceVersion('dev-main', 'dev-main');
+        $packages[] = $branch;
+        $this->useFileDownloader(static fn (): bool => true);
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertSame(['download', 'download', 'download', 'wait 3'], $this->getEventNames());
+        self::assertSame($packages[2]->getDistUrl(), $packages[3]->getDistUrl());
+    }
+
+    public function testDumpRemovesTemporaryDownloadDirIfArchiveCannotBeMoved(): void
+    {
+        $packages = self::getDistPackages();
+        (new Filesystem())->dumpFile($this->target, 'not a directory');
+        $this->useFileDownloader(static fn (): bool => true);
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertCount(3, $this->downloadDirs);
+        foreach ($this->downloadDirs as $downloadDir) {
+            self::assertDirectoryDoesNotExist($downloadDir);
+        }
+    }
+
     public function testDumpDoesNotRetryFailedDownloads(): void
     {
         $packages = self::getDistPackages();
@@ -315,6 +352,9 @@ class ArchiveBuilderTest extends TestCase
         self::assertFileExists($this->getDistArchivePath($packages[0]));
         self::assertFileDoesNotExist($this->getDistArchivePath($packages[1]));
         self::assertFileExists($this->getDistArchivePath($packages[2]));
+        foreach ($this->downloadDirs as $downloadDir) {
+            self::assertDirectoryDoesNotExist($downloadDir);
+        }
     }
 
     public function testDumpFailsIfDownloadFailsImmediately(): void
@@ -384,32 +424,40 @@ class ArchiveBuilderTest extends TestCase
     }
 
     /**
-     * Replaces the file downloader and the loop with doubles recording their calls. The loop rethrows rejections like
-     * Composer's loop does.
+     * Replaces the file downloader and the loop with doubles recording their calls. Like Composer's curl downloader,
+     * downloads only complete while the loop waits, and the loop rethrows rejections like Composer's loop does.
      *
      * @param callable(PackageInterface): bool $succeeds
      */
     private function useFileDownloader(callable $succeeds): void
     {
-        $downloadDir = $this->root . '/downloads';
         $events = &$this->events;
+        $downloadDirs = &$this->downloadDirs;
+        $pending = [];
 
         $downloader = $this->createMock(DownloaderInterface::class);
         $downloader->method('download')->willReturnCallback(
-            static function (PackageInterface $package) use ($succeeds, $downloadDir, &$events): PromiseInterface {
+            static function (PackageInterface $package, string $downloadDir) use ($succeeds, &$events, &$downloadDirs, &$pending): PromiseInterface {
+                $downloadDirs[] = $downloadDir;
                 if (null === $package->getDistUrl()) {
                     throw new \InvalidArgumentException('The given package is missing url information');
                 }
 
                 $events[] = 'download ' . $package->getPrettyVersion();
-                if (!$succeeds($package)) {
-                    return \React\Promise\reject(new TransportException('Download of ' . $package->getPrettyVersion() . ' failed'));
-                }
+                $deferred = new Deferred();
+                $pending[] = static function () use ($succeeds, $package, $downloadDir, $deferred): void {
+                    if (!$succeeds($package)) {
+                        $deferred->reject(new TransportException('Download of ' . $package->getPrettyVersion() . ' failed'));
 
-                $file = $downloadDir . '/' . $package->getPrettyVersion() . '.zip';
-                (new Filesystem())->dumpFile($file, 'the downloaded archive of ' . $package->getPrettyVersion());
+                        return;
+                    }
 
-                return \React\Promise\resolve($file);
+                    $file = $downloadDir . '/' . $package->getPrettyVersion() . '.zip';
+                    (new Filesystem())->dumpFile($file, 'the downloaded archive of ' . $package->getPrettyVersion());
+                    $deferred->resolve($file);
+                };
+
+                return $deferred->promise();
             }
         );
 
@@ -418,8 +466,12 @@ class ArchiveBuilderTest extends TestCase
 
         $loop = $this->createMock(Loop::class);
         $loop->method('wait')->willReturnCallback(
-            static function (array $promises) use (&$events): void {
+            static function (array $promises) use (&$events, &$pending): void {
                 $events[] = 'wait ' . count($promises);
+                foreach ($pending as $complete) {
+                    $complete();
+                }
+                $pending = [];
                 $uncaught = null;
                 foreach ($promises as $promise) {
                     $promise->then(null, static function (\Throwable $exception) use (&$uncaught): void {
