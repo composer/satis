@@ -227,12 +227,12 @@ class ArchiveBuilder extends Builder
     /**
      * Downloads all missing dist archives concurrently, so the sequential archive() calls find them in place.
      * Failed downloads are ignored here and retried by archive(), which reports errors as usual.
+     * Without curl, Composer's HttpDownloader performs the downloads one after another instead.
      *
      * @param array<PackageInterface> $packages
      */
     private function prefetchDistArchives(ArchiveBuilderHelper $helper, DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir): void
     {
-        $filesystem = new Filesystem();
         $promises = [];
 
         foreach ($packages as $package) {
@@ -240,14 +240,17 @@ class ArchiveBuilder extends Builder
                 continue;
             }
 
-            $targetDir = $this->prepareTargetDir($filesystem, sprintf('%s/%s', $basedir, $this->getIntermediatePath($package)));
+            $targetDir = sprintf('%s/%s', $basedir, $this->getIntermediatePath($package));
             $distArchivePath = $this->getDistArchivePath($archiveManager, $package, $targetDir);
             if (null === $distArchivePath || file_exists($distArchivePath) || file_exists($this->getArchivePath($archiveManager, $package, $targetDir))) {
                 continue;
             }
 
-            $promises[] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath)->then(null, static function (): void {
-            });
+            try {
+                $promises[] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath)->then(null, static function (): void {
+                });
+            } catch (\Exception) {
+            }
         }
 
         if ([] === $promises) {
