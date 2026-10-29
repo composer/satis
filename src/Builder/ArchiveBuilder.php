@@ -229,9 +229,10 @@ class ArchiveBuilder extends Builder
 
     /**
      * Downloads all missing dist archives up front, concurrently if Composer's HttpDownloader supports it, so the
-     * sequential archive() calls find them in place. Packages sharing an archive path share its download. Failed
-     * downloads are not retried: their promises are returned, so archive() can report the error for the respective
-     * package as usual.
+     * sequential archive() calls find them in place. Packages sharing an archive path share its download, unless their
+     * dist URLs differ: then each further URL is only tried if the downloads from the previous ones failed, so the
+     * archive is never written concurrently. Failed downloads are not retried: their promises are returned, so
+     * archive() can report the error for the respective package as usual.
      *
      * @param array<PackageInterface> $packages
      *
@@ -253,14 +254,20 @@ class ArchiveBuilder extends Builder
                 continue;
             }
 
+            $distUrl = (string) $package->getDistUrl();
             if (!isset($downloadsByPath[$distArchivePath])) {
                 try {
-                    $downloadsByPath[$distArchivePath] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath);
+                    $downloadsByPath[$distArchivePath][$distUrl] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath);
                 } catch (\Exception $exception) {
-                    $downloadsByPath[$distArchivePath] = \React\Promise\reject($exception);
+                    $downloadsByPath[$distArchivePath][$distUrl] = \React\Promise\reject($exception);
                 }
+            } elseif (!isset($downloadsByPath[$distArchivePath][$distUrl])) {
+                $downloadsByPath[$distArchivePath][$distUrl] = end($downloadsByPath[$distArchivePath])->then(
+                    null,
+                    fn (): PromiseInterface => $this->downloadDistArchive($downloadManager, $package, $distArchivePath)
+                );
             }
-            $downloads[spl_object_id($package)] = $downloadsByPath[$distArchivePath];
+            $downloads[spl_object_id($package)] = $downloadsByPath[$distArchivePath][$distUrl];
         }
 
         if ([] === $downloadsByPath) {
@@ -270,7 +277,7 @@ class ArchiveBuilder extends Builder
         $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($downloadsByPath)));
         // Errors are reported by archive(), so they must not abort waiting for the other downloads
         $this->composer->getLoop()->wait(array_map(
-            static fn (PromiseInterface $download): PromiseInterface => $download->then(null, static function (): void {
+            static fn (array $downloadsByUrl): PromiseInterface => end($downloadsByUrl)->then(null, static function (): void {
             }),
             array_values($downloadsByPath)
         ));

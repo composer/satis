@@ -290,6 +290,35 @@ class ArchiveBuilderTest extends TestCase
         self::assertSame($packages[2]->getDistUrl(), $packages[3]->getDistUrl());
     }
 
+    public function testDumpTriesOtherDistUrlOfSharedDistArchiveIfDownloadFails(): void
+    {
+        $packages = self::getDistPackages();
+        $branch = clone $packages[2];
+        $branch->replaceVersion('dev-main', 'dev-main');
+        $branch->setDistUrl('https://example.org/monolog/monolog/dev-main.zip');
+        $packages[] = $branch;
+        $distUrls = [$packages[2]->getDistUrl(), $branch->getDistUrl()];
+        // Packages are dumped in random order, so let whichever of the two URLs is tried first fail
+        $attempted = [];
+        $this->useFileDownloader(static function (PackageInterface $package) use ($distUrls, &$attempted): bool {
+            if (!in_array($package->getDistUrl(), $distUrls, true)) {
+                return true;
+            }
+            $attempted[] = $package->getDistUrl();
+
+            return count($attempted) > 1;
+        });
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertSame(['download', 'download', 'download', 'wait 3', 'download'], $this->getEventNames());
+        self::assertEqualsCanonicalizing($distUrls, $attempted);
+        $archive = basename($this->getDistArchivePath($branch));
+        self::assertFileExists($this->getDistArchivePath($branch));
+        self::assertSame($archive, basename((string) $packages[2]->getDistUrl()));
+        self::assertSame($archive, basename((string) $branch->getDistUrl()));
+    }
+
     public function testDumpRemovesTemporaryDownloadDirIfArchiveCannotBeMoved(): void
     {
         $packages = self::getDistPackages();
@@ -468,10 +497,11 @@ class ArchiveBuilderTest extends TestCase
         $loop->method('wait')->willReturnCallback(
             static function (array $promises) use (&$events, &$pending): void {
                 $events[] = 'wait ' . count($promises);
-                foreach ($pending as $complete) {
+                // Completing a download can start another one, which completes during the same wait
+                while ([] !== $pending) {
+                    $complete = array_shift($pending);
                     $complete();
                 }
-                $pending = [];
                 $uncaught = null;
                 foreach ($promises as $promise) {
                     $promise->then(null, static function (\Throwable $exception) use (&$uncaught): void {
