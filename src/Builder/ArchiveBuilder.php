@@ -229,8 +229,9 @@ class ArchiveBuilder extends Builder
 
     /**
      * Downloads all missing dist archives up front, concurrently if Composer's HttpDownloader supports it, so the
-     * sequential archive() calls find them in place. Failed downloads are not retried: their promises are returned, so
-     * archive() can report the error for the respective package as usual.
+     * sequential archive() calls find them in place. Packages sharing an archive path share its download. Failed
+     * downloads are not retried: their promises are returned, so archive() can report the error for the respective
+     * package as usual.
      *
      * @param array<PackageInterface> $packages
      *
@@ -239,6 +240,7 @@ class ArchiveBuilder extends Builder
     private function prefetchDistArchives(ArchiveBuilderHelper $helper, DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir): array
     {
         $downloads = [];
+        $downloadsByPath = [];
 
         foreach ($packages as $package) {
             if (!$package instanceof CompletePackageInterface || $helper->isSkippable($package)) {
@@ -251,23 +253,26 @@ class ArchiveBuilder extends Builder
                 continue;
             }
 
-            try {
-                $downloads[spl_object_id($package)] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath);
-            } catch (\Exception $exception) {
-                $downloads[spl_object_id($package)] = \React\Promise\reject($exception);
+            if (!isset($downloadsByPath[$distArchivePath])) {
+                try {
+                    $downloadsByPath[$distArchivePath] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath);
+                } catch (\Exception $exception) {
+                    $downloadsByPath[$distArchivePath] = \React\Promise\reject($exception);
+                }
             }
+            $downloads[spl_object_id($package)] = $downloadsByPath[$distArchivePath];
         }
 
-        if ([] === $downloads) {
+        if ([] === $downloadsByPath) {
             return [];
         }
 
-        $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($downloads)));
+        $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($downloadsByPath)));
         // Errors are reported by archive(), so they must not abort waiting for the other downloads
         $this->composer->getLoop()->wait(array_map(
             static fn (PromiseInterface $download): PromiseInterface => $download->then(null, static function (): void {
             }),
-            array_values($downloads)
+            array_values($downloadsByPath)
         ));
 
         return $downloads;
@@ -327,19 +332,23 @@ class ArchiveBuilder extends Builder
         $filesystem->ensureDirectoryExists($downloadDir);
         $downloader = $downloadManager->getDownloader('file');
 
-        return $downloader->download($package, $downloadDir)->then(
-            static function ($filename) use ($path, $filesystem, $downloadDir): void {
+        try {
+            $download = $downloader->download($package, $downloadDir);
+        } catch (\Exception $exception) {
+            $filesystem->removeDirectory($downloadDir);
+
+            throw $exception;
+        }
+
+        return $download->then(
+            static function ($filename) use ($path, $filesystem): void {
                 $filesystem->ensureDirectoryExists(dirname($path));
                 if (is_string($filename)) {
                     $filesystem->rename($filename, $path);
                 }
-                $filesystem->removeDirectory($downloadDir);
-            },
-            static function (\Throwable $exception) use ($filesystem, $downloadDir): void {
-                $filesystem->removeDirectory($downloadDir);
-
-                throw $exception;
             }
-        );
+        )->finally(static function () use ($filesystem, $downloadDir): void {
+            $filesystem->removeDirectory($downloadDir);
+        });
     }
 }
