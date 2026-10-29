@@ -28,7 +28,6 @@ use Composer\Util\Loop;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use React\Promise\PromiseInterface;
-
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Filesystem\Filesystem;
@@ -313,6 +312,53 @@ class ArchiveBuilderTest extends TestCase
         }
     }
 
+    public function testDumpSkipsDownloadsFailingImmediatelyIfErrorsAreSkipped(): void
+    {
+        $packages = self::getDistPackages();
+        $packages[1]->setDistUrl(null);
+        $this->useFileDownloader(static fn (): bool => true);
+
+        $this->createDistArchiveBuilder()->dump($packages);
+
+        self::assertSame(['download', 'download', 'wait 2'], $this->getEventNames());
+        self::assertFileExists($this->getDistArchivePath($packages[0]));
+        self::assertFileDoesNotExist($this->getDistArchivePath($packages[1]));
+        self::assertFileExists($this->getDistArchivePath($packages[2]));
+    }
+
+    public function testDumpFailsIfDownloadFailsImmediately(): void
+    {
+        $packages = self::getDistPackages();
+        $packages[1]->setDistUrl(null);
+        $this->useFileDownloader(static fn (): bool => true);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('The given package is missing url information');
+
+        $this->createDistArchiveBuilder(false)->dump($packages);
+    }
+
+    public function testDumpSkipsPackagesWithUnusableTargetDirIfErrorsAreSkipped(): void
+    {
+        $packages = self::getDistPackages();
+        $package = new CompletePackage('vendor/blocked', '1.0.0.0', '1.0.0');
+        $package->setType('library');
+        $package->setDistType('zip');
+        $package->setDistUrl('https://example.org/vendor/blocked.zip');
+        $packages[] = $package;
+        (new Filesystem())->dumpFile($this->outputDir . '/dist/vendor/blocked', 'not a directory');
+
+        $builder = new ArchiveBuilder($this->output, $this->outputDir, $this->satisConfig, true);
+        $builder->setInput($this->input);
+        $builder->setComposer($this->composer);
+        $builder->dump($packages);
+
+        self::assertStringEqualsFile($this->outputDir . '/dist/vendor/blocked', 'not a directory');
+        foreach (self::getDistPackages() as $distPackage) {
+            self::assertFileExists($this->target . '/' . $this->composer->getArchiveManager()->getPackageFilename($distPackage) . '.tar');
+        }
+    }
+
     /**
      * @return list<CompletePackage>
      */
@@ -360,6 +406,10 @@ class ArchiveBuilderTest extends TestCase
         $downloader = $this->createMock(DownloaderInterface::class);
         $downloader->method('download')->willReturnCallback(
             static function (PackageInterface $package) use ($succeeds, $downloadDir, &$events): PromiseInterface {
+                if (null === $package->getDistUrl()) {
+                    throw new \InvalidArgumentException('The given package is missing url information');
+                }
+
                 $events[] = 'download ' . $package->getPrettyVersion();
                 if (!$succeeds($package)) {
                     return \React\Promise\reject(new TransportException('Download of ' . $package->getPrettyVersion() . ' failed'));
