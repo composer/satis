@@ -140,6 +140,22 @@ class ArchiveChecksumCacheTest extends TestCase
         self::assertSame(['vendor/package/package-1.0.0.zip'], array_keys($this->readCacheFile()));
     }
 
+    public function testArchiveInSymlinkedPackageDirectoryIsKeptOnSave(): void
+    {
+        // realpath() in ArchiveBuilder resolves a symlinked package directory to a path outside the archive directory
+        $external = $this->root . '/external';
+        (new Filesystem())->mkdir($external);
+        symlink($external, $this->archiveDirectory . '/vendor/linked');
+        $archive = $this->createArchive('vendor/linked/linked-1.0.0.zip', 'archive contents');
+
+        $cache = $this->createCache();
+        $cache->getChecksum($archive);
+        $cache->save();
+        $this->createCache()->save();
+
+        self::assertSame([$archive], array_keys($this->readCacheFile()));
+    }
+
     public function testArchiveDirectoryCreatedAfterConstructionIsCached(): void
     {
         // On the first build, the archive directory is created along with the first archive

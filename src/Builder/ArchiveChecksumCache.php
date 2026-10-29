@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Composer\Satis\Builder;
 
 use Composer\Cache;
+use Composer\Util\Filesystem;
 
 /**
  * Caches the SHA-1 checksums of archives, so existing archives aren't read again on every build.
@@ -80,7 +81,7 @@ final class ArchiveChecksumCache
         }
 
         foreach (array_keys($this->entries) as $key) {
-            if (!is_file($this->directory . '/' . $key)) {
+            if (!is_file($this->getPath($key))) {
                 unset($this->entries[$key]);
                 $this->changed = true;
             }
@@ -133,10 +134,19 @@ final class ArchiveChecksumCache
         return true;
     }
 
+    /**
+     * Archives inside the archive directory are stored relative to it, archives outside (e.g. in a symlinked package
+     * directory) by their absolute path.
+     */
     private function getKey(string $path): string
     {
-        $prefix = $this->directory . '/';
+        $prefix = $this->directory . DIRECTORY_SEPARATOR;
 
         return str_starts_with($path, $prefix) ? substr($path, strlen($prefix)) : $path;
+    }
+
+    private function getPath(string $key): string
+    {
+        return new Filesystem()->isAbsolutePath($key) ? $key : $this->directory . DIRECTORY_SEPARATOR . $key;
     }
 }
