@@ -267,26 +267,17 @@ class ArchiveBuilderTest extends TestCase
         self::assertStringEqualsFile($existingArchive, 'the package archive.');
     }
 
-    public function testDumpRetriesFailedDownloadsSequentially(): void
+    public function testDumpDoesNotRetryFailedDownloads(): void
     {
         $packages = self::getDistPackages();
-        $attempts = [];
-        $this->useFileDownloader(static function (PackageInterface $package) use (&$attempts): bool {
-            $attempts[$package->getPrettyVersion()] = ($attempts[$package->getPrettyVersion()] ?? 0) + 1;
-
-            return '1.1.0' !== $package->getPrettyVersion() || $attempts['1.1.0'] > 1;
-        });
+        $this->useFileDownloader(static fn (PackageInterface $package): bool => '1.1.0' !== $package->getPrettyVersion());
 
         $this->createDistArchiveBuilder()->dump($packages);
 
-        self::assertSame(['download', 'download', 'download', 'wait 3', 'download', 'wait 1'], $this->getEventNames());
-        self::assertSame('download 1.1.0', $this->events[4]);
-        foreach ($packages as $package) {
-            self::assertFileExists($this->getDistArchivePath($package));
-        }
+        self::assertSame(['download', 'download', 'download', 'wait 3', 'wait 1'], $this->getEventNames());
     }
 
-    public function testDumpFailsIfRetriedDownloadFails(): void
+    public function testDumpFailsIfDownloadFails(): void
     {
         $this->useFileDownloader(static fn (PackageInterface $package): bool => '1.1.0' !== $package->getPrettyVersion());
 
@@ -320,7 +311,7 @@ class ArchiveBuilderTest extends TestCase
 
         $this->createDistArchiveBuilder()->dump($packages);
 
-        self::assertSame(['download', 'download', 'wait 2'], $this->getEventNames());
+        self::assertSame(['download', 'download', 'wait 3', 'wait 1'], $this->getEventNames());
         self::assertFileExists($this->getDistArchivePath($packages[0]));
         self::assertFileDoesNotExist($this->getDistArchivePath($packages[1]));
         self::assertFileExists($this->getDistArchivePath($packages[2]));

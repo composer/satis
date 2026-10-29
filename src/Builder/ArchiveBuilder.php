@@ -59,7 +59,7 @@ class ArchiveBuilder extends Builder
 
         shuffle($packages);
 
-        $this->prefetchDistArchives($helper, $downloadManager, $archiveManager, $packages, $basedir);
+        $distArchiveDownloads = $this->prefetchDistArchives($helper, $downloadManager, $archiveManager, $packages, $basedir);
 
         /** @var ProgressBar|null $progressBar Should only remain `null` if $renderProgress is `false` */
         $progressBar = null;
@@ -122,7 +122,7 @@ class ArchiveBuilder extends Builder
 
                 $targetDir = sprintf('%s/%s', $basedir, $intermediatePath);
 
-                $path = $this->archive($downloadManager, $archiveManager, $package, $targetDir);
+                $path = $this->archive($downloadManager, $archiveManager, $package, $targetDir, $distArchiveDownloads[spl_object_id($package)] ?? null);
                 $archiveFormat = pathinfo($path, PATHINFO_EXTENSION);
 
                 $archive = basename($path);
@@ -191,7 +191,10 @@ class ArchiveBuilder extends Builder
         return new ArchiveChecksumCache($cache, $archiveDirectory);
     }
 
-    private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, CompletePackageInterface $package, string $targetDir): string
+    /**
+     * @param PromiseInterface<void>|null $distArchiveDownload The prefetched download of the dist archive, if any
+     */
+    private function archive(DownloadManager $downloadManager, ArchiveManager $archiveManager, CompletePackageInterface $package, string $targetDir, ?PromiseInterface $distArchiveDownload): string
     {
         $format = (string) ($this->config['archive']['format'] ?? 'zip');
         $ignoreFilters = (bool) ($this->config['archive']['ignore-filters'] ?? false);
@@ -208,7 +211,7 @@ class ArchiveBuilder extends Builder
         $distArchivePath = $this->getDistArchivePath($archiveManager, $package, $targetDir);
         if (null !== $distArchivePath) {
             if (!file_exists($distArchivePath)) {
-                SyncHelper::await($this->composer->getLoop(), $this->downloadDistArchive($downloadManager, $package, $distArchivePath));
+                SyncHelper::await($this->composer->getLoop(), $distArchiveDownload ?? $this->downloadDistArchive($downloadManager, $package, $distArchivePath));
             }
 
             return $distArchivePath;
@@ -225,15 +228,17 @@ class ArchiveBuilder extends Builder
     }
 
     /**
-     * Downloads all missing dist archives concurrently, so the sequential archive() calls find them in place.
-     * Failed downloads are ignored here and retried by archive(), which reports errors as usual.
-     * Without curl, Composer's HttpDownloader performs the downloads one after another instead.
+     * Downloads all missing dist archives up front, concurrently if Composer's HttpDownloader supports it, so the
+     * sequential archive() calls find them in place. Failed downloads are not retried: their promises are returned, so
+     * archive() can report the error for the respective package as usual.
      *
      * @param array<PackageInterface> $packages
+     *
+     * @return array<int, PromiseInterface<void>> The downloads, keyed by the object id of their package
      */
-    private function prefetchDistArchives(ArchiveBuilderHelper $helper, DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir): void
+    private function prefetchDistArchives(ArchiveBuilderHelper $helper, DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir): array
     {
-        $promises = [];
+        $downloads = [];
 
         foreach ($packages as $package) {
             if (!$package instanceof CompletePackageInterface || $helper->isSkippable($package)) {
@@ -247,18 +252,25 @@ class ArchiveBuilder extends Builder
             }
 
             try {
-                $promises[] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath)->then(null, static function (): void {
-                });
-            } catch (\Exception) {
+                $downloads[spl_object_id($package)] = $this->downloadDistArchive($downloadManager, $package, $distArchivePath);
+            } catch (\Exception $exception) {
+                $downloads[spl_object_id($package)] = \React\Promise\reject($exception);
             }
         }
 
-        if ([] === $promises) {
-            return;
+        if ([] === $downloads) {
+            return [];
         }
 
-        $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($promises)));
-        $this->composer->getLoop()->wait($promises);
+        $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($downloads)));
+        // Errors are reported by archive(), so they must not abort waiting for the other downloads
+        $this->composer->getLoop()->wait(array_map(
+            static fn (PromiseInterface $download): PromiseInterface => $download->then(null, static function (): void {
+            }),
+            array_values($downloads)
+        ));
+
+        return $downloads;
     }
 
     private function getIntermediatePath(PackageInterface $package): string
