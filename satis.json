@@ -178,12 +178,16 @@
       "url": "git@github.com:recommerce/common-laminas-i18n-sync.git",
       "type": "git"
     },
-    {            
+    {
       "url": "git@github.com:recommerce/symfony-lock-doctrine-migrations-bundle.git",
       "type": "git"
     },
     {
       "url": "git@github.com:recommerce/sales-order-preparation-bundle.git",
+      "type": "git"
+    },
+    {
+      "url": "git@github.com:recommerce/common-error-catalog-bundle.git",
       "type": "git"
     }
   ],
