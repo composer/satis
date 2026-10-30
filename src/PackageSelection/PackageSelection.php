@@ -30,7 +30,6 @@ use Composer\Repository\ArrayRepository;
 use Composer\Repository\ArtifactRepository;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
-use Composer\Repository\InvalidRepositoryException;
 use Composer\Repository\PackageRepository;
 use Composer\Repository\PathRepository;
 use Composer\Repository\PlatformRepository;
@@ -651,10 +650,8 @@ class PackageSelection
      * is read.
      *
      * The repositories are rebuilt, as a VcsRepository takes its version cache in the constructor only and the
-     * RepositoryManager cannot pass one. They are loaded right away, which costs nothing extra, as the package is
-     * required. If skipping the tags leaves no package, e.g. as only tags outside the constraint contain a
-     * composer.json, the unfiltered repository is kept, so the build behaves as without the option. Repositories
-     * wrapped by a FilterRepository (only, exclude, canonical) are left as they are.
+     * RepositoryManager cannot pass one. This is cheap, as a VcsRepository reads nothing before its packages are
+     * requested. Repositories wrapped by a FilterRepository (only, exclude, canonical) are left as they are.
      *
      * @param array<RepositoryInterface|ConfigurableRepositoryInterface> $repositories
      *
@@ -680,31 +677,19 @@ class PackageSelection
                 continue;
             }
 
-            $filteredRepository = new VcsRepository(
+            $repositories[$index] = new RequireConstraintVcsRepository(
                 $repoConfig,
+                $name,
+                $requires[$name]->getConstraint(),
                 $this->io,
                 $composer->getConfig(),
                 $loop->getHttpDownloader(),
                 $composer->getEventDispatcher(),
                 $loop->getProcessExecutor(),
-                null,
-                new RequireConstraintVersionCache($requires[$name]->getConstraint()),
             );
 
-            try {
-                $filteredRepository->getPackages();
-            } catch (InvalidRepositoryException) {
-                if ($verbose) {
-                    $this->output->writeln(sprintf('<info>No package left in repository %s when reading only tags matching %s, reading all tags</info>', $name, $requires[$name]->getPrettyConstraint()));
-                }
-
-                continue;
-            }
-
-            $repositories[$index] = $filteredRepository;
-
             if ($verbose) {
-                $this->output->writeln(sprintf('<info>Reading only tags matching %s of repository %s</info>', $requires[$name]->getPrettyConstraint(), $name));
+                $this->output->writeln(sprintf('<info>Skipping tags of repository %s not matching %s, if its default branch declares the package</info>', $name, $requires[$name]->getPrettyConstraint()));
             }
         }
 
