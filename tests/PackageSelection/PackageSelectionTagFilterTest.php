@@ -40,9 +40,7 @@ class PackageSelectionTagFilterTest extends TestCase
         // Instead of --initial-branch, which requires Git 2.28
         $this->git('symbolic-ref', 'HEAD', 'refs/heads/main');
         foreach (['v1.0.0', 'v2.0.0'] as $tag) {
-            file_put_contents($this->workDir . '/repository/composer.json', json_encode(['name' => self::PACKAGE_NAME, 'description' => $tag], \JSON_THROW_ON_ERROR));
-            $this->git('add', 'composer.json');
-            $this->git('commit', '--message', $tag);
+            $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'description' => $tag]);
             $this->git('tag', $tag);
         }
     }
@@ -81,31 +79,73 @@ class PackageSelectionTagFilterTest extends TestCase
     }
 
     /**
-     * @return array<string, array{string, list<string>, list<string>}>
+     * @return array<string, array{string, list<string>}>
      */
-    public static function dataTagsOnlyRepository(): array
+    public static function dataDefaultBranchWithoutComposerJson(): array
     {
         return [
-            'matching tag' => ['^2.0', [self::PACKAGE_NAME . '-2.0.0.0'], ['v2.0.0']],
-            // Skipping every tag would leave no package, so all tags are read as without the filter
-            'no matching tag' => ['^3.0', [], ['v1.0.0', 'v2.0.0']],
+            'matching tag' => ['^2.0', [self::PACKAGE_NAME . '-2.0.0.0']],
+            'no matching tag' => ['^3.0', []],
         ];
     }
 
     /**
+     * Without a composer.json on the default branch, the tags may contain other packages, so all tags are read.
+     *
      * @param list<string> $expectedSelected
-     * @param list<string> $expectedReadTags
      */
-    #[DataProvider('dataTagsOnlyRepository')]
-    public function testTagsOnlyRepository(string $constraint, array $expectedSelected, array $expectedReadTags): void
+    #[DataProvider('dataDefaultBranchWithoutComposerJson')]
+    public function testDefaultBranchWithoutComposerJsonReadsAllTags(string $constraint, array $expectedSelected): void
     {
         $this->git('rm', '--quiet', 'composer.json');
-        $this->git('commit', '--message', 'Remove composer.json from the branch');
+        $this->git('commit', '--message', 'Remove composer.json from the default branch');
 
         [$selected, $output] = $this->select(['filter-tags-by-require' => true, 'require' => [self::PACKAGE_NAME => $constraint]]);
 
         self::assertSame($expectedSelected, array_keys($selected));
-        $this->assertReadTags($expectedReadTags, $output);
+        $this->assertReadTags(['v1.0.0', 'v2.0.0'], $output);
+    }
+
+    public function testTagsOfOtherPackagesAreKept(): void
+    {
+        $this->git('tag', '--delete', 'v1.0.0');
+        $this->git('checkout', '--quiet', 'v2.0.0~1');
+        $this->commitComposerJson(['name' => 'vendor/old-package']);
+        $this->git('tag', 'v1.0.0');
+        $this->git('checkout', '--quiet', 'main');
+        $this->git('rm', '--quiet', 'composer.json');
+        $this->git('commit', '--message', 'Remove composer.json from the default branch');
+
+        [$selected] = $this->select([
+            'filter-tags-by-require' => true,
+            'require' => ['vendor/old-package' => '^1.0', self::PACKAGE_NAME => '^2.0'],
+        ]);
+
+        self::assertSame(['vendor/old-package-1.0.0.0', self::PACKAGE_NAME . '-2.0.0.0'], array_keys($selected));
+    }
+
+    public function testNoPackageLeftAfterSkippingTags(): void
+    {
+        // An invalid constraint makes the repository skip the default branch
+        $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'require' => ['vendor/other' => 'invalid']]);
+
+        [$selected, $output] = $this->select(['filter-tags-by-require' => true, 'require' => [self::PACKAGE_NAME => '^3.0']]);
+
+        self::assertSame([], $selected);
+        $this->assertReadTags([], $output);
+    }
+
+    public function testUnusedRepositoryIsNotRead(): void
+    {
+        [$selected] = $this->select([
+            'filter-tags-by-require' => true,
+            'repositories' => [
+                ['type' => 'vcs', 'url' => $this->workDir . '/repository', 'name' => self::PACKAGE_NAME],
+                ['type' => 'vcs', 'url' => $this->workDir . '/missing-repository', 'name' => self::PACKAGE_NAME],
+            ],
+        ]);
+
+        self::assertSame([self::PACKAGE_NAME . '-2.0.0.0'], array_keys($selected));
     }
 
     public function testRepositoryWithoutComposerJsonStillFails(): void
@@ -157,6 +197,16 @@ class PackageSelectionTagFilterTest extends TestCase
                 self::assertStringNotContainsString($message, $output);
             }
         }
+    }
+
+    /**
+     * @param array<string, mixed> $composerJson
+     */
+    private function commitComposerJson(array $composerJson): void
+    {
+        file_put_contents($this->workDir . '/repository/composer.json', json_encode($composerJson, \JSON_THROW_ON_ERROR));
+        $this->git('add', 'composer.json');
+        $this->git('commit', '--message', 'Update composer.json');
     }
 
     private function git(string ...$arguments): void
