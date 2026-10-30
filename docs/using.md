@@ -326,6 +326,29 @@ The `true` value indicates that the package is truly abandoned while the
 Note that all packages set as abandoned in their own `composer.json` file will
 be marked abandoned as well.
 
+### Publication times
+
+Composer's [cooldown policy](https://getcomposer.org/doc/06-config.md#cooldown)
+holds back versions that were published only recently. It relies on the
+`published-time` field, which only a Composer repository can provide, and
+refuses to update when a version from a Composer repository lacks it. Satis
+therefore adds a `published-time` to every version it builds:
+
+- A version that has not been in a previous build gets the time of the build.
+- A stable version keeps the time it was first published with, even if its tag
+  is moved to another commit.
+- A dev version gets the time of the build whenever its reference changes.
+- A `published-time` provided by an upstream Composer repository, such as
+  Packagist, is kept.
+
+The previous build's metadata in the `p2` directory is the only record of these
+times, so the `output-dir` must persist between builds. A version that is
+missing from the previous build is published anew, and Composer then holds it
+back for the cooldown period. This applies to every version in the first build
+after upgrading to a Satis release that adds `published-time`, in a build into
+an empty directory, and to a version that is missing from a single build, for
+example because its repository could not be loaded with `--skip-errors`.
+
 ### Resolving dependencies
 
 It is possible to make satis automatically resolve and add all dependencies for
