@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Composer\Satis\Builder;
 
 use Composer\Json\JsonFile;
+use Composer\MetadataMinifier\MetadataMinifier;
 use Composer\Package\Package;
+use Composer\Semver\VersionParser;
 use org\bovigo\vfs\vfsStream;
 use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
@@ -27,6 +29,8 @@ use Symfony\Component\Console\Output\NullOutput;
  */
 class PackagesBuilderDumpTest extends TestCase
 {
+    private const PUBLISHED_TIME = '2024-01-01T00:00:00+00:00';
+
     protected vfsStreamDirectory $package;
 
     protected vfsStreamDirectory $root;
@@ -51,12 +55,16 @@ class PackagesBuilderDumpTest extends TestCase
                         'version' => $version,
                         'version_normalized' => $versionNormalized,
                         'type' => 'library',
+                        'published-time' => self::PUBLISHED_TIME,
                     ],
                 ],
             ];
         }
 
-        return [new Package('vendor/name', $versionNormalized, $version)];
+        $package = new Package('vendor/name', $versionNormalized, $version);
+        $package->setPublishedDate(new \DateTimeImmutable(self::PUBLISHED_TIME));
+
+        return [$package];
     }
 
     public function testNominalCase(bool $providers = false): void
@@ -196,6 +204,7 @@ class PackagesBuilderDumpTest extends TestCase
                         'name' => 'vendor/name',
                         'version' => '1.0',
                         'version_normalized' => '1.0.0.0',
+                        'published-time' => self::PUBLISHED_TIME,
                         'type' => 'library',
                     ],
                 ],
@@ -229,6 +238,7 @@ class PackagesBuilderDumpTest extends TestCase
                         'version' => '1.0',
                         'version_normalized' => '1.0.0.0',
                         'type' => 'library',
+                        'published-time' => self::PUBLISHED_TIME,
                     ],
                     [
                         'version' => '2.0',
@@ -249,5 +259,126 @@ class PackagesBuilderDumpTest extends TestCase
         $content = $file->getContent();
 
         self::assertEquals($expected, json_decode($content, true));
+    }
+
+    public function testNewVersionIsPublishedAtBuildTime(): void
+    {
+        $before = time();
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+
+        $publishedTime = $this->getPublishedTimes()['1.0'];
+        self::assertIsString($publishedTime);
+        self::assertGreaterThanOrEqual($before, strtotime($publishedTime));
+        self::assertLessThanOrEqual(time(), strtotime($publishedTime));
+    }
+
+    public function testStableVersionKeepsFirstPublishedTime(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a', self::PUBLISHED_TIME)]);
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+        self::assertSame(self::PUBLISHED_TIME, $this->getPublishedTimes()['1.0']);
+
+        // a moved tag keeps its date, as on Packagist
+        $this->dumpPackages([self::createPackage('1.0', 'b')]);
+        self::assertSame(self::PUBLISHED_TIME, $this->getPublishedTimes()['1.0']);
+    }
+
+    public function testVersionIsMatchedByNormalizedVersion(): void
+    {
+        $this->dumpPackages([self::createPackage('v1.0', 'a', self::PUBLISHED_TIME)]);
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+
+        self::assertSame(self::PUBLISHED_TIME, $this->getPublishedTimes()['1.0']);
+    }
+
+    public function testUnreadablePreviousBuildPublishesVersionsAnew(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a', self::PUBLISHED_TIME)]);
+        file_put_contents(vfsStream::url('build/p2/vendor/name.json'), '{"packages":');
+
+        $before = time();
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+
+        self::assertGreaterThanOrEqual($before, strtotime($this->getPublishedTimes()['1.0'] ?? ''));
+    }
+
+    public function testDevVersionIsRepublishedWhenItsReferenceChanges(): void
+    {
+        $this->dumpPackages([self::createPackage('dev-main', 'a', self::PUBLISHED_TIME)]);
+        $this->dumpPackages([self::createPackage('dev-main', 'a')]);
+        self::assertSame(self::PUBLISHED_TIME, $this->getPublishedTimes('~dev')['dev-main']);
+
+        $before = time();
+        $this->dumpPackages([self::createPackage('dev-main', 'b')]);
+        self::assertGreaterThanOrEqual($before, strtotime($this->getPublishedTimes('~dev')['dev-main'] ?? ''));
+    }
+
+    public function testPublishedTimeFromRepositoryIsKept(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a', self::PUBLISHED_TIME)]);
+        $this->dumpPackages([self::createPackage('1.0', 'a', '2025-01-01T00:00:00+00:00')]);
+
+        self::assertSame('2025-01-01T00:00:00+00:00', $this->getPublishedTimes()['1.0']);
+    }
+
+    public function testVersionOfBuildWithoutPublishedTimeIsPublishedAtBuildTime(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+        $file = vfsStream::url('build/p2/vendor/name.json');
+        $data = JsonFile::parseJson((string) file_get_contents($file));
+        unset($data['packages']['vendor/name'][0]['published-time']);
+        file_put_contents($file, json_encode($data));
+
+        $before = time();
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+
+        self::assertGreaterThanOrEqual($before, strtotime($this->getPublishedTimes()['1.0'] ?? ''));
+    }
+
+    public function testPublishedTimeIsKeptFromMinifiedBuild(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a', self::PUBLISHED_TIME), self::createPackage('2.0', 'b', self::PUBLISHED_TIME)], true);
+        $this->dumpPackages([self::createPackage('1.0', 'a'), self::createPackage('2.0', 'b')], true);
+
+        self::assertSame(['1.0' => self::PUBLISHED_TIME, '2.0' => self::PUBLISHED_TIME], $this->getPublishedTimes());
+    }
+
+    private static function createPackage(string $version, string $reference, ?string $publishedTime = null): Package
+    {
+        $package = new Package('vendor/name', (new VersionParser())->normalize($version), $version);
+        $package->setSourceType('git');
+        $package->setSourceUrl('https://example.org/vendor/name.git');
+        $package->setSourceReference($reference);
+        if (null !== $publishedTime) {
+            $package->setPublishedDate(new \DateTimeImmutable($publishedTime));
+        }
+
+        return $package;
+    }
+
+    /**
+     * @param list<Package> $packages
+     */
+    private function dumpPackages(array $packages, bool $minify = false): void
+    {
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), [
+            'repositories' => [['type' => 'composer', 'url' => 'http://localhost:54715']],
+            'require' => ['vendor/name' => '*'],
+        ], false, $minify);
+        $packagesBuilder->dump($packages);
+    }
+
+    /**
+     * @return array<string, string|null> The published-time of each version in the p2 file, by version
+     */
+    private function getPublishedTimes(string $suffix = ''): array
+    {
+        $data = JsonFile::parseJson((string) file_get_contents(vfsStream::url('build/p2/vendor/name' . $suffix . '.json')));
+        $versions = $data['packages']['vendor/name'];
+        if (isset($data['minified'])) {
+            $versions = MetadataMinifier::expand($versions);
+        }
+
+        return array_column($versions, 'published-time', 'version');
     }
 }

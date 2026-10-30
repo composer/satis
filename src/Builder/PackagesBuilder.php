@@ -24,6 +24,8 @@ class PackagesBuilder extends Builder
 {
     public const MINIFY_ALGORITHM_V2 = 'composer/2.0';
 
+    private const METADATA_URL = 'p2/%package%.json';
+
     /** packages.json file name. */
     private string $filename;
     /** included json filename template */
@@ -55,6 +57,7 @@ class PackagesBuilder extends Builder
         foreach ($packages as $package) {
             $packagesByName[$package->getName()][$package->getPrettyVersion()] = $dumper->dump($package);
         }
+        $packagesByName = $this->addPublishedTimes($packagesByName);
 
         // Composer 1.0 format
         $repo = ['packages' => []];
@@ -91,7 +94,7 @@ class PackagesBuilder extends Builder
         }
 
         // Composer 2.0 format
-        $metadataUrl = 'p2/%package%.json';
+        $metadataUrl = self::METADATA_URL;
         if (array_key_exists('homepage', $this->config) && false !== filter_var($this->config['homepage'], FILTER_VALIDATE_URL)) {
             $repo['metadata-url'] = parse_url(rtrim($this->config['homepage'], '/'), PHP_URL_PATH) . '/' . $metadataUrl;
         } else {
@@ -221,6 +224,88 @@ class PackagesBuilder extends Builder
                 );
             }
         }
+    }
+
+    /**
+     * Fills in the publication date that Composer's cooldown policy relies on, for versions whose
+     * repository did not provide one. Like on Packagist, a stable version keeps the date it was first
+     * published with, while a dev version is republished whenever its reference changes. The previous
+     * build's metadata is the only record of these dates, so the output directory must persist.
+     *
+     * @param array<string, array<string, array<string, mixed>>> $packagesByName
+     *
+     * @return array<string, array<string, array<string, mixed>>>
+     */
+    private function addPublishedTimes(array $packagesByName): array
+    {
+        $now = (new \DateTimeImmutable('now', new \DateTimeZone('UTC')))->format(DATE_RFC3339);
+
+        foreach ($packagesByName as $packageName => $versionPackages) {
+            $previousVersions = null;
+            foreach ($versionPackages as $version => $versionConfig) {
+                if (isset($versionConfig['published-time'])) {
+                    continue;
+                }
+
+                $previousVersions ??= $this->loadPreviousVersions($packageName);
+                $previous = $previousVersions[$versionConfig['version_normalized']] ?? null;
+                $publishedTime = $now;
+                if (isset($previous['published-time'])
+                    && ('dev' !== VersionParser::parseStability($versionConfig['version']) || self::getReference($previous) === self::getReference($versionConfig))
+                ) {
+                    $publishedTime = $previous['published-time'];
+                }
+
+                $packagesByName[$packageName][$version]['published-time'] = $publishedTime;
+            }
+        }
+
+        return $packagesByName;
+    }
+
+    /**
+     * @return array<string, array<string, mixed>> The versions of the package in the previous build, by normalized version
+     */
+    private function loadPreviousVersions(string $packageName): array
+    {
+        $versions = [];
+        foreach ([$packageName, $packageName . '~dev'] as $file) {
+            $jsonFile = new JsonFile($this->outputDir . '/' . str_replace('%package%', $file, self::METADATA_URL));
+            if (!$jsonFile->exists()) {
+                continue;
+            }
+
+            try {
+                $data = $jsonFile->read();
+            } catch (\Exception $e) {
+                $this->output->writeln(sprintf(
+                    '<warning>Could not read the publication times of %s from the previous build, its versions are published anew: %s</warning>',
+                    $packageName,
+                    $e->getMessage()
+                ));
+
+                continue;
+            }
+
+            $packageVersions = $data['packages'][$packageName] ?? [];
+            if (self::MINIFY_ALGORITHM_V2 === ($data['minified'] ?? null)) {
+                $packageVersions = MetadataMinifier::expand($packageVersions);
+            }
+
+            foreach ($packageVersions as $versionConfig) {
+                $versions[$versionConfig['version_normalized']] = $versionConfig;
+            }
+        }
+
+        return $versions;
+    }
+
+    /**
+     * @param array<string, mixed> $versionConfig
+     */
+    private static function getReference(array $versionConfig): ?string
+    {
+        return $versionConfig['source']['reference'] ?? $versionConfig['dist']['reference'] ?? null;
     }
 
     /**
