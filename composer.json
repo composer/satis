@@ -40,11 +40,11 @@
     "require": {
         "php": "^8.4",
         "ext-zip": "*",
-        "composer/composer": "^2.10.1",
+        "composer/composer": "^2.11.0",
         "composer-plugin-api": "^2.3.0",
         "symfony/console": "^7.4.13",
-        "twig/twig": "^3.27.1",
-        "twig/html-extra": "^3.24.0",
+        "twig/twig": "^3.30.0",
+        "twig/html-extra": "^3.29.0",
         "react/promise": "^3.3"
     },
     "autoload": {
