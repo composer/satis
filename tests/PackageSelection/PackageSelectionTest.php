@@ -745,6 +745,34 @@ class PackageSelectionTest extends TestCase
             ['vendor/project-alpha', 'vendor/project-eta'],
         ];
 
+        // Both repositories provide the same package, but different versions.
+        $firstRepository = $repo['gamma'];
+        $firstRepository['package'] = [$repo['gamma']['package'][0]];
+        $secondRepository = $repo['gamma'];
+        $secondRepository['package'] = array_slice($repo['gamma']['package'], 1);
+
+        $priorityConfig = [
+            'repositories' => [$firstRepository, $secondRepository],
+            'require' => ['vendor/project-gamma' => '*'],
+        ];
+
+        $data['Repository priority: canonical by default'] = [
+            [$packages['gamma1']],
+            $priorityConfig,
+        ];
+
+        $priorityConfig['repositories'][0]['canonical'] = true;
+        $data['Repository priority: explicitly canonical'] = [
+            [$packages['gamma1']],
+            $priorityConfig,
+        ];
+
+        $priorityConfig['repositories'][0]['canonical'] = false;
+        $data['Repository priority: non-canonical includes both repositories'] = [
+            [$packages['gamma1'], $packages['gamma2'], $packages['gamma3'], $packages['gamma4']],
+            $priorityConfig,
+        ];
+
         return $data;
     }
 
