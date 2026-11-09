@@ -135,6 +135,35 @@ class PackageSelectionTagFilterTest extends TestCase
         $this->assertReadTags([], $output);
     }
 
+    /**
+     * The skipped tags still claim the package name, so lower-priority repositories cannot supply it, as without the filter.
+     */
+    #[DataProvider('dataFilterEnabled')]
+    public function testSkippedTagsKeepRepositoryPriority(bool $filterEnabled): void
+    {
+        // An invalid constraint makes the repository skip the default branch
+        $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'require' => ['vendor/other' => 'invalid']]);
+
+        [$selected] = $this->select([
+            'filter-tags-by-require' => $filterEnabled,
+            'repositories' => [
+                ['type' => 'vcs', 'url' => $this->workDir . '/repository', 'name' => self::PACKAGE_NAME],
+                ['type' => 'package', 'package' => ['name' => self::PACKAGE_NAME, 'version' => '3.0.0']],
+            ],
+            'require' => [self::PACKAGE_NAME => '^3.0'],
+        ]);
+
+        self::assertSame([], $selected);
+    }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function dataFilterEnabled(): array
+    {
+        return ['filter disabled' => [false], 'filter enabled' => [true]];
+    }
+
     public function testUnusedRepositoryIsNotRead(): void
     {
         [$selected] = $this->select([
