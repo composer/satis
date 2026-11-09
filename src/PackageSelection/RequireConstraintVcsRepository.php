@@ -69,6 +69,19 @@ final class RequireConstraintVcsRepository extends VcsRepository implements Vers
         return $versionPackage;
     }
 
+    public function loadPackages(array $packageNameMap, array $acceptableStabilities, array $stabilityFlags, array $alreadyLoaded = []): array
+    {
+        $result = parent::loadPackages($packageNameMap, $acceptableStabilities, $stabilityFlags, $alreadyLoaded);
+
+        // The skipped tags provide the required package, which keeps lower-priority repositories from supplying it,
+        // as without the filter
+        if ($this->skippedTags && array_key_exists($this->requiredName, $packageNameMap) && !in_array($this->requiredName, $result['namesFound'], true)) {
+            $result['namesFound'][] = $this->requiredName;
+        }
+
+        return $result;
+    }
+
     protected function initialize(): void
     {
         try {
