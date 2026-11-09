@@ -545,6 +545,23 @@ class PackageSelectionTest extends TestCase
             ],
         ];
 
+        $data['Skip dependencies of blacklisted packages'] = [
+            [
+                $packages['zeta'],
+            ],
+            [
+                'minimum-stability' => 'stable',
+                'repositories' => array_values($repo),
+                'require' => [
+                    'vendor/project-zeta' => '>=1',
+                ],
+                'blacklist' => [
+                    'vendor/project-epsilon' => '*',
+                ],
+                'require-dependencies' => true,
+            ],
+        ];
+
         $data['Reduce required dependencies'] = [
             [
                 $packages['eta'],
