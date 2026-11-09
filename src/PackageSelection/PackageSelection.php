@@ -722,20 +722,29 @@ class PackageSelection
             $pool = new Pool();
             /** @var BasePackage $package */
             foreach ($this->selected as $selectedKey => $package) {
-                foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
-                    $constraint = $parser->parseConstraints($blacklistConstraint);
-                    if ($pool->match($package, $blacklistName, $constraint)) {
-                        if ($verbose) {
-                            $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
-                        }
-                        $blacklisted[$selectedKey] = $package;
-                        unset($this->selected[$selectedKey]);
+                if ($this->isPackageBlacklisted($package, $pool, $parser)) {
+                    if ($verbose) {
+                        $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                     }
+                    $blacklisted[$selectedKey] = $package;
+                    unset($this->selected[$selectedKey]);
                 }
             }
         }
 
         return $blacklisted;
+    }
+
+    private function isPackageBlacklisted(BasePackage $package, Pool $pool, VersionParser $parser): bool
+    {
+        foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
+            $constraint = $parser->parseConstraints($blacklistConstraint);
+            if ($pool->match($package, $blacklistName, $constraint)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -860,6 +869,9 @@ class PackageSelection
     {
         $depsLinks = $isRoot ? [] : $links;
         $poolsByName = [];
+        $hasBlacklist = $this->hasBlacklist();
+        $blacklistPool = $hasBlacklist ? new Pool() : null;
+        $versionParser = $hasBlacklist ? new VersionParser() : null;
 
         reset($links);
 
@@ -891,6 +903,14 @@ class PackageSelection
                 // skip aliases
                 if ($package instanceof AliasPackage) {
                     $package = $package->getAliasOf();
+                }
+
+                if ($hasBlacklist && $package instanceof BasePackage && null !== $blacklistPool && null !== $versionParser && $this->isPackageBlacklisted($package, $blacklistPool, $versionParser)) {
+                    if ($verbose) {
+                        $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
+                    }
+
+                    continue;
                 }
 
                 $uniqueName = $package->getUniqueName();
