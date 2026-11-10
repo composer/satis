@@ -255,7 +255,7 @@ class BuildCommand extends BaseCommand
         $composer->setPackage($satisConfigAsRootPackage);
         $this->deduplicateRepositories($manager, $output, (bool) $verbose);
 
-        $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors);
+        $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors, $io);
 
         if (null !== $repositoryUrl && [] !== $repositoryUrl) {
             $packageSelection->setRepositoriesFilter($repositoryUrl, (bool) $input->getOption('repository-strict'));
