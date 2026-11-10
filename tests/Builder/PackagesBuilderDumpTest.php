@@ -302,6 +302,27 @@ class PackagesBuilderDumpTest extends TestCase
         self::assertGreaterThanOrEqual($before, strtotime($this->getPublishedTimes()['1.0'] ?? ''));
     }
 
+    public function testOmittedPackageKeepsPublishedTimesWhenItReturns(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a', self::PUBLISHED_TIME)]);
+        $this->dumpPackages([]);
+        $this->dumpPackages([self::createPackage('1.0', 'a')]);
+
+        self::assertSame(self::PUBLISHED_TIME, $this->getPublishedTimes()['1.0']);
+    }
+
+    public function testOmittedVersionIsPublishedAnewWhenItReturns(): void
+    {
+        $this->dumpPackages([self::createPackage('1.0', 'a', self::PUBLISHED_TIME), self::createPackage('2.0', 'b', self::PUBLISHED_TIME)]);
+        $this->dumpPackages([self::createPackage('2.0', 'b')]);
+
+        $before = time();
+        $this->dumpPackages([self::createPackage('1.0', 'a'), self::createPackage('2.0', 'b')]);
+
+        self::assertGreaterThanOrEqual($before, strtotime($this->getPublishedTimes()['1.0'] ?? ''));
+        self::assertSame(self::PUBLISHED_TIME, $this->getPublishedTimes()['2.0']);
+    }
+
     public function testDevVersionIsRepublishedWhenItsReferenceChanges(): void
     {
         $this->dumpPackages([self::createPackage('dev-main', 'a', self::PUBLISHED_TIME)]);
