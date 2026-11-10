@@ -154,7 +154,7 @@
         },
         "filter-tags-by-require": {
             "type": "boolean",
-            "description": "If true, tags of VCS repositories not matching the version constraint in require are skipped without reading their composer.json. Requires a matching repository name and has no effect with require-all, require-(dev-)dependencies or on repositories using only, exclude or canonical.",
+            "description": "If true, tags of VCS repositories not matching the version constraint in require are skipped without reading their composer.json, once the composer.json of the default branch declares the package. Requires a matching repository name and has no effect with require-all, require-(dev-)dependencies, inline aliases or on repositories using only, exclude or canonical.",
             "default": false
         },
         "require-all": {

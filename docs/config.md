@@ -137,7 +137,7 @@ Returns a minimal set of dependencies needed to satisfy the configuration. The r
 
 ### filter-tags-by-require
 
-If true, tags of VCS repositories that do not match the version constraint in "require" are skipped without reading their `composer.json`, which speeds up builds of repositories with many tags. Branches are always read. Tags are only skipped if the `composer.json` of the default branch declares the package, as the tags may contain other packages otherwise. Defaults to false.
+If true, tags of VCS repositories that do not match the version constraint in "require" are skipped without reading their `composer.json`, which speeds up builds of repositories with many tags. Branches are always read. Tags are only skipped if the `composer.json` of the default branch declares the package, as the tags may contain other packages otherwise. Tags outside the constraint are still read until one of them loads, so the repository provides the package as without this option, which keeps lower-priority repositories from supplying it. Defaults to false.
 
 This only applies to repositories that set `name` to a package listed in "require". It has no effect if "require-all", "require-dependencies" or "require-dev-dependencies" is enabled, on repositories using `only`, `exclude` or `canonical`, or on packages required with an inline alias.
 
