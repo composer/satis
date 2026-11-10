@@ -346,8 +346,13 @@ times, so the `output-dir` must persist between builds. A version that is
 missing from the previous build is published anew, and Composer then holds it
 back for the cooldown period. This applies to every version in the first build
 after upgrading to a Satis release that adds `published-time`, in a build into
-an empty directory, and to a version that is missing from a single build, for
-example because its repository could not be loaded with `--skip-errors`.
+an empty directory, and to a version that is missing from a single build while
+other versions of its package are built.
+
+A package that is missing from a build entirely, for example because its
+repository could not be loaded with `--skip-errors`, keeps the metadata of the
+last build that contained it. When the package returns, its versions keep their
+publication times instead of being held back again.
 
 ### Resolving dependencies
 
