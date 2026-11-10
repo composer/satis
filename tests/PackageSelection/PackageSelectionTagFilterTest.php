@@ -29,6 +29,8 @@ class PackageSelectionTagFilterTest extends TestCase
 {
     private const PACKAGE_NAME = 'vendor/package';
 
+    private const TAGS = ['v1.0.0', 'v1.1.0', 'v2.0.0'];
+
     private string $workDir;
 
     protected function setUp(): void
@@ -39,7 +41,7 @@ class PackageSelectionTagFilterTest extends TestCase
         $this->git('init');
         // Instead of --initial-branch, which requires Git 2.28
         $this->git('symbolic-ref', 'HEAD', 'refs/heads/main');
-        foreach (['v1.0.0', 'v2.0.0'] as $tag) {
+        foreach (self::TAGS as $tag) {
             $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'description' => $tag]);
             $this->git('tag', $tag);
         }
@@ -56,10 +58,11 @@ class PackageSelectionTagFilterTest extends TestCase
     public static function dataReadTags(): array
     {
         return [
-            'filter disabled' => [[], ['v1.0.0', 'v2.0.0']],
-            'filter enabled' => [['filter-tags-by-require' => true], ['v2.0.0']],
-            'filter enabled with require-dependencies' => [['filter-tags-by-require' => true, 'require-dependencies' => true], ['v1.0.0', 'v2.0.0']],
-            'filter enabled with inline alias' => [['filter-tags-by-require' => true, 'require' => [self::PACKAGE_NAME => '2.0.0 as 3.0.0']], ['v1.0.0', 'v2.0.0']],
+            'filter disabled' => [[], self::TAGS],
+            // The first tag outside the constraint is read to claim the package name
+            'filter enabled' => [['filter-tags-by-require' => true], ['v1.0.0', 'v2.0.0']],
+            'filter enabled with require-dependencies' => [['filter-tags-by-require' => true, 'require-dependencies' => true], self::TAGS],
+            'filter enabled with inline alias' => [['filter-tags-by-require' => true, 'require' => [self::PACKAGE_NAME => '2.0.0 as 3.0.0']], self::TAGS],
         ];
     }
 
@@ -103,7 +106,7 @@ class PackageSelectionTagFilterTest extends TestCase
         [$selected, $output] = $this->select(['filter-tags-by-require' => true, 'require' => [self::PACKAGE_NAME => $constraint]]);
 
         self::assertSame($expectedSelected, array_keys($selected));
-        $this->assertReadTags(['v1.0.0', 'v2.0.0'], $output);
+        $this->assertReadTags(self::TAGS, $output);
     }
 
     public function testTagsOfOtherPackagesAreKept(): void
@@ -124,7 +127,7 @@ class PackageSelectionTagFilterTest extends TestCase
         self::assertSame(['vendor/old-package-1.0.0.0', self::PACKAGE_NAME . '-2.0.0.0'], array_keys($selected));
     }
 
-    public function testNoPackageLeftAfterSkippingTags(): void
+    public function testNoMatchingTag(): void
     {
         // An invalid constraint makes the repository skip the default branch
         $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'require' => ['vendor/other' => 'invalid']]);
@@ -132,14 +135,53 @@ class PackageSelectionTagFilterTest extends TestCase
         [$selected, $output] = $this->select(['filter-tags-by-require' => true, 'require' => [self::PACKAGE_NAME => '^3.0']]);
 
         self::assertSame([], $selected);
-        $this->assertReadTags([], $output);
+        $this->assertReadTags(['v1.0.0'], $output);
     }
 
     /**
-     * The skipped tags still claim the package name, so lower-priority repositories cannot supply it, as without the filter.
+     * @return array<string, array{bool, bool}>
+     */
+    public static function dataUnloadableTags(): array
+    {
+        return [
+            'invalid composer.json, filter disabled' => [false, true],
+            'invalid composer.json, filter enabled' => [true, true],
+            'no composer.json, filter disabled' => [false, false],
+            'no composer.json, filter enabled' => [true, false],
+        ];
+    }
+
+    /**
+     * If no tag outside the constraint loads, the repository fails as without the filter, instead of being empty.
+     */
+    #[DataProvider('dataUnloadableTags')]
+    public function testUnloadableTagsStillFail(bool $filterEnabled, bool $withComposerJson): void
+    {
+        $this->git('tag', '--delete', ...self::TAGS);
+        foreach (self::TAGS as $tag) {
+            if ($withComposerJson) {
+                // An invalid constraint makes the repository skip the tag
+                $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'description' => $tag, 'require' => ['vendor/other' => 'invalid']]);
+            } else {
+                $this->git('rm', '--quiet', '--ignore-unmatch', 'composer.json');
+                $this->git('commit', '--allow-empty', '--message', 'Tag without composer.json');
+            }
+            $this->git('tag', $tag);
+        }
+        // The default branch declares the package, but is skipped for its invalid constraint
+        $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'require' => ['vendor/other' => 'invalid']]);
+
+        $this->expectException(InvalidRepositoryException::class);
+
+        $this->select(['filter-tags-by-require' => $filterEnabled, 'require' => [self::PACKAGE_NAME => '^3.0']]);
+    }
+
+    /**
+     * The first tag outside the constraint that loads claims the package name, so lower-priority repositories cannot
+     * supply it, as without the filter.
      */
     #[DataProvider('dataFilterEnabled')]
-    public function testSkippedTagsKeepRepositoryPriority(bool $filterEnabled): void
+    public function testTagOutsideConstraintKeepsRepositoryPriority(bool $filterEnabled): void
     {
         // An invalid constraint makes the repository skip the default branch
         $this->commitComposerJson(['name' => self::PACKAGE_NAME, 'require' => ['vendor/other' => 'invalid']]);
@@ -181,7 +223,7 @@ class PackageSelectionTagFilterTest extends TestCase
     {
         $this->git('rm', '--quiet', 'composer.json');
         $this->git('commit', '--message', 'Remove composer.json from the branch');
-        $this->git('tag', '--delete', 'v1.0.0', 'v2.0.0');
+        $this->git('tag', '--delete', ...self::TAGS);
 
         $this->expectException(InvalidRepositoryException::class);
 
@@ -218,12 +260,13 @@ class PackageSelectionTagFilterTest extends TestCase
      */
     private function assertReadTags(array $expectedReadTags, string $output): void
     {
-        foreach (['v1.0.0', 'v2.0.0'] as $tag) {
-            $message = sprintf('Importing tag %s (', $tag);
+        foreach (self::TAGS as $tag) {
+            // Logged before the composer.json of the tag is read, with the URL if the default branch declares no package
+            $pattern = sprintf('/^Reading composer\.json of \S+ \(%s\)$/m', preg_quote($tag, '/'));
             if (in_array($tag, $expectedReadTags, true)) {
-                self::assertStringContainsString($message, $output);
+                self::assertMatchesRegularExpression($pattern, $output);
             } else {
-                self::assertStringNotContainsString($message, $output);
+                self::assertDoesNotMatchRegularExpression($pattern, $output);
             }
         }
     }

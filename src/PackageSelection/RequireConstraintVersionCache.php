@@ -36,8 +36,8 @@ final readonly class RequireConstraintVersionCache implements VersionCacheInterf
 
     /**
      * The repository treats false as a reference without composer.json: it lists the reference in
-     * getEmptyReferences() and, if very verbose, logs "Skipped <tag>, no composer file". The interface offers no other
-     * way to skip a version.
+     * getEmptyReferences() and, if very verbose, logs "Skipped <version>, no composer file (cached from ref
+     * <identifier>)". The interface offers no other way to skip a version.
      *
      * @return false|null False to skip the version, null to let the repository read it as usual
      */
