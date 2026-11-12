@@ -1,6 +1,6 @@
 {
     "devDependencies": {
-        "@babel/core": "^8.0.9",
+        "@babel/core": "^8.1.0",
         "@babel/preset-env": "^8.0.7",
         "@eslint/js": "^10.0.1",
         "@symfony/webpack-encore": "^7.2.0",
@@ -10,15 +10,15 @@
         "eslint-plugin-prettier": "^5.5.7",
         "eslint-webpack-plugin": "^6.0.0",
         "glob": "^14.0.3",
-        "globals": "^17.13.0",
+        "globals": "^17.14.0",
         "husky": "^9.1.7",
         "lint-staged": "^17.6.0",
         "prettier": "^3.9.10",
         "purgecss-webpack-plugin": "^8.0.0",
-        "sass": "^1.107.0",
+        "sass": "^1.107.1",
         "sass-loader": "^17.1.0",
         "webpack": "^5.112.2",
-        "webpack-cli": "^7.2.3"
+        "webpack-cli": "^7.3.1"
     },
     "license": "MIT",
     "private": true,
