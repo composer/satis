@@ -22,6 +22,7 @@ use org\bovigo\vfs\vfsStreamDirectory;
 use org\bovigo\vfs\vfsStreamFile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
@@ -129,6 +130,32 @@ class PackagesBuilderDumpTest extends TestCase
     public function testProviders(): void
     {
         $this->testNominalCase(true);
+    }
+
+    public function testOnlyReportsFilesThatWereWritten(): void
+    {
+        $output = new BufferedOutput();
+        $packagesBuilder = new PackagesBuilder($output, vfsStream::url('build'), [
+            'include-filename' => 'include/all.json',
+        ], false);
+        $stablePath = vfsStream::url('build/p2/vendor/name.json');
+        $devPath = vfsStream::url('build/p2/vendor/name~dev.json');
+        $includePath = vfsStream::url('build/include/all.json');
+
+        $packagesBuilder->dump(self::createPackages(1));
+        $firstOutput = $output->fetch();
+        self::assertStringContainsString('Wrote packages to ' . $stablePath, $firstOutput);
+        self::assertStringContainsString('Wrote packages to ' . $devPath, $firstOutput);
+        self::assertStringContainsString('Wrote packages to ' . $includePath, $firstOutput);
+
+        $packagesBuilder->dump(self::createPackages(1));
+        self::assertStringNotContainsString('Wrote packages to ', $output->fetch());
+
+        $packagesBuilder->dump(self::createPackages(2));
+        $changedOutput = $output->fetch();
+        self::assertStringContainsString('Wrote packages to ' . $stablePath, $changedOutput);
+        self::assertStringContainsString('Wrote packages to ' . $includePath, $changedOutput);
+        self::assertStringNotContainsString('Wrote packages to ' . $devPath, $changedOutput);
     }
 
     public function testProvidersUrl(): void

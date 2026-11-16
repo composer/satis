@@ -124,6 +124,9 @@ it, pass the VCS repository URL as an optional argument:
 
     php bin/satis build --repository-url https://only.my/repo.git satis.json web/
 
+The previous package metadata is merged with the refreshed packages to rebuild
+the repository indexes. Package files are only written when their contents change.
+
 You can also narrow the update to a single branch or version range of specific
 packages:
 
