@@ -343,8 +343,7 @@ class PackagesBuilder extends Builder
             }
         }
 
-        if (is_string($path)) {
-            $this->writeToFile($path, $contents);
+        if (is_string($path) && $this->writeToFile($path, $contents)) {
             $this->output->writeln("<info>Wrote packages to $path</info>");
         }
 
@@ -357,11 +356,11 @@ class PackagesBuilder extends Builder
      * @throws \UnexpectedValueException
      * @throws \Exception
      */
-    private function writeToFile(string $path, string $contents): void
+    private function writeToFile(string $path, string $contents): bool
     {
         if (file_exists($path) && sha1_file($path) === sha1($contents)) {
             // The file already contains the expected contents.
-            return;
+            return false;
         }
 
         $dir = dirname($path);
@@ -388,6 +387,8 @@ class PackagesBuilder extends Builder
                 throw $e;
             }
         }
+
+        return true;
     }
 
     /**
