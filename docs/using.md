@@ -169,9 +169,11 @@ instead of the `require` entries. With `--repository-url` no requirement is
 checked either, since packages served by the other repositories never match
 during a partial update.
 
-`--skip-errors` and `--strict` are independent: `--skip-errors` keeps the build
-going after errors that would otherwise abort it, while `--strict` fails on the
-warnings above, also when `--skip-errors` is given.
+`--skip-errors` keeps the build going after errors that would otherwise abort
+it, such as a repository that cannot be cloned or read, a dependency lookup
+that fails or a package that cannot be archived. Combined with `--strict`, the
+build still runs to completion and writes its output, but each skipped error is
+listed as well and the build exits with code 1.
 
 ## Usage
 

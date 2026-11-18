@@ -38,6 +38,7 @@ use Composer\Repository\RepositoryInterface;
 use Composer\Repository\RepositorySet;
 use Composer\Repository\VcsRepository;
 use Composer\Satis\Builder\PackagesBuilder;
+use Composer\Satis\SkipsErrors;
 use Composer\Semver\Constraint\MatchAllConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
@@ -45,6 +46,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PackageSelection
 {
+    use SkipsErrors;
+
     /** The output Interface. */
     protected OutputInterface $output;
 
@@ -707,11 +710,7 @@ class PackageSelection
                     $repositorySet->addRepository($repository);
                 }
             } catch (\Exception $exception) {
-                if (!$this->skipErrors) {
-                    throw $exception;
-                }
-
-                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                $this->skipError($exception);
             }
         }
     }
@@ -903,11 +902,7 @@ class PackageSelection
                     continue;
                 }
             } catch (\Exception $exception) {
-                if (!$this->skipErrors) {
-                    throw $exception;
-                }
-
-                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                $this->skipError($exception);
                 continue;
             }
 
@@ -987,11 +982,7 @@ class PackageSelection
                         $matches = $poolsByName[$name]->whatProvides($name, $link->getConstraint());
                     }
                 } catch (\Exception $exception) {
-                    if (!$this->skipErrors) {
-                        throw $exception;
-                    }
-
-                    $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                    $this->skipError($exception);
                 }
 
                 if (0 === \count($matches)) {

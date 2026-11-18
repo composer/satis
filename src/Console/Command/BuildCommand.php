@@ -63,7 +63,7 @@ class BuildCommand extends BaseCommand
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
                 new InputOption('minify', null, InputOption::VALUE_NONE, 'Minify output'),
-                new InputOption('strict', null, InputOption::VALUE_NONE, 'Exit with a non-zero code when a VCS mirror failed to update or a root requirement matched no package'),
+                new InputOption('strict', null, InputOption::VALUE_NONE, 'Exit with a non-zero code when a VCS mirror failed to update, a root requirement matched no package or --skip-errors skipped an error'),
             ])
             ->setHelp(
                 <<<'EOT'
@@ -127,9 +127,9 @@ class BuildCommand extends BaseCommand
 
                 With <info>--strict</info> the build still runs to completion, but exits with a
                 non-zero code when a VCS mirror failed to update (its package information may be
-                outdated) or a package listed in <info>"require"</info> matched no package. Unlike
-                <info>--skip-errors</info>, which is about errors that abort the build, these are
-                warnings, so <info>--strict</info> fails on them even with <info>--skip-errors</info>.
+                outdated) or a package listed in <info>"require"</info> matched no package. Combined
+                with <info>--skip-errors</info>, it also exits with a non-zero code when an error was
+                skipped, after writing the output.
                 EOT
             );
     }
@@ -184,26 +184,22 @@ class BuildCommand extends BaseCommand
             $localConfigFile = $configFile;
         }
 
+        // the errors skipped by --skip-errors, which fail a --strict build
+        $skippedErrors = [];
+
         try {
             $this->check($configFile);
-        } catch (JsonValidationException $e) {
-            foreach ($e->getErrors() as $error) {
-                $output->writeln(sprintf('<error>%s</error>', $error));
+        } catch (JsonValidationException|ParsingException|\UnexpectedValueException $e) {
+            if ($e instanceof JsonValidationException) {
+                foreach ($e->getErrors() as $error) {
+                    $output->writeln(sprintf('<error>%s</error>', $error));
+                }
             }
             if (!$skipErrors) {
                 throw $e;
             }
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
-        } catch (ParsingException $e) {
-            if (!$skipErrors) {
-                throw $e;
-            }
-            $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
-        } catch (\UnexpectedValueException $e) {
-            if (!$skipErrors) {
-                throw $e;
-            }
-            $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
+            $skippedErrors[] = $e->getMessage();
         }
 
         if ($htmlOnly) {
@@ -358,6 +354,7 @@ class BuildCommand extends BaseCommand
                     (new Filesystem())->removeDirectory($temporaryVendorDir);
                 }
             }
+            $skippedErrors = array_merge($skippedErrors, $downloads->getSkippedErrors());
         }
 
         $packages = $packageSelection->clean();
@@ -395,7 +392,12 @@ class BuildCommand extends BaseCommand
         }
 
         if (null !== $failedUpdates) {
-            return $this->reportStrictFailures($output, $failedUpdates->getFailedUpdates(), $packageSelection->getUnmatchedRootRequirements());
+            return $this->reportStrictFailures(
+                $output,
+                $failedUpdates->getFailedUpdates(),
+                $packageSelection->getUnmatchedRootRequirements(),
+                array_merge($skippedErrors, $packageSelection->getSkippedErrors()),
+            );
         }
 
         return 0;
@@ -415,10 +417,11 @@ class BuildCommand extends BaseCommand
     /**
      * @param list<string> $failedUpdates
      * @param list<string> $unmatchedRootRequirements
+     * @param list<string> $skippedErrors
      */
-    private function reportStrictFailures(OutputInterface $output, array $failedUpdates, array $unmatchedRootRequirements): int
+    private function reportStrictFailures(OutputInterface $output, array $failedUpdates, array $unmatchedRootRequirements, array $skippedErrors): int
     {
-        if ([] === $failedUpdates && [] === $unmatchedRootRequirements) {
+        if ([] === $failedUpdates && [] === $unmatchedRootRequirements && [] === $skippedErrors) {
             return 0;
         }
 
@@ -433,6 +436,12 @@ class BuildCommand extends BaseCommand
             $output->writeln('Root requirements that matched no package:');
             foreach ($unmatchedRootRequirements as $requirement) {
                 $output->writeln(' - ' . $requirement);
+            }
+        }
+        if ([] !== $skippedErrors) {
+            $output->writeln('Errors skipped by --skip-errors:');
+            foreach (array_unique($skippedErrors) as $error) {
+                $output->writeln(' - ' . $error);
             }
         }
 
