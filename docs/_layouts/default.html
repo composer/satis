@@ -1,110 +1,174 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
 
     {% if page.url == '/' %}
     <title>{{ site.data.project.title }} - {{ site.data.project.tagline }}</title>
     {% else %}
     <title>{{ page.title }} - {{ site.data.project.title }}</title>
     {% endif %}
+    <meta name="description" content="{{ site.data.project.tagline }}">
 
-    <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
-          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
-          crossorigin="anonymous">
-
-    <style type="text/css">
-        /* Sticky footer styles */
-        html {
-            position: relative;
-            min-height: 100%;
-        }
-        body {
-            /* Margin bottom by footer height */
-            margin-bottom: 60px;
-        }
-        .footer {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            /* Set the fixed height of the footer here */
-            height: 60px;
-            background-color: #f5f5f5;
-        }
-        /* Custom CSS */
-        body > .container {
-            padding: 60px 15px 0;
-        }
-        .container .text-muted {
-            margin: 20px 0;
-        }
-        .footer > .container {
-            padding-right: 15px;
-            padding-left: 15px;
-        }
-        code {
-            font-size: 80%;
-        }
-        dl {
-            margin-left: 1rem;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ site.baseurl }}/assets/css/style.css">
+    <script>
+        // apply the theme chosen earlier before the page renders, to avoid a flash of the other theme
+        try {
+            var theme = localStorage.getItem('theme');
+            if (theme === 'light' || theme === 'dark') {
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        } catch (e) {}
+    </script>
 </head>
-<body>
+<body{% if page.url == '/' %} class="home"{% endif %}>
 
-<!-- navbar -->
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
+{% assign current = page.url | remove: '.html' %}
+<header class="site-header">
+    <div class="site-header__inner">
+        <a class="brand" href="{{ site.baseurl }}/">
+            <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="3" y="4" width="26" height="7" rx="2"/>
+                <rect x="3" y="13" width="26" height="7" rx="2" opacity=".7"/>
+                <rect x="3" y="22" width="26" height="7" rx="2" opacity=".45"/>
+            </svg>
+            {{ site.data.project.title }}
+        </a>
+        <nav class="site-nav" aria-label="Documentation">
+            {% for entry in site.data.menu %}
+            <a href="{{ site.baseurl }}{{ entry[1] }}"{% if current == entry[1] %} aria-current="page"{% endif %}>{{ entry[0] }}</a>
+            {% endfor %}
+        </nav>
+        <div class="header-actions">
+            <button type="button" class="theme-toggle" aria-label="Theme: system">
+                <svg data-icon="system" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>
+                <svg data-icon="light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+                <svg data-icon="dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
             </button>
-            <a class="navbar-brand" href="/satis">Satis</a>
-        </div>
-        <div id="navbar" class="collapse navbar-collapse">
-            <ul class="nav navbar-nav">
-                {% for entry in site.data.menu %}
-                <li{% if page.url == entry[1] %} class="active"{% endif %}>
-                    <a href="{{ entry[1] }}">{{ entry[0] }}</a>
-                </li>
-                {% endfor %}
-            </ul>
+            <a class="github-link" href="https://github.com/composer/satis" aria-label="Satis on GitHub">
+                <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+                <span>GitHub</span>
+            </a>
         </div>
     </div>
-</nav>
+</header>
 
-<!-- content -->
-<div class="container">
-    {{ content }}
+{% if page.url == '/' %}
+<section class="hero">
+    <div class="hero__inner">
+        <h1 class="hero__title">{{ site.data.project.title }}</h1>
+        <p class="hero__tagline">{{ site.data.project.tagline }}</p>
+        <p class="hero__actions">
+            <a class="button button--primary" href="{{ site.baseurl }}/using">Get started</a>
+            <a class="button" href="{{ site.baseurl }}/config">Configuration reference</a>
+        </p>
+    </div>
+</section>
+{% endif %}
+
+<div class="page">
+    <main class="content" id="content">
+        {{ content }}
+    </main>
+    <aside class="toc" aria-label="On this page" hidden>
+        <p class="toc__title">On this page</p>
+        <ol class="toc__list"></ol>
+    </aside>
 </div>
 
-<!-- footer -->
-<footer class="footer">
-    <div class="container">
-        <p class="text-muted">&copy; Composer</p>
+<footer class="site-footer">
+    <div class="site-footer__inner">
+        <p>&copy; Composer &middot; MIT licensed</p>
+        <p><a href="https://github.com/composer/satis">Source on GitHub</a> &middot; <a href="https://github.com/composer/satis/issues">Issues</a></p>
     </div>
 </footer>
 
-<!-- fork me -->
-<a href="https://github.com/composer/satis">
-    <img style="position: absolute; top: 0; right: 0; border: 0; z-index: 1030;"
-         src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
-         alt="Fork me on GitHub"
-         data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png">
-</a>
+<script>
+(function () {
+    // cycle the theme through system, light and dark, and remember the choice
+    var root = document.documentElement;
+    var toggle = document.querySelector('.theme-toggle');
+    var themes = ['system', 'light', 'dark'];
+    var label = function (theme) {
+        toggle.setAttribute('aria-label', 'Theme: ' + theme);
+        toggle.title = 'Theme: ' + theme + ' (click to change)';
+    };
+    label(root.getAttribute('data-theme') || 'system');
+    toggle.addEventListener('click', function () {
+        var current = root.getAttribute('data-theme') || 'system';
+        var next = themes[(themes.indexOf(current) + 1) % themes.length];
+        if (next === 'system') {
+            root.removeAttribute('data-theme');
+        } else {
+            root.setAttribute('data-theme', next);
+        }
+        label(next);
+        try {
+            if (next === 'system') {
+                localStorage.removeItem('theme');
+            } else {
+                localStorage.setItem('theme', next);
+            }
+        } catch (e) {}
+    });
+})();
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"
-        integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
-        crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
-        integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
-        crossorigin="anonymous"></script>
+(function () {
+    var content = document.getElementById('content');
+    var headings = content.querySelectorAll('h2[id], h3[id]');
+
+    // a permalink next to every heading
+    headings.forEach(function (heading) {
+        var anchor = document.createElement('a');
+        anchor.className = 'heading-anchor';
+        anchor.href = '#' + heading.id;
+        anchor.setAttribute('aria-label', 'Link to this section');
+        anchor.textContent = '#';
+        heading.appendChild(anchor);
+    });
+
+    // an "On this page" list for pages with enough sections
+    if (headings.length < 3) {
+        return;
+    }
+    var toc = document.querySelector('.toc');
+    var list = toc.querySelector('.toc__list');
+    var links = {};
+    headings.forEach(function (heading) {
+        var item = document.createElement('li');
+        item.className = 'toc__item toc__item--' + heading.tagName.toLowerCase();
+        var link = document.createElement('a');
+        link.href = '#' + heading.id;
+        link.textContent = heading.firstChild.textContent;
+        item.appendChild(link);
+        list.appendChild(item);
+        links[heading.id] = link;
+    });
+    toc.hidden = false;
+    document.body.classList.add('has-toc');
+
+    // highlight the section being read
+    if ('IntersectionObserver' in window) {
+        var active = null;
+        var observer = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    if (active) {
+                        active.classList.remove('is-active');
+                    }
+                    active = links[entry.target.id];
+                    active.classList.add('is-active');
+                }
+            });
+        }, { rootMargin: '0px 0px -75% 0px' });
+        headings.forEach(function (heading) {
+            observer.observe(heading);
+        });
+    }
+})();
+</script>
 
 </body>
 </html>

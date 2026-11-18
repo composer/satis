@@ -4,14 +4,12 @@ permalink: /
 title: Introduction
 ---
 
-# Introduction
-
-[![Source Code](//img.shields.io/badge/source-composer/satis-blue.svg?style=flat-square)](https://github.com/composer/satis)
-[![License](//img.shields.io/packagist/l/composer/satis.svg?style=flat-square)](https://packagist.org/packages/composer/satis)
-
-Satis is an open source <a href="https://getcomposer.org">Composer</a> repository generator. It is like an
-ultra-lightweight static file-based version of <a href="https://packagist.org">Packagist</a> and can be used to host
+Satis is an open source [Composer](https://getcomposer.org) repository generator. It is like an
+ultra-lightweight static file-based version of [Packagist](https://packagist.org) and can be used to host
 the metadata of your company's private packages, or your own.
+{: .lead}
+
+## Installation
 
 Install and run from source:
 
