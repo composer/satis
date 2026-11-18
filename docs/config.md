@@ -325,8 +325,7 @@ Options that are often useful:
 - `gitlab-token`, `github-oauth` and `http-basic`: credentials for the repositories. These are better kept in the
   `auth.json` file in `COMPOSER_HOME` than in the Satis configuration, see [Authentication](using#authentication).
 - `vendor-dir`: Composer extracts downloaded dist archives into `<vendor-dir>/composer/` when Satis creates its archives.
-  It defaults to `vendor` in the current directory, so set it to a writable directory if Satis runs from a read-only
-  location.
+  If it is not set, Satis uses a temporary directory and removes it after the build.
 
 Satis skips platform requirements such as `php` and `ext-*` when it selects packages, so `platform` does not change
 which versions are selected.

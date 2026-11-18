@@ -31,6 +31,7 @@ use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\Console\Application as SatisApplication;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Semver\Constraint\Constraint;
+use Composer\Util\Filesystem;
 use Composer\Util\ProcessExecutor;
 use Composer\Util\RemoteFilesystem;
 use JsonSchema\Validator;
@@ -274,7 +275,23 @@ class BuildCommand extends BaseCommand
             $downloads->setComposer($composer);
             $downloads->setInput($input);
             $downloads->setIO($io);
-            $downloads->dump($packages);
+
+            // Composer extracts archives into a temporary directory below the vendor-dir, which defaults to vendor/
+            // in the working directory. Use a temporary vendor-dir instead, unless one is configured or Satis runs as
+            // a plugin of a project, which has a vendor-dir of its own.
+            $temporaryVendorDir = null;
+            if ($application instanceof SatisApplication && !isset($config['config']['vendor-dir'])) {
+                $temporaryVendorDir = sys_get_temp_dir() . '/satis-vendor-' . bin2hex(random_bytes(8));
+                $composerConfig->merge(['config' => ['vendor-dir' => $temporaryVendorDir]]);
+            }
+
+            try {
+                $downloads->dump($packages);
+            } finally {
+                if (null !== $temporaryVendorDir) {
+                    (new Filesystem())->removeDirectory($temporaryVendorDir);
+                }
+            }
         }
 
         $packages = $packageSelection->clean();
