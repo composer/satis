@@ -388,8 +388,10 @@ class ArchiveBuilderTest extends TestCase
         $packages = self::getDistPackages();
         $this->useFileDownloader(static fn (PackageInterface $package): bool => '1.1.0' !== $package->getPrettyVersion());
 
-        $this->createDistArchiveBuilder()->dump($packages);
+        $builder = $this->createDistArchiveBuilder();
+        $builder->dump($packages);
 
+        self::assertSame(['Download of 1.1.0 failed'], $builder->getSkippedErrors());
         foreach ($packages as $package) {
             if ('1.1.0' === $package->getPrettyVersion()) {
                 self::assertFileDoesNotExist($this->getDistArchivePath($package));

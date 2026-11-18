@@ -23,6 +23,7 @@ use Composer\Package\Archiver\ArchiveManager;
 use Composer\Package\CompletePackage;
 use Composer\Package\CompletePackageInterface;
 use Composer\Package\PackageInterface;
+use Composer\Satis\SkipsErrors;
 use Composer\Util\Filesystem;
 use Composer\Util\SyncHelper;
 use React\Promise\PromiseInterface;
@@ -32,6 +33,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class ArchiveBuilder extends Builder
 {
+    use SkipsErrors;
+
     private Composer $composer;
 
     private InputInterface $input;
@@ -140,10 +143,7 @@ class ArchiveBuilder extends Builder
                     $this->output->setVerbosity($verbosity);
                 }
 
-                if (!$this->skipErrors) {
-                    throw $exception;
-                }
-                $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
+                $this->skipError($exception);
             }
 
             if (!is_null($progressBar)) {

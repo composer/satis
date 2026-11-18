@@ -1245,6 +1245,34 @@ class BuildCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
     }
 
+    #[DataProvider('dataStrictOption')]
+    #[TestDox('execute() with --skip-errors exit code on a repository that failed to load $_dataName')]
+    public function testExecuteStrictFailsOnErrorSkippedBySkipErrors(bool $strict, int $expectedStatusCode): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $tester = $this->executeSatis(
+            ['file' => $this->configPath, 'output-dir' => $outputDir, '--skip-errors' => true, '--strict' => $strict],
+            $this->baseSatisConfig([
+                'repositories' => [
+                    $this->packageRepo(),
+                    ['type' => 'vcs', 'url' => vfsStream::url('satis/missing-repository')],
+                ],
+            ])
+        );
+
+        self::assertSame($expectedStatusCode, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertFileExists($outputDir . '/packages.json');
+        self::assertStringContainsString('vendor/test-pkg', (string) file_get_contents($outputDir . '/packages.json'));
+        $display = $tester->getDisplay();
+        self::assertStringContainsString("Skipping Exception 'No driver found to handle VCS repository vfs://satis/missing-repository'.", $display);
+        if ($strict) {
+            self::assertStringContainsString("Errors skipped by --skip-errors:\n - No driver found to handle VCS repository vfs://satis/missing-repository\n", $display);
+        } else {
+            self::assertStringNotContainsString('Strict mode', $display);
+        }
+    }
+
     #[TestDox('execute() with --strict and require-all ignores packages of a composer repository without a version allowed by minimum-stability')]
     public function testExecuteStrictWithRequireAllIgnoresComposerRepositoryPackagesBelowMinimumStability(): void
     {
