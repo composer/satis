@@ -394,7 +394,7 @@ is set to true.
 
 [ssh2 context options]: https://secure.php.net/manual/en/wrappers.ssh2.php#refsect1-wrappers.ssh2-options
 [ssl context options]: https://secure.php.net/manual/en/context.ssl.php
-[twig]: https://twig.sensiolabs.org/
+[twig]: https://twig.symfony.com/
 [config schema]: https://getcomposer.org/doc/04-schema.md#config
 [notify-batch]: https://getcomposer.org/doc/05-repositories.md#notify-batch
 [composer types]: https://getcomposer.org/doc/04-schema.md#type
