@@ -21,6 +21,7 @@ use Composer\Json\JsonFile;
 use Composer\Json\JsonValidationException;
 use Composer\Package\Loader\RootPackageLoader;
 use Composer\Package\PackageInterface;
+use Composer\Package\RootPackageInterface;
 use Composer\Package\Version\VersionGuesser;
 use Composer\Package\Version\VersionParser;
 use Composer\Repository\ConfigurableRepositoryInterface;
@@ -57,6 +58,7 @@ class BuildCommand extends BaseCommand
                 new InputOption('repository-strict', null, InputOption::VALUE_NONE, 'Also apply the repository filter when resolving dependencies'),
                 new InputOption('branch', null, InputOption::VALUE_REQUIRED, 'Only update the given branch or version range of the specified package(s)'),
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
+                new InputOption('html-only', null, InputOption::VALUE_NONE, 'Only rebuild the HTML view from the packages of the previous build in output-dir, without scanning repositories'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
                 new InputOption('minify', null, InputOption::VALUE_NONE, 'Minify output'),
@@ -66,6 +68,13 @@ class BuildCommand extends BaseCommand
                 The <info>build</info> command reads the given json file
                 (satis.json is used by default) and outputs a composer
                 repository in the given output-dir.
+
+                With <info>--html-only</info>, only the web view (index.html) is
+                rebuilt, from the packages of the previous build in output-dir.
+                Repositories are not scanned and packages.json, the package
+                metadata and archives are left untouched. This is meant for
+                iterating on a custom twig-template, and builds the web view
+                even when output-html is false.
 
                 The json config file accepts the following keys:
 
@@ -131,6 +140,7 @@ class BuildCommand extends BaseCommand
         $branch = $input->getOption('branch');
         $skipErrors = (bool) $input->getOption('skip-errors');
         $minify = (bool) $input->getOption('minify');
+        $htmlOnly = (bool) $input->getOption('html-only');
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
@@ -178,6 +188,18 @@ class BuildCommand extends BaseCommand
                 throw $e;
             }
             $output->writeln(sprintf('<warning>%s: %s</warning>', get_class($e), $e->getMessage()));
+        }
+
+        if ($htmlOnly) {
+            $conflicts = array_filter([
+                '"--no-html-output"' => (bool) $input->getOption('no-html-output'),
+                'package arguments' => count($packagesFilter) > 0,
+                '"--repository-url"' => null !== $repositoryUrl && [] !== $repositoryUrl,
+                '"--branch"' => null !== $branch,
+            ]);
+            if ([] !== $conflicts) {
+                throw new \InvalidArgumentException(sprintf('The "--html-only" option cannot be used together with %s.', implode(', ', array_keys($conflicts))));
+            }
         }
 
         if (null !== $branch && (null !== $repositoryUrl && [] !== $repositoryUrl)) {
@@ -268,6 +290,19 @@ class BuildCommand extends BaseCommand
 
         $packageSelection = new PackageSelection($output, $outputDir, $config, $skipErrors, $io);
 
+        if ($htmlOnly) {
+            $packages = $packageSelection->load();
+            if ([] === $packages) {
+                $output->writeln(sprintf('<error>No packages found in a previous build in %s, run a full build first</error>', $outputDir));
+
+                return 1;
+            }
+
+            $this->dumpWebView($output, $outputDir, $config, $skipErrors, $composer->getPackage(), $packages);
+
+            return 0;
+        }
+
         if (null !== $repositoryUrl && [] !== $repositoryUrl) {
             $packageSelection->setRepositoriesFilter($repositoryUrl, (bool) $input->getOption('repository-strict'));
         } else {
@@ -335,12 +370,21 @@ class BuildCommand extends BaseCommand
         $packagesBuilder->dump($packages);
 
         if ($this->shouldBuildHtml($input, $config)) {
-            $web = new WebBuilder($output, $outputDir, $config, $skipErrors);
-            $web->setRootPackage($composer->getPackage());
-            $web->dump($packages);
+            $this->dumpWebView($output, $outputDir, $config, $skipErrors, $composer->getPackage(), $packages);
         }
 
         return 0;
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     * @param PackageInterface[]   $packages
+     */
+    private function dumpWebView(OutputInterface $output, string $outputDir, array $config, bool $skipErrors, RootPackageInterface $rootPackage, array $packages): void
+    {
+        $web = new WebBuilder($output, $outputDir, $config, $skipErrors);
+        $web->setRootPackage($rootPackage);
+        $web->dump($packages);
     }
 
     /**

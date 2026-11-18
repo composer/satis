@@ -1726,4 +1726,147 @@ class BuildCommandTest extends TestCase
             'shasum' => (string) $dist['shasum'],
         ];
     }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function dataHtmlOnlyIncludes(): array
+    {
+        return [
+            'with includes' => [true],
+            'without includes (p2 metadata)' => [false],
+        ];
+    }
+
+    #[DataProvider('dataHtmlOnlyIncludes')]
+    #[TestDox('execute() with --html-only regenerates index.html from the previous build without scanning repositories')]
+    public function testExecuteWithHtmlOnlyRebuildsWebViewFromPreviousBuild(bool $includes): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $config = $this->baseSatisConfig(['includes' => $includes]);
+
+        $tester = $this->executeSatis(['file' => $this->configPath, 'output-dir' => $outputDir], $config);
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertFileExists($outputDir . '/index.html');
+
+        // Backdate everything the first build wrote, so any rewrite shows up as a changed mtime
+        $before = [];
+        foreach ($this->listFiles($outputDir) as $path) {
+            touch($path, 1000000000);
+            clearstatcache();
+            $before[$path] = [(string) file_get_contents($path), filemtime($path)];
+        }
+
+        $templateDir = vfsStream::url('satis/templates');
+        mkdir($templateDir);
+        file_put_contents(
+            $templateDir . '/custom.html.twig',
+            'CUSTOM TEMPLATE {{ name }}:{% for packageName, versions in packages %} {{ packageName }}{% endfor %}'
+        );
+
+        // The repository of the first build is gone: a scan would fail, while --html-only must not touch it
+        $config['repositories'] = [['type' => 'vcs', 'url' => vfsStream::url('satis/missing-repository')]];
+        $config['twig-template'] = $templateDir . '/custom.html.twig';
+
+        $tester = $this->executeSatis(
+            ['file' => $this->configPath, 'output-dir' => $outputDir, '--html-only' => true],
+            $config
+        );
+
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertSame(
+            'CUSTOM TEMPLATE test/satis-repo: vendor/test-pkg',
+            file_get_contents($outputDir . '/index.html')
+        );
+
+        clearstatcache();
+        foreach ($before as $path => [$contents, $mtime]) {
+            if ($outputDir . '/index.html' === $path) {
+                continue;
+            }
+            self::assertSame($contents, file_get_contents($path), $path . ' was rewritten');
+            self::assertSame($mtime, filemtime($path), $path . ' was rewritten');
+        }
+        self::assertSame(array_keys($before), $this->listFiles($outputDir), 'Files were added or removed');
+    }
+
+    #[TestDox('execute() with --html-only builds index.html even when output-html is false')]
+    public function testExecuteWithHtmlOnlyIgnoresOutputHtmlConfig(): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $config = $this->baseSatisConfig(['output-html' => false]);
+
+        $this->executeSatis(['file' => $this->configPath, 'output-dir' => $outputDir], $config);
+        self::assertFileDoesNotExist($outputDir . '/index.html');
+
+        $tester = $this->executeSatis(
+            ['file' => $this->configPath, 'output-dir' => $outputDir, '--html-only' => true],
+            $config
+        );
+
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertFileExists($outputDir . '/index.html');
+    }
+
+    #[TestDox('execute() with --html-only fails when there is no previous build output')]
+    public function testExecuteWithHtmlOnlyFailsWithoutPreviousBuild(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $tester = $this->executeSatis(
+            ['file' => $this->configPath, 'output-dir' => $outputDir, '--html-only' => true],
+            $this->baseSatisConfig()
+        );
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('No packages found in a previous build', $tester->getDisplay());
+        self::assertFileDoesNotExist($outputDir . '/index.html');
+        self::assertFileDoesNotExist($outputDir . '/packages.json');
+    }
+
+    /**
+     * @return array<string, array{array<string, mixed>, string}>
+     */
+    public static function dataHtmlOnlyConflicts(): array
+    {
+        return [
+            '--no-html-output' => [['--no-html-output' => true], '"--no-html-output"'],
+            'package arguments' => [['packages' => ['vendor/test-pkg']], 'package arguments'],
+            '--repository-url' => [['--repository-url' => ['https://example.com/repo.git']], '"--repository-url"'],
+            '--branch' => [['--branch' => 'main'], '"--branch"'],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $options
+     */
+    #[DataProvider('dataHtmlOnlyConflicts')]
+    #[TestDox('execute() rejects --html-only combined with $_dataName')]
+    public function testExecuteWithHtmlOnlyRejectsConflictingOptions(array $options, string $conflict): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage(sprintf('The "--html-only" option cannot be used together with %s.', $conflict));
+
+        $this->executeSatis(
+            ['file' => $this->configPath, 'output-dir' => $outputDir, '--html-only' => true] + $options,
+            $this->baseSatisConfig()
+        );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function listFiles(string $dir): array
+    {
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \FilesystemIterator::SKIP_DOTS));
+        foreach ($iterator as $file) {
+            $files[] = $file->getPathname();
+        }
+        sort($files);
+
+        return $files;
+    }
 }

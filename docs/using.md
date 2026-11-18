@@ -390,6 +390,19 @@ old commit of a dev version, can no longer install it and need a
 - `allow-seo-indexing`: optional, `false` by default, when enabled (`true`) satis
   will allow the generated page to be indexed by search engines.
 
+While working on a custom `twig-template`, you can regenerate only the
+`output-dir`/index.html page from the packages of the previous build, without
+scanning any repository:
+
+    php bin/satis build --html-only satis.json web/
+
+Satis reads the packages back from the existing `packages.json` and its include,
+provider or `p2/` metadata files, and leaves those files and any archives
+untouched. As it is an explicit request for the page, `--html-only` builds it
+even when `output-html` is `false`. It fails when `output-dir` holds no previous
+build, and cannot be combined with `--no-html-output`, `--repository-url`,
+`--branch` or package arguments.
+
 ### Abandoned packages
 
 To enable your satis installation to indicate that some packages are abandoned,
