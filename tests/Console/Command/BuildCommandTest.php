@@ -1123,6 +1123,91 @@ class BuildCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
     }
 
+    #[TestDox('execute() extracts archives outside the working directory when no vendor-dir is configured')]
+    public function testExecuteArchivesWithoutVendorDirInWorkingDirectory(): void
+    {
+        $workDir = $this->makeArchiveWorkDir();
+
+        try {
+            $app = $this->buildArchivesIn($workDir, []);
+
+            self::assertFileExists($workDir . '/output/dist/vendor/test-pkg/vendor-test-pkg-1.0.0.tar');
+            self::assertDirectoryDoesNotExist($workDir . '/cwd/vendor');
+
+            $vendorDir = $app->getComposer()->getConfig()->get('vendor-dir');
+            self::assertIsString($vendorDir);
+            self::assertStringStartsNotWith($workDir . '/cwd', $vendorDir);
+            self::assertDirectoryDoesNotExist($vendorDir, 'The temporary vendor-dir is removed after the build');
+        } finally {
+            (new \Symfony\Component\Filesystem\Filesystem())->remove($workDir);
+        }
+    }
+
+    #[TestDox('execute() extracts archives into the configured vendor-dir')]
+    public function testExecuteArchivesWithConfiguredVendorDir(): void
+    {
+        $workDir = $this->makeArchiveWorkDir();
+
+        try {
+            $app = $this->buildArchivesIn($workDir, ['vendor-dir' => $workDir . '/custom-vendor']);
+
+            self::assertFileExists($workDir . '/output/dist/vendor/test-pkg/vendor-test-pkg-1.0.0.tar');
+            self::assertDirectoryDoesNotExist($workDir . '/cwd/vendor');
+            self::assertSame($workDir . '/custom-vendor', $app->getComposer()->getConfig()->get('vendor-dir'));
+            self::assertDirectoryExists($workDir . '/custom-vendor/composer', 'The configured vendor-dir is used and kept');
+        } finally {
+            (new \Symfony\Component\Filesystem\Filesystem())->remove($workDir);
+        }
+    }
+
+    private function makeArchiveWorkDir(): string
+    {
+        $workDir = sys_get_temp_dir() . '/satis-build-' . uniqid('', true);
+        mkdir($workDir . '/cwd', 0o777, true);
+        mkdir($workDir . '/output');
+
+        $zip = new \ZipArchive();
+        $zip->open($workDir . '/test-pkg.zip', \ZipArchive::CREATE);
+        $zip->addFromString('README.md', '# Test package');
+        $zip->close();
+
+        return $workDir;
+    }
+
+    /**
+     * Builds archives of a package whose dist archive has to be extracted, from within "$workDir/cwd".
+     *
+     * @param array<string, mixed> $composerConfig
+     */
+    private function buildArchivesIn(string $workDir, array $composerConfig): SatisApplication
+    {
+        $config = $this->baseSatisConfig([
+            'repositories' => [$this->packageRepo(distUrl: 'file://' . $workDir . '/test-pkg.zip')],
+            'archive' => ['directory' => 'dist', 'format' => 'tar', 'override-dist-type' => true],
+            'output-html' => false,
+        ]);
+        if ([] !== $composerConfig) {
+            $config['config'] = $composerConfig;
+        }
+        $this->writeConfig($config);
+
+        $app = new SatisApplication();
+        (new \ReflectionProperty($app, 'io'))->setValue($app, new NullIO());
+        $tester = new CommandTester($app->find('build'));
+
+        $cwd = (string) getcwd();
+        chdir($workDir . '/cwd');
+        try {
+            $status = $tester->execute(['file' => $this->configPath, 'output-dir' => $workDir . '/output']);
+        } finally {
+            chdir($cwd);
+        }
+
+        self::assertSame(0, $status, $tester->getDisplay());
+
+        return $app;
+    }
+
     #[TestDox('execute() with --branch filters to dev branch versions')]
     public function testExecuteWithBranchFiltersDevVersions(): void
     {
