@@ -143,4 +143,24 @@ class PackageSelectionLoadTest extends TestCase
             }
         }
     }
+
+    public function testLoadsComposer2MetadataWithoutIncludes(): void
+    {
+        $this->selection->setPackagesFilter([]);
+        $fromIncludes = $this->selection->load();
+
+        $this->root->removeChild('include');
+        $packagesBuilder = new PackagesBuilder(new NullOutput(), vfsStream::url('build'), ['includes' => false], false, true);
+        $packagesBuilder->dump([$this->package, $this->devPackage]);
+        self::assertFalse($this->root->hasChild('include'));
+
+        $fromMetadata = $this->selection->load();
+
+        self::assertSame(['vendor/name-1.0.0.0', 'vendor/name-dev-master'], array_keys($fromMetadata));
+        self::assertEquals(array_keys($fromIncludes), array_keys($fromMetadata));
+        foreach ($fromMetadata as $uniqueName => $package) {
+            self::assertNotInstanceOf(AliasPackage::class, $package);
+            self::assertSame($fromIncludes[$uniqueName]->getExtra(), $package->getExtra());
+        }
+    }
 }

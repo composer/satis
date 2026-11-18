@@ -39,7 +39,7 @@ class PurgeCommand extends BaseCommand
                 <<<'EOT'
                 The <info>purge</info> command deletes useless archive files, depending
                 on given json file (satis.json is used by default) and the
-                newest json file in the include directory of the given output-dir.
+                packages of the last build in the given output-dir.
 
                 In your satis.json (or other name you give), you must define
                 "archive" argument. You also need to define "homepage" argument or "SATIS_HOMEPAGE" environment variable if you don't use archive "prefix-url" argument.
@@ -111,6 +111,15 @@ class PurgeCommand extends BaseCommand
             $output->writeln('<warning>No archives found.</warning>');
 
             return 0;
+        }
+
+        if (0 === count($packages)) {
+            $output->writeln(sprintf(
+                '<error>No packages found in the last build in %s, so every archive would be considered unreferenced. Nothing was removed.</error>',
+                $outputDir
+            ));
+
+            return 1;
         }
 
         /** @var SplFileInfo[] $unreferenced */

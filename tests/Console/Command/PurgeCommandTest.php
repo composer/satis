@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Composer\Satis\Console\Command;
 
 use Composer\Console\Application;
+use Composer\Package\Package;
+use Composer\Satis\Builder\PackagesBuilder;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -452,6 +454,98 @@ class PurgeCommandTest extends TestCase
         self::assertStringContainsString('unreferenced.tar.gz', $tester->getDisplay());
         self::assertFileDoesNotExist($unreferencedFile);
         self::assertFileExists($referencedFile);
+    }
+
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public static function provideMetadataFormat(): iterable
+    {
+        yield 'expanded' => [false];
+        yield 'minified' => [true];
+    }
+
+    #[DataProvider('provideMetadataFormat')]
+    #[TestDox('execute() reads the referenced archives from the Composer 2 metadata when includes are disabled')]
+    public function testExecuteReadsReferencesFromComposer2MetadataWithoutIncludes(bool $minify): void
+    {
+        $outputDir = vfsStream::url('satis/output-p2');
+        mkdir($outputDir);
+        $archiveDir = $outputDir . '/dist';
+        mkdir($archiveDir . '/vendor', 0755, true);
+
+        $stableFile = $archiveDir . '/vendor/stable.tar.gz';
+        $devFile = $archiveDir . '/vendor/dev.tar.gz';
+        $unreferencedFile = $archiveDir . '/vendor/unreferenced.tar.gz';
+        foreach ([$stableFile, $devFile, $unreferencedFile] as $file) {
+            file_put_contents($file, 'x');
+        }
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'output-dir' => $outputDir,
+            'includes' => false,
+            'archive' => [
+                'directory' => 'dist',
+                'prefix-url' => 'https://example.com',
+            ],
+        ];
+
+        $stable = new Package('vendor/pkg', '1.0.0.0', '1.0.0');
+        $stable->setDistType('tar');
+        $stable->setDistUrl('https://example.com/dist/vendor/stable.tar.gz');
+        $dev = new Package('vendor/pkg', 'dev-main', 'dev-main');
+        $dev->setDistType('tar');
+        $dev->setDistUrl('https://example.com/dist/vendor/dev.tar.gz');
+        (new PackagesBuilder(new NullOutput(), $outputDir, $config, false, $minify))->dump([$stable, $dev]);
+        self::assertDirectoryDoesNotExist($outputDir . '/include');
+
+        $this->writeSatisConfig($config);
+
+        $tester = $this->createTester();
+        $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertFileExists($stableFile);
+        self::assertFileExists($devFile);
+        self::assertFileDoesNotExist($unreferencedFile);
+    }
+
+    #[TestDox('execute() refuses to remove archives when no packages of the last build can be loaded')]
+    public function testExecuteRefusesWhenNoPackagesCanBeLoaded(): void
+    {
+        $outputDir = vfsStream::url('satis/output-empty');
+        mkdir($outputDir);
+        $archiveDir = $outputDir . '/dist';
+        mkdir($archiveDir . '/vendor', 0755, true);
+
+        $archive = $archiveDir . '/vendor/archive.tar.gz';
+        file_put_contents($archive, 'x');
+
+        $this->writeSatisConfig([
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'output-dir' => $outputDir,
+            'archive' => [
+                'directory' => 'dist',
+                'prefix-url' => 'https://example.com',
+            ],
+        ]);
+
+        $tester = $this->createTester();
+        $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ]);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString('No packages found', $tester->getDisplay());
+        self::assertStringNotContainsString('Removed archive', $tester->getDisplay());
+        self::assertFileExists($archive);
     }
 
     #[TestDox('execute() does not count packages without dist type as needed')]

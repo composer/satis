@@ -24,7 +24,8 @@ class PackagesBuilder extends Builder
 {
     public const MINIFY_ALGORITHM_V2 = 'composer/2.0';
 
-    private const METADATA_URL = 'p2/%package%.json';
+    /** Path of the Composer 2 metadata of a package, relative to the output directory. */
+    public const METADATA_URL = 'p2/%package%.json';
 
     /** packages.json file name. */
     private string $filename;
