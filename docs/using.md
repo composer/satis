@@ -169,6 +169,12 @@ instead of the `require` entries. With `--repository-url` no requirement is
 checked either, since packages served by the other repositories never match
 during a partial update.
 
+A failed mirror update goes unnoticed when the same VCS repository is also
+listed in a composer.json read by the build: the one of your project when Satis
+runs as a Composer plugin, or a composer.json in the working directory
+otherwise. Satis then scans the repository as registered by that
+composer.json, and its warnings bypass `--strict`.
+
 `--skip-errors` keeps the build going after errors that would otherwise abort
 it, such as a repository that cannot be cloned or read, a dependency lookup
 that fails or a package that cannot be archived. Combined with `--strict`, the
