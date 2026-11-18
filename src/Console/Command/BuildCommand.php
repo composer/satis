@@ -500,7 +500,7 @@ class BuildCommand extends BaseCommand
                 throw new \UnexpectedValueException('"' . $configFile . '" is not UTF-8, could not parse as JSON');
             }
 
-            $data = json_decode((string) $content);
+            $data = json_decode($content);
 
             $schemaFile = __DIR__ . '/../../../res/satis-schema.json';
             $schemaFileContents = file_get_contents($schemaFile);
