@@ -111,7 +111,7 @@ class ArchiveBuilderTest extends TestCase
 
             public function archive(CompletePackageInterface $package, string $format, string $targetDir, ?string $fileName = null, bool $ignoreFilters = false): string
             {
-                $target = $targetDir.'/'.$this->getPackageFilename($package).'.'.$format;
+                $target = $targetDir.'/'.($fileName ?? $this->getPackageFilename($package)).'.'.$format;
                 touch($target);
 
                 return $target;
@@ -245,6 +245,36 @@ class ArchiveBuilderTest extends TestCase
         $builder->dump($packages);
 
         self::assertSame($expectedFileName, basename((string) $packages[0]->getDistUrl()));
+    }
+
+    /**
+     * @return array<string, array{?string, ?string, string}>
+     */
+    public static function getDataForTestDumpWithDistChecksum(): array
+    {
+        return [
+            'source and dist reference' => ['c41c218e239b50446fd883acb1ecfd4b770caeae', 'c41c218e239b50446fd883acb1ecfd4b770caeae', 'monolog-monolog-c41c218e239b50446fd883acb1ecfd4b770caeae-zip-d4a976.tar'],
+            'source reference' => ['c41c218e239b50446fd883acb1ecfd4b770caeae', null, 'monolog-monolog-1.13.0-d4a976.tar'],
+            'dist reference' => [null, '1.13.0', 'monolog-monolog-1.13.0-1.13.0.tar'],
+            'no reference' => [null, null, 'monolog-monolog-1.13.0-0123abcd.tar'],
+        ];
+    }
+
+    #[DataProvider('getDataForTestDumpWithDistChecksum')]
+    public function testDumpNamesArchivesWithoutReferenceAfterDistChecksum(?string $sourceReference, ?string $distReference, string $expectedFileName): void
+    {
+        $package = self::getPackages()[0];
+        $package->setSourceReference($sourceReference);
+        $package->setDistReference($distReference);
+        $package->setDistSha1Checksum('0123abcd' . str_repeat('0', 32));
+
+        $builder = new ArchiveBuilder($this->output, $this->outputDir, $this->satisConfig, false);
+        $builder->setInput($this->input);
+        $builder->setComposer($this->composer);
+        $builder->dump([$package]);
+
+        self::assertSame($expectedFileName, basename((string) $package->getDistUrl()));
+        self::assertFileExists($this->target . '/' . $expectedFileName);
     }
 
     public function testDumpDownloadsMissingDistArchivesConcurrently(): void

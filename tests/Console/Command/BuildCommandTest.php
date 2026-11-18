@@ -34,6 +34,7 @@ use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
+use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
 
 #[TestDox('BuildCommand')]
 class BuildCommandTest extends TestCase
@@ -1139,7 +1140,7 @@ class BuildCommandTest extends TestCase
             self::assertStringStartsNotWith($workDir . '/cwd', $vendorDir);
             self::assertDirectoryDoesNotExist($vendorDir, 'The temporary vendor-dir is removed after the build');
         } finally {
-            (new \Symfony\Component\Filesystem\Filesystem())->remove($workDir);
+            (new SymfonyFilesystem())->remove($workDir);
         }
     }
 
@@ -1156,7 +1157,7 @@ class BuildCommandTest extends TestCase
             self::assertSame($workDir . '/custom-vendor', $app->getComposer()->getConfig()->get('vendor-dir'));
             self::assertDirectoryExists($workDir . '/custom-vendor/composer', 'The configured vendor-dir is used and kept');
         } finally {
-            (new \Symfony\Component\Filesystem\Filesystem())->remove($workDir);
+            (new SymfonyFilesystem())->remove($workDir);
         }
     }
 
@@ -1549,5 +1550,89 @@ class BuildCommandTest extends TestCase
         self::assertIsArray($packagesAfter);
         self::assertContains($packageName, $packagesAfter['available-packages']);
         self::assertContains('vendor/other-pkg', $packagesAfter['available-packages']);
+    }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function dataRearchive(): array
+    {
+        return [
+            'rearchived' => [true],
+            'not rearchived' => [false],
+        ];
+    }
+
+    #[DataProvider('dataRearchive')]
+    #[TestDox('execute() publishes a new archive when an artifact is replaced under the same version')]
+    public function testExecuteRebuildsArchiveOfReplacedArtifact(bool $rearchive): void
+    {
+        $dir = sys_get_temp_dir() . '/satis-artifact-test-' . uniqid();
+        $artifact = $dir . '/artifacts/acme-artifact-1.0.0.zip';
+        $outputDir = $dir . '/output';
+        new SymfonyFilesystem()->mkdir([$dir . '/artifacts', $outputDir]);
+        // Writing a new packages.json triggers a warning, as Composer stats it to keep the owner of a replaced file
+        file_put_contents($outputDir . '/packages.json', '{}');
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                ['type' => 'artifact', 'url' => $dir . '/artifacts'],
+            ],
+            'require-all' => true,
+            'output-html' => false,
+            'config' => ['cache-dir' => $dir . '/cache'],
+            'archive' => ['directory' => 'dist', 'format' => 'zip', 'rearchive' => $rearchive],
+        ];
+
+        try {
+            $this->createArtifact($artifact, 'first build');
+            $first = $this->buildArtifactDist($config, $outputDir);
+
+            $this->createArtifact($artifact, 'second build');
+            $second = $this->buildArtifactDist($config, $outputDir);
+
+            self::assertNotSame($first['url'], $second['url']);
+            self::assertFileExists($first['path'], 'The previous archive is kept for existing lock files');
+            self::assertSame(sha1_file($second['path']), $second['shasum']);
+            $zip = new \ZipArchive();
+            self::assertTrue($zip->open($second['path']));
+            self::assertSame('second build', $zip->getFromName('README.md'));
+            $zip->close();
+        } finally {
+            new SymfonyFilesystem()->remove($dir);
+        }
+    }
+
+    private function createArtifact(string $path, string $readme): void
+    {
+        $zip = new \ZipArchive();
+        self::assertTrue($zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE));
+        $zip->addFromString('composer.json', (string) json_encode(['name' => 'acme/artifact', 'version' => '1.0.0']));
+        $zip->addFromString('README.md', $readme);
+        $zip->close();
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @return array{url: string, path: string, shasum: string}
+     */
+    private function buildArtifactDist(array $config, string $outputDir): array
+    {
+        $tester = $this->executeSatis(['file' => $this->configPath, 'output-dir' => $outputDir], $config);
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+
+        $metadata = json_decode((string) file_get_contents($outputDir . '/p2/acme/artifact.json'), true);
+        self::assertIsArray($metadata);
+        $dist = $metadata['packages']['acme/artifact'][0]['dist'];
+        $url = (string) $dist['url'];
+
+        return [
+            'url' => $url,
+            'path' => $outputDir . '/' . substr($url, strlen('https://example.com/')),
+            'shasum' => (string) $dist['shasum'],
+        ];
     }
 }

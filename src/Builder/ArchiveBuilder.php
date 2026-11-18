@@ -217,6 +217,11 @@ class ArchiveBuilder extends Builder
             return $distArchivePath;
         }
 
+        // Composer does not know about the checksum suffix, so it must be told the file name
+        if ('' !== $this->getChecksumSuffix($package)) {
+            return $archiveManager->archive($package, $format, $targetDir, basename($path, '.' . $format), $ignoreFilters);
+        }
+
         if ($overrideDistType) {
             $downloaded = $archiveManager->archive($package, $format, $targetDir, null, $ignoreFilters);
             $filesystem->rename($downloaded, $path);
@@ -311,7 +316,7 @@ class ArchiveBuilder extends Builder
             $packageName = $archiveManager->getPackageFilename($package);
         }
 
-        return $targetDir . '/' . $packageName . '.' . $format;
+        return $targetDir . '/' . $packageName . $this->getChecksumSuffix($package) . '.' . $format;
     }
 
     /**
@@ -326,7 +331,22 @@ class ArchiveBuilder extends Builder
             return null;
         }
 
-        return $targetDir . '/' . $archiveManager->getPackageFilename($package) . '.' . $distType;
+        return $targetDir . '/' . $archiveManager->getPackageFilename($package) . $this->getChecksumSuffix($package) . '.' . $distType;
+    }
+
+    /**
+     * Composer names archives after the version and the references of a package. Packages without references, like
+     * those of artifact repositories, may change under the same version, so their archives are also named after the
+     * checksum of their dist, to rebuild them when it changes. Packages with a reference keep their file names.
+     */
+    private function getChecksumSuffix(PackageInterface $package): string
+    {
+        $checksum = (string) $package->getDistSha1Checksum();
+        if ('' === $checksum || null !== $package->getSourceReference() || null !== $package->getDistReference()) {
+            return '';
+        }
+
+        return '-' . substr($checksum, 0, 8);
     }
 
     /**
