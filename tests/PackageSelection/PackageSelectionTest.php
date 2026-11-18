@@ -1376,6 +1376,60 @@ class PackageSelectionTest extends TestCase
     }
 
     /**
+     * @return array<string, array{array<string, string>, array<string, string>}>
+     */
+    public static function dataOnlyBestCandidatesSkipsBlacklisted(): array
+    {
+        return [
+            'best candidate blacklisted' => [['vendor/b' => '2.0'], ['vendor/a' => '1.0', 'vendor/b' => '1.5']],
+            'best candidates blacklisted by range' => [['vendor/b' => '>=1.5'], ['vendor/a' => '1.0', 'vendor/b' => '1.0']],
+            'all candidates blacklisted' => [['vendor/b' => '*'], ['vendor/a' => '1.0']],
+        ];
+    }
+
+    /**
+     * @param array<string, string> $blacklist
+     * @param array<string, string> $expected
+     */
+    #[DataProvider('dataOnlyBestCandidatesSkipsBlacklisted')]
+    public function testOnlyBestCandidatesSkipsBlacklisted(array $blacklist, array $expected): void
+    {
+        $repository = new ArrayRepository();
+
+        $packageA = new Package('vendor/a', '1.0.0.0', '1.0');
+        $link = new Link('vendor/a', 'vendor/b', (new VersionParser())->parseConstraints('^1.0 || ^2.0'), Link::TYPE_REQUIRE, '^1.0 || ^2.0');
+        $packageA->setRequires([$link->getTarget() => $link]);
+
+        $repository->addPackage($packageA);
+        $repository->addPackage(new Package('vendor/b', '1.0.0.0', '1.0'));
+        $repository->addPackage(new Package('vendor/b', '1.5.0.0', '1.5'));
+        $repository->addPackage(new Package('vendor/b', '2.0.0.0', '2.0'));
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository($repository);
+
+        $rootLink = new Link('top', 'vendor/a', new Constraint('=', '1.0.0.0'), Link::TYPE_REQUIRE);
+
+        $config = [
+            'only-best-candidates' => true,
+            'require-dependencies' => true,
+            'blacklist' => $blacklist,
+        ];
+        $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
+        $reflection = new \ReflectionClass(get_class($builder));
+        $method = $reflection->getMethod('selectLinks');
+        $method->invokeArgs($builder, [$repositorySet, [$rootLink], false, false]);
+
+        /** @var PackageInterface[] $selected */
+        $selected = $reflection->getProperty('selected')->getValue($builder);
+        $versions = [];
+        foreach ($selected as $package) {
+            $versions[$package->getName()] = $package->getPrettyVersion();
+        }
+
+        self::assertSame($expected, $versions);
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public static function dataGetDepReposWithDisableDirectives(): array

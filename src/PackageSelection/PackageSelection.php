@@ -945,7 +945,22 @@ class PackageSelection
                 $name = $link->getTarget();
                 try {
                     if (null !== $selector) {
-                        $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
+                        $constraint = $link->getConstraint()->getPrettyString();
+                        $match = $selector->findBestCandidate($name, $constraint);
+                        // fall back to the best candidate that is not blacklisted by excluding
+                        // each blacklisted best candidate from every alternative of the constraint
+                        while (false !== $match && null !== $blacklistPool) {
+                            $package = $match instanceof AliasPackage ? $match->getAliasOf() : $match;
+                            if (!$package instanceof BasePackage || !$this->isPackageBlacklisted($package, $blacklistPool, $versionParser)) {
+                                break;
+                            }
+                            if ($verbose) {
+                                $this->output->writeln('Blacklisted ' . $match->getPrettyName() . ' (' . $match->getPrettyVersion() . ')');
+                            }
+                            $exclusion = ' !=' . $match->getVersion();
+                            $constraint = preg_replace('{\s*\|\|?\s*}', $exclusion . ' || ', trim($constraint)) . $exclusion;
+                            $match = $selector->findBestCandidate($name, $constraint);
+                        }
                         $matches = false !== $match ? [$match] : [];
                     } elseif (PlatformRepository::isPlatformPackage($name)) {
                     } else {
