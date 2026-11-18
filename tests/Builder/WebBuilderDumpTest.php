@@ -137,4 +137,24 @@ class WebBuilderDumpTest extends TestCase
         self::assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
         self::assertMatchesRegularExpression($expected, $html);
     }
+
+    public function testAbandonedOnDefaultBranchOnly(): void
+    {
+        $tag = new CompletePackage('vendor/name', '1.0.0.0', '1.0.0');
+
+        $defaultBranch = new CompletePackage('vendor/name', 'dev-master', 'dev-master');
+        $defaultBranch->setIsDefaultBranch(true);
+        $defaultBranch->setAbandoned('othervendor/othername');
+
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
+        $webBuilder->setRootPackage($this->rootPackage);
+        $webBuilder->dump([$tag, $defaultBranch]);
+
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/index.html');
+        $html = $file->getContent();
+
+        self::assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
+        self::assertMatchesRegularExpression('/Use othervendor\/othername instead/', $html);
+    }
 }

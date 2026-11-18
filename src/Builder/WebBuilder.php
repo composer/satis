@@ -150,11 +150,12 @@ class WebBuilder extends Builder
         $mappedPackages = [];
         foreach ($groupedPackages as $name => $packages) {
             $highest = $this->getHighestVersion($packages);
+            $reference = $this->getDefaultBranch($packages) ?? $highest;
 
             $mappedPackages[$name] = [
                 'highest' => $highest,
-                'abandoned' => $highest instanceof CompletePackageInterface ? $highest->isAbandoned() : false,
-                'replacement' => $highest instanceof CompletePackageInterface ? $highest->getReplacementPackage() : null,
+                'abandoned' => $reference instanceof CompletePackageInterface ? $reference->isAbandoned() : false,
+                'replacement' => $reference instanceof CompletePackageInterface ? $reference->getReplacementPackage() : null,
                 'versions' => $this->getDescSortedVersions($packages),
             ];
         }
@@ -197,6 +198,22 @@ class WebBuilder extends Builder
         }
 
         return $highestVersion;
+    }
+
+    /**
+     * Gets the default branch version of packages, if there is one.
+     *
+     * @param PackageInterface[] $packages List of packages to dump
+     */
+    private function getDefaultBranch(array $packages): ?PackageInterface
+    {
+        foreach ($packages as $package) {
+            if ($package->isDefaultBranch()) {
+                return $package;
+            }
+        }
+
+        return null;
     }
 
     /**
