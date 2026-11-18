@@ -38,6 +38,7 @@ use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Filesystem\Filesystem as SymfonyFilesystem;
+use Symfony\Component\Process\ExecutableFinder;
 
 #[TestDox('BuildCommand')]
 class BuildCommandTest extends TestCase
@@ -1302,36 +1303,86 @@ class BuildCommandTest extends TestCase
         }
     }
 
-    #[DataProvider('dataStrictOption')]
-    #[TestDox('execute() exit code on a VCS mirror that failed to update $_dataName')]
-    public function testExecuteStrictFailsOnFailedMirrorUpdate(bool $strict, int $expectedStatusCode): void
+    /**
+     * @return array<string, array{bool, bool, int}>
+     */
+    public static function dataStrictOptionAndWorkingDirectory(): array
     {
-        $outputDir = $this->makeOutputDir();
-        $this->writeConfig($this->baseSatisConfig());
-
-        $app = new class extends SatisApplication {
-            public function getComposerWithConfig(mixed $config, ?IOInterface $io = null): ?Composer
-            {
-                $composer = parent::getComposerWithConfig($config, $io);
-                ($io ?? $this->io)->writeError('<error>Failed to update https://example.com/repo.git, package information from this repository may be outdated</error>');
-
-                return $composer;
+        $data = [];
+        foreach (self::dataWorkingDirectoryHasComposerJson() as $workingDirectory => [$hasComposerJson]) {
+            foreach (self::dataStrictOption() as $strictOption => [$strict, $expectedStatusCode]) {
+                $data[$strictOption . ', ' . $workingDirectory] = [$hasComposerJson, $strict, $expectedStatusCode];
             }
-        };
-        $ioRef = new \ReflectionProperty($app, 'io');
-        $ioRef->setValue($app, new NullIO());
+        }
 
-        $tester = new CommandTester($app->find('build'));
-        $tester->execute([
-            'file' => $this->configPath,
-            'output-dir' => $outputDir,
-            '--strict' => $strict,
-        ]);
+        return $data;
+    }
 
-        self::assertSame($expectedStatusCode, $tester->getStatusCode());
-        self::assertFileExists($outputDir . '/packages.json');
-        if ($strict) {
-            self::assertStringContainsString('Failed to update https://example.com/repo.git', $tester->getDisplay());
+    #[DataProvider('dataStrictOptionAndWorkingDirectory')]
+    #[TestDox('execute() exit code on a VCS mirror that failed to update $_dataName')]
+    public function testExecuteStrictFailsOnFailedMirrorUpdate(bool $workingDirectoryHasComposerJson, bool $strict, int $expectedStatusCode): void
+    {
+        // Composer's GitDriver falls back to a cached mirror it cannot update, here as the network is disabled
+        $cacheDir = sys_get_temp_dir() . '/satis-cache-' . uniqid('', true);
+        $this->createGitMirror($cacheDir . '/work', $cacheDir . '/vcs/https---example.com-repo.git');
+
+        $originalEnv = ['COMPOSER' => Platform::getEnv('COMPOSER'), 'COMPOSER_DISABLE_NETWORK' => Platform::getEnv('COMPOSER_DISABLE_NETWORK')];
+        Platform::putEnv('COMPOSER_DISABLE_NETWORK', '1');
+        if (!$workingDirectoryHasComposerJson) {
+            Platform::putEnv('COMPOSER', vfsStream::url('satis/missing/composer.json'));
+        }
+
+        try {
+            $outputDir = $this->makeOutputDir();
+            $tester = $this->executeSatis(
+                ['file' => $this->configPath, 'output-dir' => $outputDir, '--strict' => $strict],
+                $this->baseSatisConfig([
+                    'repositories' => [
+                        $this->packageRepo(),
+                        ['type' => 'git', 'url' => 'https://example.com/repo.git'],
+                    ],
+                    'config' => ['cache-vcs-dir' => $cacheDir . '/vcs', 'cache-repo-dir' => $cacheDir . '/repo'],
+                ])
+            );
+
+            self::assertSame($expectedStatusCode, $tester->getStatusCode(), $tester->getDisplay());
+            self::assertFileExists($outputDir . '/p2/vendor/mirrored~dev.json', 'The package of the cached mirror is dumped');
+            if ($strict) {
+                self::assertStringContainsString(
+                    "VCS mirrors that failed to update:\n - Failed to update https://example.com/repo.git, package information from this repository may be outdated\n",
+                    $tester->getDisplay()
+                );
+            }
+        } finally {
+            foreach ($originalEnv as $name => $value) {
+                false === $value ? Platform::clearEnv($name) : Platform::putEnv($name, $value);
+            }
+            (new SymfonyFilesystem())->remove($cacheDir);
+        }
+    }
+
+    /**
+     * Creates a git repository with a composer.json in $workDir and a mirror of it in $mirrorDir, the way Composer's
+     * GitDriver caches the repositories it reads.
+     */
+    private function createGitMirror(string $workDir, string $mirrorDir): void
+    {
+        if (null === (new ExecutableFinder())->find('git')) {
+            self::markTestSkipped('git is not available');
+        }
+
+        mkdir($workDir, 0o777, true);
+        file_put_contents($workDir . '/composer.json', json_encode(['name' => 'vendor/mirrored']));
+
+        $process = new ProcessExecutor();
+        $commands = [
+            ['git', 'init', '--quiet', '--initial-branch=main'],
+            ['git', 'add', 'composer.json'],
+            ['git', '-c', 'user.name=Satis', '-c', 'user.email=satis@example.com', 'commit', '--quiet', '--message=Initial commit'],
+            ['git', 'clone', '--quiet', '--mirror', '--', $workDir, $mirrorDir],
+        ];
+        foreach ($commands as $command) {
+            self::assertSame(0, $process->execute($command, $output, $workDir), $process->getErrorOutput());
         }
     }
 
