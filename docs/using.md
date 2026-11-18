@@ -242,16 +242,30 @@ then you will be asked whether you want to store it.
 
 The storage can be done either globally in the `COMPOSER_HOME/auth.json` file
 (`COMPOSER_HOME` defaults to `~/.composer` or `%APPDATA%/Composer` on Windows)
-or also in the project directory directly sitting besides your composer.json.
+or in an `auth.json` file next to your Satis configuration file (e.g.
+`satis.json`). The credentials in the `auth.json` next to the configuration
+file take precedence over the global ones and over those in the `config` block
+of the configuration file. An `auth.json` is only read next to a configuration
+file on disk, not next to one fetched over HTTP(S). When Satis runs as a
+Composer plugin, Composer reads the `auth.json` next to your project's
+composer.json instead.
 
 You can also configure these by hand using the config command if you need to
 configure a production machine to be able to run non-interactive installs. For
 example to enter credentials for example.org one could type:
 
-    composer config http-basic.example.org username password
+    composer config --global http-basic.example.org username password
 
-That will store it in the current directory's auth.json, but if you want it
-available globally you can use the `--global` (`-g`) flag.
+That stores them in the global `COMPOSER_HOME/auth.json`. To store them in the
+`auth.json` next to your Satis configuration file instead, point Composer at
+that configuration file:
+
+    composer config --file=satis.json http-basic.example.org username password
+
+You can also pass the credentials in the `COMPOSER_AUTH` environment variable,
+as a JSON object with the contents of an `auth.json` file:
+
+    COMPOSER_AUTH='{"http-basic": {"example.org": {"username": "username", "password": "password"}}}' php bin/satis build satis.json web/
 
 ### Downloads
 

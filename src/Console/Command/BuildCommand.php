@@ -136,6 +136,7 @@ class BuildCommand extends BaseCommand
         $io = $this->getIO();
         $io->loadConfiguration($this->getConfiguration());
         $config = [];
+        $localConfigFile = null;
 
         if (1 === preg_match('{^https?://}i', $configFile)) {
             $rfs = new RemoteFilesystem($io, $this->getConfiguration());
@@ -154,6 +155,7 @@ class BuildCommand extends BaseCommand
                 return 1;
             }
             $config = $file->read();
+            $localConfigFile = $configFile;
         }
 
         try {
@@ -211,6 +213,9 @@ class BuildCommand extends BaseCommand
         /** @var SatisApplication|ComposerApplication $application */
         $application = $this->getApplication();
         if ($application instanceof SatisApplication) {
+            if (null !== $localConfigFile) {
+                $config = $this->mergeLocalAuthConfig($config, $localConfigFile, $output);
+            }
             $composer = $application->getComposerWithConfig($config);
         } else {
             $composer = $application->getComposer(true);
@@ -221,7 +226,12 @@ class BuildCommand extends BaseCommand
         }
 
         $composerConfig = $composer->getConfig();
-        if (!$application instanceof SatisApplication) {
+        if ($application instanceof SatisApplication) {
+            // When the working directory has a composer.json, Composer's BaseCommand::initialize() has already created
+            // a Composer instance from it, and getComposerWithConfig() only merges $config into that instance's config.
+            // Load the result into the IO, so the credentials of the Satis config and its auth.json reach it as well.
+            $io->loadConfiguration($composerConfig);
+        } else {
             $composerConfig->merge($config);
             $composer->setConfig($composerConfig);
         }
@@ -458,6 +468,37 @@ class BuildCommand extends BaseCommand
             $config->merge(['config' => $file->read()]);
         }
         $config->setAuthConfigSource(new JsonConfigSource($file, true));
+
+        return $config;
+    }
+
+    /**
+     * Merge the auth.json next to a local Satis config file into its "config" block, the way Composer treats the
+     * auth.json next to composer.json: the auth file wins over the config block, per host. getComposerWithConfig()
+     * then merges the result over the global auth.json into the Composer config.
+     *
+     * @param array<string, mixed> $config
+     *
+     * @return array<string, mixed>
+     */
+    private function mergeLocalAuthConfig(array $config, string $configFile, OutputInterface $output): array
+    {
+        $realConfigFile = realpath($configFile);
+        $authFile = new JsonFile(dirname(false !== $realConfigFile ? $realConfigFile : $configFile) . '/auth.json');
+        if (!$authFile->exists()) {
+            return $config;
+        }
+
+        $output->writeln(sprintf('<info>Loading auth config from %s</info>', $authFile->getPath()), OutputInterface::VERBOSITY_VERBOSE);
+        $authFile->validateSchema(JsonFile::AUTH_SCHEMA);
+
+        $configBlock = isset($config['config']) && is_array($config['config']) ? $config['config'] : [];
+        foreach ($authFile->read() as $key => $value) {
+            $configBlock[$key] = isset($configBlock[$key]) && is_array($configBlock[$key]) && is_array($value)
+                ? array_merge($configBlock[$key], $value)
+                : $value;
+        }
+        $config['config'] = $configBlock;
 
         return $config;
     }
