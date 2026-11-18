@@ -70,6 +70,9 @@ class PackageSelection
     /** only resolve best candidates in dependencies */
     private bool $onlyBestCandidates;
 
+    /** @var array<string, string|false> Platform overrides from config.platform, used to pick best candidates. */
+    private array $platformOverrides = [];
+
     /** Filter dependencies if true. */
     private bool $requireDependencyFilter;
 
@@ -404,6 +407,7 @@ class PackageSelection
         $this->requireDevDependencies = isset($config['require-dev-dependencies']) && true === $config['require-dev-dependencies'];
         $this->onlyDependencies = isset($config['only-dependencies']) && true === $config['only-dependencies'];
         $this->onlyBestCandidates = isset($config['only-best-candidates']) && true === $config['only-best-candidates'];
+        $this->platformOverrides = $config['config']['platform'] ?? [];
         $this->requireDependencyFilter = (bool) ($config['require-dependency-filter'] ?? true);
         $this->filterTagsByRequire = isset($config['filter-tags-by-require']) && true === $config['filter-tags-by-require'];
 
@@ -872,6 +876,14 @@ class PackageSelection
         $hasBlacklist = $this->hasBlacklist();
         $blacklistPool = $hasBlacklist ? new Pool() : null;
         $versionParser = $hasBlacklist ? new VersionParser() : null;
+        $selector = null;
+        if (!$isRoot && $this->onlyBestCandidates) {
+            // without config.platform, skip platform filtering rather than use the build host's platform
+            $selector = new VersionSelector(
+                $repositorySet,
+                [] !== $this->platformOverrides ? new PlatformRepository([], $this->platformOverrides) : null,
+            );
+        }
 
         reset($links);
 
@@ -882,8 +894,7 @@ class PackageSelection
                 $matches = [$link];
             } elseif (false !== $link && is_a($link, Link::class)) {
                 $name = $link->getTarget();
-                if (!$isRoot && $this->onlyBestCandidates) {
-                    $selector = new VersionSelector($repositorySet);
+                if (null !== $selector) {
                     $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
                     $matches = false !== $match ? [$match] : [];
                 } elseif (PlatformRepository::isPlatformPackage($name)) {

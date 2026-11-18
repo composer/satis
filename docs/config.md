@@ -195,6 +195,12 @@ Each constraint is resolved on its own, without running Composer's solver over t
 constrain each other, for example with `self.version`, can therefore end up in versions that cannot be installed
 together.
 
+If `config.platform` is set, candidates whose platform requirements (such as `php`) do not match it are skipped, so the
+selected versions can be installed on that platform. As in Composer, platform packages you don't list in
+`config.platform` are checked against the machine running Satis, so also pin the extensions your packages need (e.g.
+`"ext-intl": "8.3.0"`) if that machine doesn't have them. Without `config.platform`, platform requirements are ignored
+when picking candidates.
+
 ### filter-tags-by-require
 
 If true, tags of VCS repositories that do not match the version constraint in "require" are skipped without reading their `composer.json`, which speeds up builds of repositories with many tags. Branches are always read. Tags are only skipped if the `composer.json` of the default branch declares the package, as the tags may contain other packages otherwise. Tags outside the constraint are still read until one of them loads, so the repository provides the package as without this option, which keeps lower-priority repositories from supplying it. Defaults to false.
@@ -327,8 +333,8 @@ Options that are often useful:
 - `vendor-dir`: Composer extracts downloaded dist archives into `<vendor-dir>/composer/` when Satis creates its archives.
   If it is not set, Satis uses a temporary directory and removes it after the build.
 
-Satis skips platform requirements such as `php` and `ext-*` when it selects packages, so `platform` does not change
-which versions are selected.
+`platform` is only used by [only-best-candidates](#only-best-candidates); otherwise Satis skips platform requirements
+such as `php` and `ext-*` when it selects packages.
 
 ### notify-batch
 

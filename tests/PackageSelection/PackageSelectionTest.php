@@ -19,12 +19,14 @@ use Composer\IO\NullIO;
 use Composer\Package\CompletePackage;
 use Composer\Package\Link;
 use Composer\Package\Package;
+use Composer\Package\PackageInterface;
 use Composer\Repository\ArrayRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PackageRepository;
 use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\Constraint;
 use Composer\Semver\Constraint\MatchAllConstraint;
+use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -1235,6 +1237,66 @@ class PackageSelectionTest extends TestCase
         $property = $reflection->getProperty('selected');
 
         self::assertEquals([$packageA0, $packageB1, $packageC1], array_values($property->getValue($builder)));
+    }
+
+    /**
+     * @return array<string, array{array<string, mixed>, string}>
+     */
+    public static function dataOnlyBestCandidatesPlatform(): array
+    {
+        return [
+            'platform php set' => [['php' => '7.3.0'], '1.0'],
+            'no platform' => [[], '2.0'],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $platform
+     */
+    #[DataProvider('dataOnlyBestCandidatesPlatform')]
+    public function testOnlyBestCandidatesRespectsConfigPlatform(array $platform, string $expectedVersion): void
+    {
+        $repository = new ArrayRepository();
+
+        $packageA = new Package('vendor/a', '1.0.0.0', '1.0');
+        $packageB1 = new Package('vendor/b', '1.0.0.0', '1.0');
+        $packageB2 = new Package('vendor/b', '2.0.0.0', '2.0');
+
+        $link = new Link('vendor/a', 'vendor/b', new MatchAllConstraint(), Link::TYPE_REQUIRE);
+        $packageA->setRequires([$link->getTarget() => $link]);
+
+        // unsatisfiable on any real host, so this also checks the build host's PHP is not used without config.platform
+        $phpLink = new Link('vendor/b', 'php', (new VersionParser())->parseConstraints('>=99.0'), Link::TYPE_REQUIRE);
+        $packageB2->setRequires([$phpLink->getTarget() => $phpLink]);
+
+        $repository->addPackage($packageA);
+        $repository->addPackage($packageB1);
+        $repository->addPackage($packageB2);
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository($repository);
+
+        $rootLink = new Link('top', 'vendor/a', new Constraint('=', '1.0.0.0'), Link::TYPE_REQUIRE);
+
+        $config = [
+            'only-best-candidates' => true,
+            'require-dependencies' => true,
+        ];
+        if ([] !== $platform) {
+            $config['config'] = ['platform' => $platform];
+        }
+        $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
+        $reflection = new \ReflectionClass(get_class($builder));
+        $method = $reflection->getMethod('selectLinks');
+        $method->invokeArgs($builder, [$repositorySet, [$rootLink], false, false]);
+
+        /** @var PackageInterface[] $selected */
+        $selected = $reflection->getProperty('selected')->getValue($builder);
+        $versions = [];
+        foreach ($selected as $package) {
+            $versions[$package->getName()] = $package->getPrettyVersion();
+        }
+
+        self::assertSame(['vendor/a' => '1.0', 'vendor/b' => $expectedVersion], $versions);
     }
 
     /**
