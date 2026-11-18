@@ -146,6 +146,31 @@ given branch (e.g. `dev-main`) or constraint (e.g. `~1.0`) of the specified
 packages are refreshed. All other packages and branches are left untouched,
 preserved from the existing repository dump.
 
+### Strict builds
+
+Some problems only produce a warning and the build still exits with code 0:
+
+- a VCS repository whose cached mirror could not be updated ("Failed to update
+  ..., package information from this repository may be outdated"); Composer's
+  git, hg and fossil drivers then fall back to the cached mirror
+- a package listed in `require` that matched no package ("The ... requirement
+  did not match any package")
+
+Pass `--strict` to make the build fail on these, for example in CI:
+
+    php bin/satis build --strict satis.json web/
+
+The build still runs to completion and writes its output, then exits with
+code 1 and lists what went wrong. Only `require` entries of the Satis config
+count; unmatched requirements of dependencies (with `require-dependencies`)
+and platform requirements such as `php` do not. With `--repository-url` no
+requirement is checked, since packages served by the other repositories never
+match during a partial update.
+
+`--skip-errors` and `--strict` are independent: `--skip-errors` keeps the build
+going after errors that would otherwise abort it, while `--strict` fails on the
+warnings above, also when `--skip-errors` is given.
+
 ## Usage
 
 In your projects all you need to add now is your own composer repository using
@@ -401,7 +426,7 @@ provider or `p2/` metadata files, and leaves those files and any archives
 untouched. As it is an explicit request for the page, `--html-only` builds it
 even when `output-html` is `false`. It fails when `output-dir` holds no previous
 build, and cannot be combined with `--no-html-output`, `--repository-url`,
-`--branch` or package arguments.
+`--branch`, `--strict` or package arguments.
 
 ### Abandoned packages
 

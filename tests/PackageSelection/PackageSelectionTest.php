@@ -1240,6 +1240,63 @@ class PackageSelectionTest extends TestCase
         self::assertEquals([$packageA0, $packageB1, $packageC1], array_values($property->getValue($builder)));
     }
 
+    public function testRecordsUnmatchedRootRequirements(): void
+    {
+        $repository = new ArrayRepository();
+        $repository->addPackage(new Package('vendor/a', '1.0.0.0', '1.0'));
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository($repository);
+
+        $versionParser = new VersionParser();
+        $links = [
+            new Link('__root__', 'vendor/a', $versionParser->parseConstraints('^1.0'), Link::TYPE_REQUIRE, '^1.0'),
+            new Link('__root__', 'vendor/a', $versionParser->parseConstraints('^2.0'), Link::TYPE_REQUIRE, '^2.0'),
+            new Link('__root__', 'vendor/missing', $versionParser->parseConstraints('*'), Link::TYPE_REQUIRE, '*'),
+            new Link('__root__', 'php', $versionParser->parseConstraints('>=8.0'), Link::TYPE_REQUIRE, '>=8.0'),
+        ];
+
+        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
+        $method = new \ReflectionMethod($builder, 'selectLinks');
+        $method->invoke($builder, $repositorySet, $links, true, false);
+
+        self::assertSame(['vendor/a ^2.0', 'vendor/missing *'], $builder->getUnmatchedRootRequirements());
+    }
+
+    public function testDoesNotRecordUnmatchedRootRequirementsWithRepositoriesFilter(): void
+    {
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository(new ArrayRepository());
+
+        $versionParser = new VersionParser();
+        $links = [
+            new Link('__root__', 'vendor/in-other-repository', $versionParser->parseConstraints('^1.0'), Link::TYPE_REQUIRE, '^1.0'),
+        ];
+
+        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
+        $builder->setRepositoriesFilter(['https://example.com/filtered.git']);
+        $method = new \ReflectionMethod($builder, 'selectLinks');
+        $method->invoke($builder, $repositorySet, $links, true, false);
+
+        self::assertSame([], $builder->getUnmatchedRootRequirements());
+    }
+
+    public function testDoesNotRecordUnmatchedDependencies(): void
+    {
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository(new ArrayRepository());
+
+        $versionParser = new VersionParser();
+        $links = [
+            new Link('vendor/a', 'vendor/missing', $versionParser->parseConstraints('^1.0'), Link::TYPE_REQUIRE, '^1.0'),
+        ];
+
+        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
+        $method = new \ReflectionMethod($builder, 'selectLinks');
+        $method->invoke($builder, $repositorySet, $links, false, false);
+
+        self::assertSame([], $builder->getUnmatchedRootRequirements());
+    }
+
     /**
      * @return array<string, array{array<string, mixed>, string}>
      */

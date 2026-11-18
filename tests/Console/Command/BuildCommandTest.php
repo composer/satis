@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Composer\Satis\Console\Command;
 
+use Composer\Composer;
 use Composer\Config;
 use Composer\Console\Application;
 use Composer\Factory;
+use Composer\IO\IOInterface;
 use Composer\IO\NullIO;
 use Composer\Json\JsonValidationException;
 use Composer\Package\Loader\RootPackageLoader;
@@ -1094,7 +1096,7 @@ class BuildCommandTest extends TestCase
             }
 
             $composer = (new \ReflectionProperty($app, 'composer'))->getValue($app);
-            self::assertInstanceOf(\Composer\Composer::class, $composer);
+            self::assertInstanceOf(Composer::class, $composer);
             $httpBasic = $composer->getConfig()->get('http-basic');
             foreach ($expected as $host => $credentials) {
                 self::assertSame($credentials, $httpBasic[$host] ?? null, $host);
@@ -1154,6 +1156,162 @@ class BuildCommandTest extends TestCase
 
         self::assertSame(0, $tester->getStatusCode());
         self::assertFileExists($outputDir . '/packages.json');
+    }
+
+    /**
+     * @return array<string, array{bool, int}>
+     */
+    public static function dataStrictOption(): array
+    {
+        return [
+            'without --strict' => [false, 0],
+            'with --strict' => [true, 1],
+        ];
+    }
+
+    #[DataProvider('dataStrictOption')]
+    #[TestDox('execute() exit code on an unmatched root requirement $_dataName')]
+    public function testExecuteStrictFailsOnUnmatchedRootRequirement(bool $strict, int $expectedStatusCode): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $tester = $this->executeSatis(
+            [
+                'file' => $this->configPath,
+                'output-dir' => $outputDir,
+                '--strict' => $strict,
+            ],
+            $this->baseSatisConfig([
+                'require-all' => false,
+                'require' => [
+                    'vendor/test-pkg' => '^1.0',
+                    'vendor/missing' => '^2.0',
+                ],
+            ])
+        );
+
+        self::assertSame($expectedStatusCode, $tester->getStatusCode());
+        self::assertFileExists($outputDir . '/packages.json');
+        self::assertStringContainsString('The vendor/missing ^2.0 requirement did not match any package', $tester->getDisplay());
+        if ($strict) {
+            self::assertStringContainsString('Strict mode', $tester->getDisplay());
+        }
+    }
+
+    #[TestDox('execute() with --strict succeeds when all root requirements match')]
+    public function testExecuteStrictSucceedsWhenAllRootRequirementsMatch(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $tester = $this->executeSatis(
+            [
+                'file' => $this->configPath,
+                'output-dir' => $outputDir,
+                '--strict' => true,
+            ],
+            $this->baseSatisConfig([
+                'require-all' => false,
+                'require' => ['vendor/test-pkg' => '^1.0'],
+            ])
+        );
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringNotContainsString('Strict mode', $tester->getDisplay());
+    }
+
+    #[TestDox('execute() with --strict ignores unmatched requirements of dependencies')]
+    public function testExecuteStrictIgnoresUnmatchedDependencies(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $package = $this->packageRepo();
+        $package['package']['require'] = ['vendor/missing-dependency' => '^1.0'];
+
+        $tester = $this->executeSatis(
+            [
+                'file' => $this->configPath,
+                'output-dir' => $outputDir,
+                '--strict' => true,
+            ],
+            $this->baseSatisConfig([
+                'repositories' => [$package],
+                'require-all' => false,
+                'require' => ['vendor/test-pkg' => '^1.0'],
+                'require-dependencies' => true,
+            ])
+        );
+
+        self::assertStringContainsString('The vendor/missing-dependency ^1.0 requirement did not match any package', $tester->getDisplay());
+        self::assertSame(0, $tester->getStatusCode());
+    }
+
+    #[DataProvider('dataStrictOption')]
+    #[TestDox('execute() exit code on a VCS mirror that failed to update $_dataName')]
+    public function testExecuteStrictFailsOnFailedMirrorUpdate(bool $strict, int $expectedStatusCode): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $this->writeConfig($this->baseSatisConfig());
+
+        $app = new class extends SatisApplication {
+            public function getComposerWithConfig(mixed $config, ?IOInterface $io = null): ?Composer
+            {
+                $composer = parent::getComposerWithConfig($config, $io);
+                ($io ?? $this->io)->writeError('<error>Failed to update https://example.com/repo.git, package information from this repository may be outdated</error>');
+
+                return $composer;
+            }
+        };
+        $ioRef = new \ReflectionProperty($app, 'io');
+        $ioRef->setValue($app, new NullIO());
+
+        $tester = new CommandTester($app->find('build'));
+        $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--strict' => $strict,
+        ]);
+
+        self::assertSame($expectedStatusCode, $tester->getStatusCode());
+        self::assertFileExists($outputDir . '/packages.json');
+        if ($strict) {
+            self::assertStringContainsString('Failed to update https://example.com/repo.git', $tester->getDisplay());
+        }
+    }
+
+    #[DataProvider('dataStrictOption')]
+    #[TestDox('execute() via ComposerApplication exit code on a VCS mirror that failed to update $_dataName')]
+    public function testExecuteStrictViaComposerApplicationFailsOnFailedMirrorUpdate(bool $strict, int $expectedStatusCode): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $this->writeConfig($this->baseSatisConfig([
+            'repositories' => [
+                $this->packageRepo(),
+                ['type' => 'failing-update', 'url' => 'https://example.com/repo.git'],
+            ],
+        ]));
+
+        $app = new class extends Application {
+            public function getComposer(bool $required = true, ?bool $disablePlugins = null, ?bool $disableScripts = null): ?Composer
+            {
+                $composer = parent::getComposer($required, $disablePlugins, $disableScripts);
+                $composer?->getRepositoryManager()->setRepositoryClass('failing-update', FailingUpdateRepository::class);
+
+                return $composer;
+            }
+        };
+        $app->addCommand(new BuildCommand());
+
+        $tester = new CommandTester($app->find('build'));
+        $tester->execute([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            '--strict' => $strict,
+        ]);
+
+        self::assertSame($expectedStatusCode, $tester->getStatusCode());
+        if ($strict) {
+            self::assertStringContainsString('Failed to update https://example.com/repo.git', $tester->getDisplay());
+        }
     }
 
     #[TestDox('Repository loop skips entries without a type key')]
@@ -1834,6 +1992,7 @@ class BuildCommandTest extends TestCase
             'package arguments' => [['packages' => ['vendor/test-pkg']], 'package arguments'],
             '--repository-url' => [['--repository-url' => ['https://example.com/repo.git']], '"--repository-url"'],
             '--branch' => [['--branch' => 'main'], '"--branch"'],
+            '--strict' => [['--strict' => true], '"--strict"'],
         ];
     }
 

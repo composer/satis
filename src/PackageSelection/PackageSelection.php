@@ -112,6 +112,9 @@ class PackageSelection
     /** @var string[] A list of packages marked as abandoned */
     private array $abandoned = [];
 
+    /** @var list<string> Root requirements ("name constraint") that matched no package */
+    private array $unmatchedRootRequirements = [];
+
     /** @var string[] A list of blacklisted package/constraints. */
     private array $blacklist = [];
 
@@ -180,6 +183,19 @@ class PackageSelection
     public function hasFilterForPackages(): bool
     {
         return count($this->packagesFilter) > 0;
+    }
+
+    /**
+     * Root requirements that matched no package during select(), as "name constraint".
+     *
+     * Platform requirements are left out, as Satis never selects platform packages, and so is everything
+     * while a repositories filter is active, as the requirements served by the other repositories never match.
+     *
+     * @return list<string>
+     */
+    public function getUnmatchedRootRequirements(): array
+    {
+        return $this->unmatchedRootRequirements;
     }
 
     /**
@@ -979,6 +995,10 @@ class PackageSelection
 
                 if (0 === \count($matches)) {
                     $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
+                    // with a repositories filter, root requirements served by the other repositories cannot match
+                    if ($isRoot && !$this->hasRepositoriesFilter() && !PlatformRepository::isPlatformPackage($name)) {
+                        $this->unmatchedRootRequirements[] = $name . ' ' . $link->getPrettyConstraint();
+                    }
                 }
             }
 
