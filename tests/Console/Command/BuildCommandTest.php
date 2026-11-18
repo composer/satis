@@ -1109,6 +1109,65 @@ class BuildCommandTest extends TestCase
         }
     }
 
+    #[DataProvider('dataWorkingDirectoryHasComposerJson')]
+    #[TestDox('execute() lets COMPOSER_AUTH win over the auth.json next to the config file ($_dataName)')]
+    public function testExecuteLetsComposerAuthEnvWinOverAuthJsonNextToConfigFile(bool $workingDirectoryHasComposerJson): void
+    {
+        $homeDir = vfsStream::url('satis/composer-home');
+        mkdir($homeDir);
+        file_put_contents(vfsStream::url('satis/auth.json'), json_encode([
+            'http-basic' => [
+                'example.org' => ['username' => 'project-user', 'password' => 'project-pass'],
+                'project.example.org' => ['username' => 'project-only', 'password' => 'project-only-pass'],
+            ],
+        ]));
+
+        $originalEnv = [
+            'COMPOSER_HOME' => Platform::getEnv('COMPOSER_HOME'),
+            'COMPOSER' => Platform::getEnv('COMPOSER'),
+            'COMPOSER_AUTH' => Platform::getEnv('COMPOSER_AUTH'),
+        ];
+        Platform::putEnv('COMPOSER_HOME', $homeDir);
+        Platform::putEnv('COMPOSER_AUTH', (string) json_encode([
+            'http-basic' => ['example.org' => ['username' => 'env-user', 'password' => 'env-pass']],
+        ]));
+        if (!$workingDirectoryHasComposerJson) {
+            Platform::putEnv('COMPOSER', vfsStream::url('satis/missing/composer.json'));
+        }
+
+        try {
+            $this->writeConfig($this->baseSatisConfig([
+                'config' => [
+                    'http-basic' => ['example.org' => ['username' => 'config-user', 'password' => 'config-pass']],
+                ],
+            ]));
+
+            $io = new NullIO();
+            $app = new SatisApplication();
+            (new \ReflectionProperty($app, 'io'))->setValue($app, $io);
+            $tester = new CommandTester($app->find('build'));
+            $tester->execute(['file' => $this->configPath, 'output-dir' => $this->makeOutputDir()]);
+
+            self::assertSame(0, $tester->getStatusCode());
+
+            $expected = [
+                'example.org' => ['username' => 'env-user', 'password' => 'env-pass'],
+                'project.example.org' => ['username' => 'project-only', 'password' => 'project-only-pass'],
+            ];
+            $composer = (new \ReflectionProperty($app, 'composer'))->getValue($app);
+            self::assertInstanceOf(Composer::class, $composer);
+            $httpBasic = $composer->getConfig()->get('http-basic');
+            foreach ($expected as $host => $credentials) {
+                self::assertSame($credentials, $io->getAuthentication($host), $host);
+                self::assertSame($credentials, $httpBasic[$host] ?? null, $host);
+            }
+        } finally {
+            foreach ($originalEnv as $name => $value) {
+                false === $value ? Platform::clearEnv($name) : Platform::putEnv($name, $value);
+            }
+        }
+    }
+
     #[TestDox('execute() rejects an auth.json next to the config file that does not match the auth schema')]
     public function testExecuteRejectsInvalidAuthJsonNextToConfigFile(): void
     {
