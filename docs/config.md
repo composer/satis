@@ -10,7 +10,7 @@ title: Config
 
 ```
 {
-  "name": "My Satis Repository",
+  "name": "acme/satis",
   "description": "A descriptive line of text goes here.",
   "homepage": "http://packages.example.org",
   "repositories": [{
@@ -62,6 +62,10 @@ title: Config
 
 The name of the Satis repository. Available inside the template as `{% raw %}{{ name }}{% endraw %}`.
 
+Satis loads its configuration as a Composer root package, so the name must be a valid package name: a vendor name, a
+forward slash and a package name, in lowercase, for example `acme/satis`. A name such as "My Satis Repository" makes the
+build fail with "Your package name ... is invalid".
+
 ### description
 
 A brief description of the Satis repository. Available inside the template as `{% raw %}{{ description }}{% endraw %}`
@@ -70,9 +74,60 @@ A brief description of the Satis repository. Available inside the template as `{
 
 Available inside the template as `{% raw %}{{ url }}{% endraw %}`.
 
+### repositories
+
+The repositories to read packages from, in the same format as the `repositories` key of `composer.json`. Any repository
+type Composer supports can be used, such as `vcs`, `composer`, `artifact`, `path` or `package`. Packagist is not used
+unless it is listed here.
+
+Giving a VCS repository a `name` lets partial builds skip it, see [Partial Updates](using#partial-updates).
+
+### repositories-dep
+
+Additional repositories, in the same format as `repositories`, that are only used to resolve dependencies when
+"require-dependencies" or "require-dev-dependencies" is enabled. Packages are taken from them only when a selected
+package depends on them; "require" and "require-all" do not select from these repositories.
+
+For example, to include all of your private packages plus the packages from Packagist they depend on:
+
+```
+{
+  "repositories": [
+    { "type": "vcs", "url": "https://github.com/mycompany/privaterepo" }
+  ],
+  "repositories-dep": [
+    { "type": "composer", "url": "https://repo.packagist.org" }
+  ],
+  "require-all": true,
+  "require-dependencies": true
+}
+```
+
 ### require
 
 Hash of package name (keys) and version constraint (values) that should be included in the output.
+
+### minimum-stability
+
+The lowest stability a version must have to be selected: `dev` (the default), `alpha`, `beta`, `RC` or `stable`. It
+applies to packages selected through "require" and "require-all" and to their dependencies. For example, `"stable"`
+leaves out branches and alpha, beta and RC releases.
+
+### minimum-stability-per-package
+
+Hash of package name (keys) and minimum stability (values) that overrides "minimum-stability" for these packages.
+
+```
+{
+  "minimum-stability": "stable",
+  "minimum-stability-per-package": {
+    "company/package": "dev"
+  }
+}
+```
+
+With "require-all", packages from repositories other than `composer` repositories are only filtered by
+"minimum-stability".
 
 ### archive
 
@@ -82,7 +137,7 @@ directory
 : The directory in which to output the archives.
 
 format
-: The archive format to use.
+: The archive format to use, `zip` (the default) or `tar`. Tar archives are created with PHP's `PharData`, which cannot store file names longer than 100 characters, so archiving a package that contains such a file fails. Use `zip`, or set **rearchive** to false to serve the original archive of packages that have a zip or tar dist.
 
 skip-dev
 : Whether or not to create archives for development versions.
@@ -133,7 +188,12 @@ If true, will only resolve and add dependencies, not the root projects listed in
 
 ### only-best-candidates
 
-Returns a minimal set of dependencies needed to satisfy the configuration. The resulting satis repository will contain only one or two versions of each project.
+If true, only the best matching version is selected for each dependency constraint, instead of every version that
+matches it. Packages selected through "require" or "require-all" are not affected.
+
+Each constraint is resolved on its own, without running Composer's solver over the selected packages. Packages that
+constrain each other, for example with `self.version`, can therefore end up in versions that cannot be installed
+together.
 
 ### filter-tags-by-require
 
@@ -157,9 +217,52 @@ This only applies to repositories that set `name` to a package listed in "requir
 
 Define a list of packages and versions to suppress in the final packages list. Takes the same format as the `require` section.
 
+### include-types
+
+List of [package types](https://getcomposer.org/doc/04-schema.md#type). If set, only packages with one of these types are
+included in the output.
+
+### exclude-types
+
+List of [package types](https://getcomposer.org/doc/04-schema.md#type). Packages with one of these types are left out of
+the output.
+
+Both filters are applied after dependencies have been resolved, so the dependencies of a package that is left out are
+still included.
+
 ### require-dependency-filter
 
 If false, will include versions matching a dependency.
+
+### strip-hosts
+
+List of hosts whose URLs are removed from the `source` and `dist` entries of the packages in the output. Each entry can
+be:
+
+- a host name, which also matches its subdomains (`example.org` matches `git.example.org`),
+- an IPv4 or IPv6 address, optionally with a CIDR mask (`10.0.0.0/8`),
+- `/local`, which matches `localhost` and reserved IP addresses,
+- `/private`, which matches private IP addresses.
+
+For SSH URLs like `git@example.org:acme/package.git` the host is matched. If the option is set to anything but false,
+including `true` or an empty list, URLs that are local file paths are removed as well. Dist URLs that point to archives
+built by Satis (see [archive](#archive)) are kept. A package that has neither a source nor a dist left is removed from
+the output.
+
+Together with [archive](#archive), this can publish packages with only a dist URL. Composer clients then cannot fall
+back to installing from the VCS host, for example when they are not allowed to download the archive:
+
+```
+{
+  "archive": {
+    "directory": "dist"
+  },
+  "strip-hosts": ["github.com"]
+}
+```
+
+Versions that Satis does not archive (see **skip-dev**, **whitelist** and **blacklist** under [archive](#archive)) keep
+their original URLs, so they are removed if both their source and their dist are on a stripped host.
 
 ### include-filename
 
@@ -177,15 +280,58 @@ If true, generate html output from templates.
 
 Path to twig template used for generating html output.
 
+### allow-seo-indexing
+
+If true, the html output does not tell search engines to skip it (it leaves out the `noindex,nofollow` robots meta tag).
+Defaults to false.
+
 ### providers
 
 If true, output package providers. This will generate a directory per vendor and a json file per package.
+
+### providers-history-size
+
+The number of outdated include and provider files to keep. These files have a hash of their contents in their name, and
+a build deletes the ones it no longer references. With a value of `n`, the `n` most recent outdated files of each kind
+are kept, so clients with an older `packages.json` can still download the files it refers to. Defaults to 0.
 
 ### includes
 
 If true, output package includes. This is `true` by default - setting it to `false` allows you to work with Composer v2
 metadata URLs only.
 
+### available-package-patterns
+
+List of package name patterns, like `vendor/*`, that is written to `packages.json` as `available-package-patterns`
+instead of the list of all package names (`available-packages`). Composer 2 only looks for packages in the repository
+whose name matches one of the patterns, so they must cover every package in the output. This keeps `packages.json`
+small for repositories with many packages.
+
 ### pretty-print
 
 Whether or not to use `JSON_PRETTY_PRINT` when generating json output.
+
+### config
+
+Composer [configuration options](https://getcomposer.org/doc/06-config.md), as in the `config` section of
+`composer.json`. Satis uses Composer to read the repositories and to create the archives, and passes these options on to
+it. `archive-format` and `archive-dir` are not used, archives are configured with [archive](#archive).
+
+Options that are often useful:
+
+- `secure-http`: set to false to allow repositories over insecure protocols such as `http://` or `svn://`.
+- `gitlab-protocol`: the protocol for the source URLs of GitLab repositories, `git` (SSH) or `http`.
+- `gitlab-domains` and `github-domains`: the domains of self-hosted GitLab or GitHub Enterprise instances.
+- `gitlab-token`, `github-oauth` and `http-basic`: credentials for the repositories. These are better kept in the
+  `auth.json` file in `COMPOSER_HOME` than in the Satis configuration, see [Authentication](using#authentication).
+- `vendor-dir`: Composer extracts downloaded dist archives into `<vendor-dir>/composer/` when Satis creates its archives.
+  It defaults to `vendor` in the current directory, so set it to a writable directory if Satis runs from a read-only
+  location.
+
+Satis skips platform requirements such as `php` and `ext-*` when it selects packages, so `platform` does not change
+which versions are selected.
+
+### notify-batch
+
+A URL that is written to `packages.json` as `notify-batch`. Composer calls it after installing packages from the
+repository, see [notify-batch](https://getcomposer.org/doc/05-repositories.md#notify-batch).

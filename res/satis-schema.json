@@ -179,7 +179,7 @@
         },
         "only-best-candidates": {
             "type": "boolean",
-            "description": "If true, will attempt to resolve a minimum number of candidates for each dependency.",
+            "description": "If true, only the best matching version is selected for each dependency constraint. Each constraint is resolved on its own, without running the solver, so packages that constrain each other (e.g. with self.version) can end up in a set that is not installable.",
             "default": false
         },
         "require-dependency-filter": {
