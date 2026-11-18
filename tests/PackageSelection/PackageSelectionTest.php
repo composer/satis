@@ -30,6 +30,7 @@ use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
 
 /**
@@ -1297,6 +1298,81 @@ class PackageSelectionTest extends TestCase
         }
 
         self::assertSame(['vendor/a' => '1.0', 'vendor/b' => $expectedVersion], $versions);
+    }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function dataSelectLinksLookupFailure(): array
+    {
+        return [
+            'pool lookup' => [false],
+            'only best candidates' => [true],
+        ];
+    }
+
+    #[DataProvider('dataSelectLinksLookupFailure')]
+    public function testSelectLinksSkipsFailingLookupWithSkipErrors(bool $onlyBestCandidates): void
+    {
+        $package = new Package('vendor/a', '1.0.0.0', '1.0');
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository($this->createRepositoryFailingToLoad('vendor/broken', [$package]));
+
+        $output = new BufferedOutput();
+        $builder = new PackageSelection($output, 'build', ['only-best-candidates' => $onlyBestCandidates], true);
+        $reflection = new \ReflectionClass($builder);
+        $reflection->getMethod('selectLinks')->invokeArgs($builder, [$repositorySet, [
+            new Link('top', 'vendor/broken', new MatchAllConstraint(), Link::TYPE_REQUIRE, '*'),
+            new Link('top', 'vendor/a', new MatchAllConstraint(), Link::TYPE_REQUIRE, '*'),
+        ], false, false]);
+
+        self::assertSame([$package], array_values($reflection->getProperty('selected')->getValue($builder)));
+        self::assertStringContainsString("Skipping Exception 'Invalid metadata for vendor/broken'.", $output->fetch());
+    }
+
+    #[DataProvider('dataSelectLinksLookupFailure')]
+    public function testSelectLinksThrowsOnFailingLookupWithoutSkipErrors(bool $onlyBestCandidates): void
+    {
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository($this->createRepositoryFailingToLoad('vendor/broken', []));
+
+        $builder = new PackageSelection(new NullOutput(), 'build', ['only-best-candidates' => $onlyBestCandidates], false);
+        $method = (new \ReflectionClass($builder))->getMethod('selectLinks');
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Invalid metadata for vendor/broken');
+
+        $method->invokeArgs($builder, [$repositorySet, [
+            new Link('top', 'vendor/broken', new MatchAllConstraint(), Link::TYPE_REQUIRE, '*'),
+        ], false, false]);
+    }
+
+    /**
+     * Stands in for a repository that fails to load a package's metadata, such as a composer repository serving
+     * invalid JSON.
+     *
+     * @param PackageInterface[] $packages
+     */
+    private function createRepositoryFailingToLoad(string $failingName, array $packages): ArrayRepository
+    {
+        return new class($failingName, $packages) extends ArrayRepository {
+            /**
+             * @param PackageInterface[] $packages
+             */
+            public function __construct(private readonly string $failingName, array $packages)
+            {
+                parent::__construct($packages);
+            }
+
+            public function loadPackages(array $packageNameMap, array $acceptableStabilities, array $stabilityFlags, array $alreadyLoaded = [])
+            {
+                if (isset($packageNameMap[$this->failingName])) {
+                    throw new \RuntimeException('Invalid metadata for ' . $this->failingName);
+                }
+
+                return parent::loadPackages($packageNameMap, $acceptableStabilities, $stabilityFlags, $alreadyLoaded);
+            }
+        };
     }
 
     /**
