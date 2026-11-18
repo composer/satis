@@ -357,12 +357,11 @@ Add a third argument to list these archives without deleting them:
 
     php bin/satis purge satis.json web/ dry-run
 
-Run it with the same configuration as the build. It reads the packages from the
-include files of the last build, so with `"includes": false` (and without
-`providers`) it finds no references and deletes every archive. It also
-recognises archives by the `prefix-url` or `homepage` (or `SATIS_HOMEPAGE`) in
-their URL, and only looks in `output-dir`/`directory`, not in
-`absolute-directory`.
+Run it with the same configuration as the build. It reads the packages of the
+last build from `output-dir`/packages.json, and refuses to delete anything when
+it finds none there. It recognises archives by the `prefix-url` or `homepage`
+(or `SATIS_HOMEPAGE`) in their URL, and only looks in
+`output-dir`/`directory`, not in `absolute-directory`.
 
 Projects whose `composer.lock` still refers to a deleted archive, typically an
 old commit of a dev version, can no longer install it and need a

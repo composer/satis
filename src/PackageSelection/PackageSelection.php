@@ -18,6 +18,7 @@ use Composer\DependencyResolver\Pool;
 use Composer\IO\IOInterface;
 use Composer\IO\NullIO;
 use Composer\Json\JsonFile;
+use Composer\MetadataMinifier\MetadataMinifier;
 use Composer\Package\AliasPackage;
 use Composer\Package\BasePackage;
 use Composer\Package\CompletePackage;
@@ -36,6 +37,7 @@ use Composer\Repository\PlatformRepository;
 use Composer\Repository\RepositoryInterface;
 use Composer\Repository\RepositorySet;
 use Composer\Repository\VcsRepository;
+use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Semver\Constraint\MatchAllConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
@@ -365,30 +367,78 @@ class PackageSelection
                 continue;
             }
 
-            $includedPackages = $includedConfig['packages'];
+            $packages = $this->loadPackages($loader, $includedConfig['packages'], $packages);
+        }
 
-            foreach ($includedPackages as $name => $versions) {
-                if (!is_array($versions)) {
+        // Without includes or providers, the packages are only in the Composer 2 metadata
+        if (0 === count($includes) && isset($rootConfig['metadata-url'], $rootConfig['available-packages']) && is_array($rootConfig['available-packages'])) {
+            foreach ($rootConfig['available-packages'] as $name) {
+                if (!is_string($name) || in_array($name, $this->packagesFilter, true)) {
                     continue;
                 }
 
-                foreach ($versions as $package) {
-                    if (!is_array($package)) {
+                foreach ([$name, $name . '~dev'] as $file) {
+                    $metadataJsonFile = new JsonFile($dirname . '/' . str_replace('%package%', $file, PackagesBuilder::METADATA_URL));
+
+                    if (!$metadataJsonFile->exists()) {
+                        $this->output->writeln(sprintf(
+                            '<error>File \'%s\' does not exist, package %s is listed in "available-packages" in \'%s\'</error>',
+                            $metadataJsonFile->getPath(),
+                            $name,
+                            $rootJsonFile->getPath()
+                        ));
+
                         continue;
                     }
 
-                    if (isset($package['name']) && in_array($package['name'], $this->packagesFilter, true)) {
+                    $metadata = $metadataJsonFile->read();
+
+                    if (!isset($metadata['packages'][$name]) || !is_array($metadata['packages'][$name])) {
                         continue;
                     }
 
-                    $package = $loader->load($package);
-
-                    if ($package instanceof AliasPackage) {
-                        $package = $package->getAliasOf();
+                    $versions = $metadata['packages'][$name];
+                    if (PackagesBuilder::MINIFY_ALGORITHM_V2 === ($metadata['minified'] ?? null)) {
+                        $versions = MetadataMinifier::expand(array_values($versions));
                     }
 
-                    $packages[$package->getUniqueName()] = $package;
+                    $packages = $this->loadPackages($loader, [$name => $versions], $packages);
                 }
+            }
+        }
+
+        return $packages;
+    }
+
+    /**
+     * @param array<mixed> $packagesByName The dumped versions of each package, by package name
+     * @param PackageInterface[] $packages The packages loaded so far
+     *
+     * @return PackageInterface[]
+     */
+    private function loadPackages(ArrayLoader $loader, array $packagesByName, array $packages): array
+    {
+        foreach ($packagesByName as $versions) {
+            if (!is_array($versions)) {
+                continue;
+            }
+
+            foreach ($versions as $package) {
+                if (!is_array($package)) {
+                    continue;
+                }
+
+                if (isset($package['name']) && in_array($package['name'], $this->packagesFilter, true)) {
+                    continue;
+                }
+
+                $package = $loader->load($package);
+
+                if ($package instanceof AliasPackage) {
+                    $package = $package->getAliasOf();
+                }
+
+                $packages[$package->getUniqueName()] = $package;
             }
         }
 

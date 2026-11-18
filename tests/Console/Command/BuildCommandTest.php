@@ -1298,6 +1298,46 @@ class BuildCommandTest extends TestCase
         );
     }
 
+    #[TestDox('execute() with a package filter keeps the other packages when includes are disabled')]
+    public function testExecuteWithPackagesFilterPreservesOtherPackagesWithoutIncludes(): void
+    {
+        $outputDir = $this->makeOutputDir();
+
+        $config = [
+            'name' => 'test/satis-repo',
+            'homepage' => 'https://example.com',
+            'repositories' => [
+                [
+                    'type' => 'package',
+                    'package' => [
+                        ['name' => 'vendor/package-a', 'version' => '1.0.0'],
+                        ['name' => 'vendor/package-b', 'version' => '2.0.0'],
+                        ['name' => 'vendor/package-b', 'version' => 'dev-main'],
+                    ],
+                ],
+            ],
+            'require-all' => true,
+            'includes' => false,
+            'output-html' => false,
+        ];
+
+        $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+        ], $config);
+
+        $tester = $this->executeSatis([
+            'file' => $this->configPath,
+            'output-dir' => $outputDir,
+            'packages' => ['vendor/package-a'],
+        ], $config);
+
+        self::assertSame(0, $tester->getStatusCode());
+        $packagesAfter = json_decode((string) file_get_contents($outputDir . '/packages.json'), true);
+        self::assertIsArray($packagesAfter);
+        self::assertSame(['vendor/package-a', 'vendor/package-b'], $packagesAfter['available-packages']);
+    }
+
     #[TestDox('execute() with --branch preserves other branches of the same package')]
     public function testExecuteWithBranchPreservesOtherBranches(): void
     {
