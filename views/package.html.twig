@@ -96,7 +96,7 @@
                 {%- if package.highest.type == 'metapackage' -%}
                 {{ version.prettyVersion }}
                 {%- elseif version.distType -%}
-                <a class="badge rounded-pill text-bg-secondary" href="{{ version.distUrl }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
+                <a class="badge rounded-pill text-bg-secondary" href="{{ version.distUrl|browser_dist_url }}" title="dist-reference: {{ version.distReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- elseif version.sourceUrl matches '#^https?:\\/\\/#' -%}
                 <a class="badge rounded-pill text-bg-secondary" href="{{ version.sourceUrl }}" title="source-reference: {{ version.sourceReference }}{{ branch_alias }}">{{ version.prettyVersion }}</a>
                 {%- else -%}
