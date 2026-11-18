@@ -943,15 +943,23 @@ class PackageSelection
                 $matches = [$link];
             } elseif (false !== $link && is_a($link, Link::class)) {
                 $name = $link->getTarget();
-                if (null !== $selector) {
-                    $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
-                    $matches = false !== $match ? [$match] : [];
-                } elseif (PlatformRepository::isPlatformPackage($name)) {
-                } else {
-                    // the pool only depends on the target name, so reuse it across
-                    // links with different constraints
-                    $poolsByName[$name] ??= $repositorySet->createPoolForPackage($name);
-                    $matches = $poolsByName[$name]->whatProvides($name, $link->getConstraint());
+                try {
+                    if (null !== $selector) {
+                        $match = $selector->findBestCandidate($name, $link->getConstraint()->getPrettyString());
+                        $matches = false !== $match ? [$match] : [];
+                    } elseif (PlatformRepository::isPlatformPackage($name)) {
+                    } else {
+                        // the pool only depends on the target name, so reuse it across
+                        // links with different constraints
+                        $poolsByName[$name] ??= $repositorySet->createPoolForPackage($name);
+                        $matches = $poolsByName[$name]->whatProvides($name, $link->getConstraint());
+                    }
+                } catch (\Exception $exception) {
+                    if (!$this->skipErrors) {
+                        throw $exception;
+                    }
+
+                    $this->output->writeln(sprintf("<error>Skipping Exception '%s'.</error>", $exception->getMessage()));
                 }
 
                 if (0 === \count($matches)) {
