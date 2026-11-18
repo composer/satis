@@ -163,9 +163,11 @@ Pass `--strict` to make the build fail on these, for example in CI:
 The build still runs to completion and writes its output, then exits with
 code 1 and lists what went wrong. Only `require` entries of the Satis config
 count; unmatched requirements of dependencies (with `require-dependencies`)
-and platform requirements such as `php` do not. With `--repository-url` no
-requirement is checked, since packages served by the other repositories never
-match during a partial update.
+and platform requirements such as `php` do not. With `require-all` no
+requirement is checked, since all packages of the repositories are selected
+instead of the `require` entries. With `--repository-url` no requirement is
+checked either, since packages served by the other repositories never match
+during a partial update.
 
 `--skip-errors` and `--strict` are independent: `--skip-errors` keeps the build
 going after errors that would otherwise abort it, while `--strict` fails on the

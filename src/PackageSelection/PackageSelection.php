@@ -188,8 +188,9 @@ class PackageSelection
     /**
      * Root requirements that matched no package during select(), as "name constraint".
      *
-     * Platform requirements are left out, as Satis never selects platform packages, and so is everything
-     * while a repositories filter is active, as the requirements served by the other repositories never match.
+     * Only the "require" entries of the config count: platform requirements are left out, as Satis never selects
+     * platform packages, and so is everything with require-all or while a repositories filter is active, as the
+     * requirements served by the other repositories never match.
      *
      * @return list<string>
      */
@@ -995,8 +996,10 @@ class PackageSelection
 
                 if (0 === \count($matches)) {
                     $this->output->writeln('<error>The ' . $name . ' ' . $link->getPrettyConstraint() . ' requirement did not match any package</error>');
-                    // with a repositories filter, root requirements served by the other repositories cannot match
-                    if ($isRoot && !$this->hasRepositoriesFilter() && !PlatformRepository::isPlatformPackage($name)) {
+                    // with a repositories filter, root requirements served by the other repositories cannot match;
+                    // with require-all, the root links are not the config's "require" but one per package of each
+                    // composer repository, which may have no version allowed by the minimum stability
+                    if ($isRoot && !$this->requireAll && !$this->hasRepositoriesFilter() && !PlatformRepository::isPlatformPackage($name)) {
                         $this->unmatchedRootRequirements[] = $name . ' ' . $link->getPrettyConstraint();
                     }
                 }

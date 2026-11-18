@@ -1245,6 +1245,35 @@ class BuildCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
     }
 
+    #[TestDox('execute() with --strict and require-all ignores packages of a composer repository without a version allowed by minimum-stability')]
+    public function testExecuteStrictWithRequireAllIgnoresComposerRepositoryPackagesBelowMinimumStability(): void
+    {
+        $repoDir = sys_get_temp_dir() . '/satis-composer-repo-' . uniqid('', true);
+        mkdir($repoDir);
+        $dist = ['url' => 'https://example.com/test.zip', 'type' => 'zip'];
+        file_put_contents($repoDir . '/packages.json', json_encode(['packages' => [
+            'vendor/dev-only' => ['dev-main' => ['name' => 'vendor/dev-only', 'version' => 'dev-main', 'dist' => $dist]],
+            'vendor/stable' => ['1.0.0' => ['name' => 'vendor/stable', 'version' => '1.0.0', 'dist' => $dist]],
+        ]]));
+
+        try {
+            $outputDir = $this->makeOutputDir();
+            $tester = $this->executeSatis(
+                ['file' => $this->configPath, 'output-dir' => $outputDir, '--strict' => true],
+                $this->baseSatisConfig([
+                    'repositories' => [['type' => 'composer', 'url' => 'file://' . $repoDir]],
+                    'minimum-stability' => 'stable',
+                ])
+            );
+
+            self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+            self::assertStringNotContainsString('Strict mode', $tester->getDisplay());
+            self::assertStringContainsString('vendor/stable', (string) file_get_contents($outputDir . '/packages.json'));
+        } finally {
+            (new SymfonyFilesystem())->remove($repoDir);
+        }
+    }
+
     #[DataProvider('dataStrictOption')]
     #[TestDox('execute() exit code on a VCS mirror that failed to update $_dataName')]
     public function testExecuteStrictFailsOnFailedMirrorUpdate(bool $strict, int $expectedStatusCode): void
