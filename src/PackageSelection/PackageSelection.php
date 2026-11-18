@@ -923,9 +923,8 @@ class PackageSelection
     {
         $depsLinks = $isRoot ? [] : $links;
         $poolsByName = [];
-        $hasBlacklist = $this->hasBlacklist();
-        $blacklistPool = $hasBlacklist ? new Pool() : null;
-        $versionParser = $hasBlacklist ? new VersionParser() : null;
+        $blacklistPool = $this->hasBlacklist() ? new Pool() : null;
+        $versionParser = new VersionParser();
         $selector = null;
         if (!$isRoot && $this->onlyBestCandidates) {
             // without config.platform, skip platform filtering rather than use the build host's platform
@@ -966,7 +965,7 @@ class PackageSelection
                     $package = $package->getAliasOf();
                 }
 
-                if ($hasBlacklist && $package instanceof BasePackage && null !== $blacklistPool && null !== $versionParser && $this->isPackageBlacklisted($package, $blacklistPool, $versionParser)) {
+                if (null !== $blacklistPool && $package instanceof BasePackage && $this->isPackageBlacklisted($package, $blacklistPool, $versionParser)) {
                     if ($verbose) {
                         $this->output->writeln('Blacklisted ' . $package->getPrettyName() . ' (' . $package->getPrettyVersion() . ')');
                     }
