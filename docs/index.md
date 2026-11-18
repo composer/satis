@@ -28,3 +28,5 @@ Run our Docker container:
 
     docker pull composer/satis
     docker run --rm -it -v <workspace>:/build composer/satis
+
+Need access control per person, instant updates or security monitoring? See [Private Packagist](private-packagist).

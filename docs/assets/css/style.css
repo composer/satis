@@ -538,22 +538,17 @@ pre {
 
 @media (max-width: 40rem) {
     :root {
-        /* the nav wraps onto a second row */
-        --header-height: 6rem;
+        /* the header scrolls away on small screens, see below */
+        --header-height: 0rem;
     }
 
     html {
         font-size: 106.25%; /* 17px */
     }
 
-    .site-nav {
-        gap: 0;
-        scrollbar-width: none;
-    }
-
-    .site-nav a {
-        padding: 0.3rem 0.5rem;
-        font-size: 0.9rem;
+    /* the menu wraps onto extra rows, too tall to keep in view while reading */
+    .site-header {
+        position: static;
     }
 
     .site-header__inner {
@@ -564,8 +559,15 @@ pre {
 
     .site-nav {
         order: 3;
-        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.25rem;
         width: 100%;
+        overflow: visible;
+    }
+
+    .site-nav a {
+        padding: 0.3rem 0.7rem;
+        font-size: 0.9rem;
     }
 
     .github-link span {
@@ -588,4 +590,41 @@ pre {
 .lead {
     color: var(--text-soft);
     font-size: 1.2rem;
+}
+
+/* tables */
+
+table {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 1.5rem;
+    overflow-x: auto;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+th,
+td {
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+    vertical-align: top;
+}
+
+thead th {
+    border-bottom-width: 2px;
+    color: var(--heading);
+    white-space: nowrap;
+}
+
+tbody td:first-child {
+    color: var(--heading);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+tbody tr:hover {
+    background: var(--bg-soft);
 }
