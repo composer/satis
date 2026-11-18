@@ -24,6 +24,7 @@ use Composer\Package\Version\VersionParser;
 use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\RepositoryManager;
 use Composer\Satis\Console\Application as SatisApplication;
+use Composer\Util\Platform;
 use Composer\Util\ProcessExecutor;
 use org\bovigo\vfs\vfsStream;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -1023,6 +1024,96 @@ class BuildCommandTest extends TestCase
 
         self::assertFalse($this->repositoryManagerContainsPackagist($manager));
         self::assertSame($countBefore - 1, $countAfter);
+    }
+
+    /**
+     * @return array<string, array{bool}>
+     */
+    public static function dataWorkingDirectoryHasComposerJson(): array
+    {
+        return [
+            // Composer's BaseCommand::initialize() then creates a Composer instance from it, which
+            // getComposerWithConfig() reuses and merges the Satis config into
+            'working directory with composer.json' => [true],
+            // getComposerWithConfig() then creates the Composer instance from the Satis config
+            'working directory without composer.json' => [false],
+        ];
+    }
+
+    #[DataProvider('dataWorkingDirectoryHasComposerJson')]
+    #[TestDox('execute() loads the auth.json next to the config file, over the global auth.json and the config block ($_dataName)')]
+    public function testExecuteLoadsAuthJsonNextToConfigFile(bool $workingDirectoryHasComposerJson): void
+    {
+        $homeDir = vfsStream::url('satis/composer-home');
+        mkdir($homeDir);
+        file_put_contents($homeDir . '/auth.json', json_encode([
+            'http-basic' => [
+                'example.org' => ['username' => 'global-user', 'password' => 'global-pass'],
+                'global.example.org' => ['username' => 'global-only', 'password' => 'global-only-pass'],
+            ],
+        ]));
+        file_put_contents(vfsStream::url('satis/auth.json'), json_encode([
+            'http-basic' => [
+                'example.org' => ['username' => 'project-user', 'password' => 'project-pass'],
+                'config.example.org' => ['username' => 'project-config-user', 'password' => 'project-config-pass'],
+            ],
+        ]));
+
+        $originalEnv = ['COMPOSER_HOME' => Platform::getEnv('COMPOSER_HOME'), 'COMPOSER' => Platform::getEnv('COMPOSER')];
+        Platform::putEnv('COMPOSER_HOME', $homeDir);
+        if (!$workingDirectoryHasComposerJson) {
+            Platform::putEnv('COMPOSER', vfsStream::url('satis/missing/composer.json'));
+        }
+
+        try {
+            $this->writeConfig($this->baseSatisConfig([
+                'config' => [
+                    'http-basic' => [
+                        'config.example.org' => ['username' => 'config-user', 'password' => 'config-pass'],
+                        'satis.example.org' => ['username' => 'satis-user', 'password' => 'satis-pass'],
+                    ],
+                ],
+            ]));
+
+            $io = new NullIO();
+            $app = new SatisApplication();
+            (new \ReflectionProperty($app, 'io'))->setValue($app, $io);
+            $tester = new CommandTester($app->find('build'));
+            $tester->execute(['file' => $this->configPath, 'output-dir' => $this->makeOutputDir()]);
+
+            self::assertSame(0, $tester->getStatusCode());
+
+            $expected = [
+                'example.org' => ['username' => 'project-user', 'password' => 'project-pass'],
+                'global.example.org' => ['username' => 'global-only', 'password' => 'global-only-pass'],
+                'config.example.org' => ['username' => 'project-config-user', 'password' => 'project-config-pass'],
+                'satis.example.org' => ['username' => 'satis-user', 'password' => 'satis-pass'],
+            ];
+            foreach ($expected as $host => $credentials) {
+                self::assertSame($credentials, $io->getAuthentication($host), $host);
+            }
+
+            $composer = (new \ReflectionProperty($app, 'composer'))->getValue($app);
+            self::assertInstanceOf(\Composer\Composer::class, $composer);
+            $httpBasic = $composer->getConfig()->get('http-basic');
+            foreach ($expected as $host => $credentials) {
+                self::assertSame($credentials, $httpBasic[$host] ?? null, $host);
+            }
+        } finally {
+            foreach ($originalEnv as $name => $value) {
+                false === $value ? Platform::clearEnv($name) : Platform::putEnv($name, $value);
+            }
+        }
+    }
+
+    #[TestDox('execute() rejects an auth.json next to the config file that does not match the auth schema')]
+    public function testExecuteRejectsInvalidAuthJsonNextToConfigFile(): void
+    {
+        file_put_contents(vfsStream::url('satis/auth.json'), json_encode(['http-basic' => 'not-an-object']));
+
+        $this->expectException(JsonValidationException::class);
+
+        $this->executeSatis(['file' => $this->configPath, 'output-dir' => $this->makeOutputDir()], $this->baseSatisConfig());
     }
 
     #[TestDox('getConfiguration() loads auth.json when present')]
