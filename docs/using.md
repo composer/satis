@@ -440,7 +440,8 @@ Satis reads the packages back from the existing `packages.json` and its include,
 provider or `p2/` metadata files, and leaves those files and any archives
 untouched. As it is an explicit request for the page, `--html-only` builds it
 even when `output-html` is `false`. It fails when `output-dir` holds no previous
-build, and cannot be combined with `--no-html-output`, `--repository-url`,
+build, or one built with `includes` disabled and `available-package-patterns`
+set, as its `packages.json` then lists no packages. It cannot be combined with `--no-html-output`, `--repository-url`,
 `--branch`, `--strict` or package arguments.
 
 ### Abandoned packages

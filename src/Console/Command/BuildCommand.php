@@ -310,7 +310,15 @@ class BuildCommand extends BaseCommand
         if ($htmlOnly) {
             $packages = $packageSelection->load();
             if ([] === $packages) {
-                $output->writeln(sprintf('<error>No packages found in a previous build in %s, run a full build first</error>', $outputDir));
+                $packagesJson = new JsonFile($outputDir . '/packages.json');
+                $rootConfig = $packagesJson->exists() ? $packagesJson->read() : [];
+                // without includes, packages.json lists the packages in available-packages only, which
+                // available-package-patterns replaces
+                if (isset($rootConfig['available-package-patterns']) && !isset($rootConfig['includes']) && !isset($rootConfig['providers'])) {
+                    $output->writeln(sprintf('<error>The packages.json of the previous build in %s lists no packages: with includes disabled and available-package-patterns set, the previous build cannot be read back</error>', $outputDir));
+                } else {
+                    $output->writeln(sprintf('<error>No packages found in a previous build in %s, run a full build first</error>', $outputDir));
+                }
 
                 return 1;
             }

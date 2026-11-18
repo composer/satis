@@ -2162,6 +2162,28 @@ class BuildCommandTest extends TestCase
         self::assertFileDoesNotExist($outputDir . '/packages.json');
     }
 
+    #[TestDox('execute() with --html-only explains why a previous build without includes and with available-package-patterns cannot be read back')]
+    public function testExecuteWithHtmlOnlyExplainsUnreadableBuildWithAvailablePackagePatterns(): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $config = $this->baseSatisConfig(['includes' => false, 'available-package-patterns' => ['vendor/*']]);
+
+        $tester = $this->executeSatis(['file' => $this->configPath, 'output-dir' => $outputDir], $config);
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertFileExists($outputDir . '/p2/vendor/test-pkg.json');
+        $indexHtml = (string) file_get_contents($outputDir . '/index.html');
+
+        $tester = $this->executeSatis(['file' => $this->configPath, 'output-dir' => $outputDir, '--html-only' => true], $config);
+
+        self::assertSame(1, $tester->getStatusCode());
+        self::assertStringContainsString(
+            sprintf('The packages.json of the previous build in %s lists no packages: with includes disabled and available-package-patterns set, the previous build cannot be read back', $outputDir),
+            $tester->getDisplay()
+        );
+        self::assertStringNotContainsString('run a full build first', $tester->getDisplay());
+        self::assertSame($indexHtml, file_get_contents($outputDir . '/index.html'));
+    }
+
     /**
      * @return array<string, array{array<string, mixed>, string}>
      */
