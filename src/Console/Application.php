@@ -14,11 +14,14 @@ declare(strict_types=1);
 namespace Composer\Satis\Console;
 
 use Composer\Composer;
+use Composer\Config;
 use Composer\Console\Application as ComposerApplication;
 use Composer\Factory;
 use Composer\IO\ConsoleIO;
 use Composer\IO\IOInterface;
 use Composer\IO\NullIO;
+use Composer\Json\JsonFile;
+use Composer\Json\JsonValidationException;
 use Composer\Satis\Console\Command;
 use Composer\Satis\Satis;
 use Composer\Util\ErrorHandler;
@@ -96,8 +99,39 @@ class Application extends ComposerApplication
             }
 
             $this->composer->getConfig()->merge($config);
+            // like Factory::createComposer() does over composer.json and its auth.json, let COMPOSER_AUTH win over
+            // the Satis config and the auth.json next to it
+            $this->loadComposerAuthEnv($this->composer->getConfig(), $io ?? $this->io);
         }
 
         return $this->composer;
+    }
+
+    /**
+     * Merges COMPOSER_AUTH into the config, validated like Factory::loadComposerAuthEnv(), which is private.
+     */
+    private function loadComposerAuthEnv(Config $config, IOInterface $io): void
+    {
+        $composerAuthEnv = Platform::getEnv('COMPOSER_AUTH');
+        if (false === $composerAuthEnv || '' === $composerAuthEnv) {
+            return;
+        }
+
+        $authData = json_decode($composerAuthEnv);
+        if (null === $authData) {
+            throw new \UnexpectedValueException('COMPOSER_AUTH environment variable is malformed, should be a valid JSON object');
+        }
+
+        $io->writeError('Loading auth config from COMPOSER_AUTH', true, IOInterface::DEBUG);
+        try {
+            JsonFile::validateJsonSchema('COMPOSER_AUTH', $authData, JsonFile::AUTH_SCHEMA);
+        } catch (JsonValidationException $e) {
+            $io->writeError('<warning>' . $e->getMessage() . ', this may result in errors and should be resolved:' . PHP_EOL . ' - ' . implode(PHP_EOL . ' - ', $e->getErrors()) . '</>');
+        }
+
+        $authData = json_decode($composerAuthEnv, true);
+        if (is_array($authData)) {
+            $config->merge(['config' => $authData], 'COMPOSER_AUTH');
+        }
     }
 }

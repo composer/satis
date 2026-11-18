@@ -302,6 +302,11 @@ as a JSON object with the contents of an `auth.json` file:
 
     COMPOSER_AUTH='{"http-basic": {"example.org": {"username": "username", "password": "password"}}}' php bin/satis build satis.json web/
 
+When several of these hold credentials for the same host, they take precedence
+in this order: `COMPOSER_AUTH`, then the `auth.json` next to the configuration
+file, then the `config` block of the configuration file, then the global
+`COMPOSER_HOME/auth.json`.
+
 ### Downloads
 
 When GitHub, GitLab or BitBucket repositories are mirrored on your local satis, the
