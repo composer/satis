@@ -20,6 +20,7 @@ use Twig\Environment;
 use Twig\Extension\DebugExtension;
 use Twig\Extra\Html\HtmlExtension;
 use Twig\Loader\FilesystemLoader;
+use Twig\TwigFilter;
 
 class WebBuilder extends Builder
 {
@@ -98,6 +99,7 @@ class WebBuilder extends Builder
 
             $this->twig = new Environment($loader, $options);
             $this->twig->addExtension(new HtmlExtension());
+            $this->twig->addFilter(new TwigFilter('browser_dist_url', [self::class, 'getBrowserDistUrl']));
 
             if (false !== getenv('SATIS_TWIG_DEBUG')) {
                 $this->twig->addExtension(new DebugExtension());
@@ -105,6 +107,29 @@ class WebBuilder extends Builder
         }
 
         return $this->twig;
+    }
+
+    /**
+     * Rewrites GitHub API zipball URLs, which return a 404 in a browser for
+     * private repositories, to archive URLs that work with a browser session.
+     */
+    public static function getBrowserDistUrl(?string $distUrl): ?string
+    {
+        if (null === $distUrl) {
+            return null;
+        }
+
+        return preg_replace(
+            [
+                '{^https://api\.github\.com/repos/([^/]+)/([^/]+)/zipball/([^/?#]+)$}',
+                '{^https://([^/]+)/api/v3/repos/([^/]+)/([^/]+)/zipball/([^/?#]+)$}',
+            ],
+            [
+                'https://github.com/$1/$2/archive/$3.zip',
+                'https://$1/$2/$3/archive/$4.zip',
+            ],
+            $distUrl,
+        );
     }
 
     private function getTwigTemplate(): string

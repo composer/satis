@@ -286,6 +286,9 @@ If true, generate html output from templates.
 
 Path to twig template used for generating html output.
 
+Templates can use the `browser_dist_url` filter to turn GitHub API dist URLs, which a browser cannot download for
+private repositories, into archive URLs that work with a GitHub session: `{% raw %}{{ version.distUrl|browser_dist_url }}{% endraw %}`.
+
 ### allow-seo-indexing
 
 If true, the html output does not tell search engines to skip it (it leaves out the `noindex,nofollow` robots meta tag).

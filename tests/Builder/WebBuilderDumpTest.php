@@ -157,4 +157,48 @@ class WebBuilderDumpTest extends TestCase
         self::assertMatchesRegularExpression('/Package is abandoned, you should avoid using it/', $html);
         self::assertMatchesRegularExpression('/Use othervendor\/othername instead/', $html);
     }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function dataReleaseLink(): array
+    {
+        return [
+            'GitHub API zipball' => [
+                'https://api.github.com/repos/vendor/name/zipball/0123456789abcdef',
+                'https://github.com/vendor/name/archive/0123456789abcdef.zip',
+            ],
+            'GitHub Enterprise API zipball' => [
+                'https://github.example.com/api/v3/repos/vendor/name/zipball/0123456789abcdef',
+                'https://github.example.com/vendor/name/archive/0123456789abcdef.zip',
+            ],
+            'Satis archive' => [
+                'https://satis.example.com/dist/vendor/name/vendor-name-0123456789abcdef-zip-abcdef.zip',
+                'https://satis.example.com/dist/vendor/name/vendor-name-0123456789abcdef-zip-abcdef.zip',
+            ],
+            'GitLab API archive' => [
+                'https://gitlab.com/api/v4/projects/vendor%2Fname/repository/archive.zip?sha=0123456789abcdef',
+                'https://gitlab.com/api/v4/projects/vendor%2Fname/repository/archive.zip?sha=0123456789abcdef',
+            ],
+        ];
+    }
+
+    #[DataProvider('dataReleaseLink')]
+    public function testReleaseLinkPointsToBrowsableArchive(string $distUrl, string $expectedHref): void
+    {
+        $this->package->setDistType('zip');
+        $this->package->setDistUrl($distUrl);
+        $this->package->setDistReference('0123456789abcdef');
+
+        $webBuilder = new WebBuilder(new NullOutput(), vfsStream::url('build'), [], false);
+        $webBuilder->setRootPackage($this->rootPackage);
+        $webBuilder->dump([$this->package]);
+
+        /** @var vfsStreamFile $file */
+        $file = $this->root->getChild('build/index.html');
+        $html = $file->getContent();
+
+        self::assertStringContainsString('href="' . htmlspecialchars($expectedHref) . '"', $html);
+        self::assertSame($distUrl, $this->package->getDistUrl());
+    }
 }
