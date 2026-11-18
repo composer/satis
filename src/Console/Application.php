@@ -75,11 +75,14 @@ class Application extends ComposerApplication
         return $commands;
     }
 
-    public function getComposerWithConfig(mixed $config): ?Composer
+    /**
+     * @param IOInterface|null $io The IO for a Composer instance that has yet to be created, defaults to the application IO
+     */
+    public function getComposerWithConfig(mixed $config, ?IOInterface $io = null): ?Composer
     {
         if (null === $this->composer) {
             try {
-                $this->composer = Factory::create(Platform::isInputCompletionProcess() ? new NullIO() : $this->io, $config, false, false);
+                $this->composer = Factory::create(Platform::isInputCompletionProcess() ? new NullIO() : ($io ?? $this->io), $config, false, false);
             } catch (\InvalidArgumentException $e) {
                 $this->io->writeError($e->getMessage());
                 if ($this->areExceptionsCaught()) {

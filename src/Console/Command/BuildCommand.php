@@ -30,6 +30,7 @@ use Composer\Satis\Builder\ArchiveBuilder;
 use Composer\Satis\Builder\PackagesBuilder;
 use Composer\Satis\Builder\WebBuilder;
 use Composer\Satis\Console\Application as SatisApplication;
+use Composer\Satis\Console\IO\FailedUpdateRecordingIO;
 use Composer\Satis\PackageSelection\PackageSelection;
 use Composer\Semver\Constraint\Constraint;
 use Composer\Util\Filesystem;
@@ -62,6 +63,7 @@ class BuildCommand extends BaseCommand
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
                 new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
                 new InputOption('minify', null, InputOption::VALUE_NONE, 'Minify output'),
+                new InputOption('strict', null, InputOption::VALUE_NONE, 'Exit with a non-zero code when a VCS mirror failed to update or a root requirement matched no package'),
             ])
             ->setHelp(
                 <<<'EOT'
@@ -122,6 +124,12 @@ class BuildCommand extends BaseCommand
                   https://getcomposer.org/doc/05-repositories.md#notify-batch
                 - <info>"include-filename"</info> Specify filename instead of default include/all${SHA1_HASH}.json
                 - <info>"archive"</info> archive configuration, see https://composer.github.io/satis/using#downloads
+
+                With <info>--strict</info> the build still runs to completion, but exits with a
+                non-zero code when a VCS mirror failed to update (its package information may be
+                outdated) or a package listed in <info>"require"</info> matched no package. Unlike
+                <info>--skip-errors</info>, which is about errors that abort the build, these are
+                warnings, so <info>--strict</info> fails on them even with <info>--skip-errors</info>.
                 EOT
             );
     }
@@ -141,10 +149,18 @@ class BuildCommand extends BaseCommand
         $skipErrors = (bool) $input->getOption('skip-errors');
         $minify = (bool) $input->getOption('minify');
         $htmlOnly = (bool) $input->getOption('html-only');
+        $strict = (bool) $input->getOption('strict');
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
         $io->loadConfiguration($this->getConfiguration());
+
+        // the VCS drivers only warn when updating a mirror fails, record those warnings for --strict
+        $failedUpdates = null;
+        if ($strict) {
+            $io = $failedUpdates = new FailedUpdateRecordingIO($io);
+        }
+
         $config = [];
         $localConfigFile = null;
 
@@ -196,6 +212,7 @@ class BuildCommand extends BaseCommand
                 'package arguments' => count($packagesFilter) > 0,
                 '"--repository-url"' => null !== $repositoryUrl && [] !== $repositoryUrl,
                 '"--branch"' => null !== $branch,
+                '"--strict"' => $strict,
             ]);
             if ([] !== $conflicts) {
                 throw new \InvalidArgumentException(sprintf('The "--html-only" option cannot be used together with %s.', implode(', ', array_keys($conflicts))));
@@ -238,7 +255,7 @@ class BuildCommand extends BaseCommand
             if (null !== $localConfigFile) {
                 $config = $this->mergeLocalAuthConfig($config, $localConfigFile, $output);
             }
-            $composer = $application->getComposerWithConfig($config);
+            $composer = $application->getComposerWithConfig($config, $io);
         } else {
             $composer = $application->getComposer(true);
         }
@@ -260,6 +277,10 @@ class BuildCommand extends BaseCommand
 
         // Feed repo manager with satis' repos and process disable directives
         $manager = $composer->getRepositoryManager();
+        if (null !== $failedUpdates) {
+            // When Satis runs as a plugin, Composer already created the manager with its own IO
+            (new \ReflectionProperty($manager, 'io'))->setValue($manager, $failedUpdates);
+        }
         $disabledRepoNames = [];
         foreach ($config['repositories'] as $repo) {
             if (is_array($repo) && !isset($repo['type']) && 1 === count($repo) && false === current($repo)) {
@@ -373,6 +394,10 @@ class BuildCommand extends BaseCommand
             $this->dumpWebView($output, $outputDir, $config, $skipErrors, $composer->getPackage(), $packages);
         }
 
+        if (null !== $failedUpdates) {
+            return $this->reportStrictFailures($output, $failedUpdates->getFailedUpdates(), $packageSelection->getUnmatchedRootRequirements());
+        }
+
         return 0;
     }
 
@@ -385,6 +410,33 @@ class BuildCommand extends BaseCommand
         $web = new WebBuilder($output, $outputDir, $config, $skipErrors);
         $web->setRootPackage($rootPackage);
         $web->dump($packages);
+    }
+
+    /**
+     * @param list<string> $failedUpdates
+     * @param list<string> $unmatchedRootRequirements
+     */
+    private function reportStrictFailures(OutputInterface $output, array $failedUpdates, array $unmatchedRootRequirements): int
+    {
+        if ([] === $failedUpdates && [] === $unmatchedRootRequirements) {
+            return 0;
+        }
+
+        $output->writeln('<error>Strict mode: the build is incomplete</error>');
+        if ([] !== $failedUpdates) {
+            $output->writeln('VCS mirrors that failed to update:');
+            foreach ($failedUpdates as $failedUpdate) {
+                $output->writeln(' - ' . $failedUpdate);
+            }
+        }
+        if ([] !== $unmatchedRootRequirements) {
+            $output->writeln('Root requirements that matched no package:');
+            foreach ($unmatchedRootRequirements as $requirement) {
+                $output->writeln(' - ' . $requirement);
+            }
+        }
+
+        return 1;
     }
 
     /**
