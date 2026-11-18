@@ -19,10 +19,12 @@ uses `"require-all": true` which selects all versions of all packages in the
 repositories you defined.
 
 The default file Satis looks for is `satis.json` in the root of the repository.
+The `name` must be a valid package name such as `acme/satis`, see
+[name](config#name).
 
 ```json
 {
-    "name": "My Repository",
+    "name": "acme/satis",
     "homepage": "http://packages.example.org",
     "repositories": [
         { "type": "vcs", "url": "https://github.com/mycompany/privaterepo" },
@@ -71,6 +73,12 @@ Set up a virtual-host that points to that `web/` directory, let's say it is
 `packages.example.org`. Alternatively, with PHP >= 5.4.0, you can use the
 built-in CLI server `php -S localhost:port -t satis-output-dir/` for a
 temporary solution.
+
+Composer reads the metadata of tagged versions from
+`p2/<vendor>/<package>.json` and that of dev versions (branches) from
+`p2/<vendor>/<package>~dev.json`. Make sure your web server serves the
+`~dev.json` files: some configurations refuse URLs that contain a `~`, and
+versions such as `dev-master` can then not be found.
 
 ### Partial Updates
 
@@ -159,9 +167,11 @@ will update itself.
 
 ### Security
 
-To secure your private repository you can host it over SSH or SSL using a client
-certificate. In your project you can use the `options` parameter to specify the
-connection options for the server.
+A TLS certificate on your server encrypts the connection, but anyone who knows
+the URL can still read the repository. To restrict who can read it, host it
+over SSH, require a client certificate, or protect it with HTTP basic auth (see
+[Authentication](#authentication)) or a token header. In your project you can
+use the `options` parameter to specify the connection options for the server.
 
 Example using a custom repository using SSH (requires the SSH2 PECL extension):
 
@@ -298,6 +308,65 @@ improve download times and therefore package installation.
 Example: A `prefix-url` of `https://my-bucket.s3.amazonaws.com` (and
 `directory` set to `dist`) creates download URLs which look like the following:
 `https://my-bucket.s3.amazonaws.com/dist/vendor-package-version-ref.zip`.
+
+#### Checksums and rebuilds
+
+An archive that Satis builds from a package is not byte-identical when it is
+built again, so it gets a different sha1 checksum. Lock files that recorded the
+old checksum then fail with "The checksum verification of the file failed".
+Satis only builds an archive if its file does not exist yet, so to avoid this:
+
+- keep the `directory` (or `absolute-directory`) between builds, for example
+  on a persistent volume when you build in CI or in a container,
+- set `checksum` to `false`, so that no checksum is published and new lock
+  files do not record one, or
+- set `rearchive` to `false`, so that packages with a zip or tar dist are
+  served with their original archive instead of a rebuilt one.
+
+Lock files that already contain an outdated checksum need a `composer update`
+of the affected packages.
+
+#### Artifact repositories
+
+Without an `archive` block, the dist URL of a package from an `artifact`
+repository is the path of its zip file on the machine that runs Satis, which
+Composer clients cannot download. Add an `archive` block so the packages are
+served by Satis, and set `rearchive` to `false` to serve the zip files as they
+are instead of building new archives:
+
+```json
+{
+    "repositories": [{ "type": "artifact", "url": "artifacts/" }],
+    "archive": {
+        "directory": "dist",
+        "rearchive": false
+    }
+}
+```
+
+#### Purge
+
+Archives that are no longer part of the repository, for example of earlier
+commits of a branch or of packages removed from the configuration, stay in the
+archive directory. The `purge` command deletes the archives that the last build
+no longer references:
+
+    php bin/satis purge satis.json web/
+
+Add a third argument to list these archives without deleting them:
+
+    php bin/satis purge satis.json web/ dry-run
+
+Run it with the same configuration as the build. It reads the packages from the
+include files of the last build, so with `"includes": false` (and without
+`providers`) it finds no references and deletes every archive. It also
+recognises archives by the `prefix-url` or `homepage` (or `SATIS_HOMEPAGE`) in
+their URL, and only looks in `output-dir`/`directory`, not in
+`absolute-directory`.
+
+Projects whose `composer.lock` still refers to a deleted archive, typically an
+old commit of a dev version, can no longer install it and need a
+`composer update` of that package.
 
 ### Web outputs
 

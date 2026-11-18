@@ -96,7 +96,7 @@ class BuildCommand extends BaseCommand
                 - <info>"output-html"</info>: boolean, controls whether the repository
                   has an html page as well or not.
                 - <info>"name"</info>: for html output, this defines the name of the
-                  repository.
+                  repository. It must be a valid package name such as acme/satis.
                 - <info>"homepage"</info>: for html output and urls in meta data files, this defines the home URL
                   of the repository (where you will host it). Build command allows this to be overloaded in SATIS_HOMEPAGE environment variable.
                 - <info>"twig-template"</info>: Location of twig template to use for
@@ -105,13 +105,13 @@ class BuildCommand extends BaseCommand
                 - <info>"abandoned"</info>: Packages that are abandoned. As the key use the
                   package name, as the value use true or the replacement package.
                 - <info>"blacklist"</info>: Packages and versions which should be excluded from the final package list.
-                - <info>"only-best-candidates"</info>: Returns a minimal set of dependencies needed to satisfy the configuration.
-                  The resulting satis repository will contain only one or two versions of each project.
+                - <info>"only-best-candidates"</info>: Selects only the best matching version for each dependency constraint.
+                  Each constraint is resolved on its own, without the solver, so the result is not guaranteed to be installable.
                 - <info>"notify-batch"</info>: Allows you to specify a URL that will
                   be called every time a user installs a package, see
                   https://getcomposer.org/doc/05-repositories.md#notify-batch
                 - <info>"include-filename"</info> Specify filename instead of default include/all${SHA1_HASH}.json
-                - <info>"archive"</info> archive configuration, see https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#downloads
+                - <info>"archive"</info> archive configuration, see https://composer.github.io/satis/using#downloads
                 EOT
             );
     }

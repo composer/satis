@@ -37,6 +37,20 @@ docker run --rm --init -it \
   composer/satis build <configuration-file> <output-directory>
 ```
 
+To clone repositories over SSH, forward your SSH agent into the container and
+mount a `known_hosts` file that contains the keys of your Git hosts:
+
+```sh
+docker run --rm --init -it \
+  --user $(id -u):$(id -g) \
+  --volume $(pwd):/build \
+  --volume "${COMPOSER_HOME:-$HOME/.composer}:/composer" \
+  --volume "$SSH_AUTH_SOCK:/ssh-agent" \
+  --env SSH_AUTH_SOCK=/ssh-agent \
+  --volume "$HOME/.ssh/known_hosts:/etc/ssh/ssh_known_hosts:ro" \
+  composer/satis build <configuration-file> <output-directory>
+```
+
 If you want to run the image without implicitly running Satis, you have to
 override the entrypoint specified in the `Dockerfile`:
 
@@ -54,6 +68,8 @@ php bin/satis purge <configuration-file> <output-dir>
 ```
 
 > Note: don't do this unless you are certain your projects no longer reference any of these archives in their `composer.lock` files.
+
+See [Purge](https://composer.github.io/satis/using#purge) in the documentation for a dry run and other caveats.
 
 ## Updating
 
