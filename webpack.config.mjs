@@ -7,7 +7,13 @@ Encore.addEntry('app', './views/assets/js/app.js')
     .cleanupOutputBeforeBuild()
     .disableSingleRuntimeChunk()
     .enableSassLoader((options) => {
-        options.sassOptions = { ...options.sassOptions, charset: false }
+        // Encore leaves CSS minification to a CSS minimizer that is not set
+        // up here, so let Sass compress the production build itself
+        options.sassOptions = {
+            ...options.sassOptions,
+            charset: false,
+            style: Encore.isProduction() ? 'compressed' : 'expanded',
+        }
     })
     .enableSourceMaps(!Encore.isProduction())
     .setOutputPath('views/build/')
