@@ -1255,11 +1255,28 @@ class PackageSelectionTest extends TestCase
             new Link('__root__', 'php', $versionParser->parseConstraints('>=8.0'), Link::TYPE_REQUIRE, '>=8.0'),
         ];
 
-        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
+        $builder = new PackageSelection(new NullOutput(), 'build', ['require' => ['vendor/a' => '^1.0']], false);
         $method = new \ReflectionMethod($builder, 'selectLinks');
         $method->invoke($builder, $repositorySet, $links, true, false);
 
         self::assertSame(['vendor/a ^2.0', 'vendor/missing *'], $builder->getUnmatchedRootRequirements());
+    }
+
+    public function testDoesNotRecordUnmatchedRootRequirementsWithRequireAll(): void
+    {
+        $repositorySet = new RepositorySet();
+        $repositorySet->addRepository(new ArrayRepository());
+
+        // require-all turns each package of a composer repository into a root link like this one
+        $links = [
+            new Link('__root__', 'vendor/dev-only', new MatchAllConstraint(), Link::TYPE_REQUIRE, '*'),
+        ];
+
+        $builder = new PackageSelection(new NullOutput(), 'build', ['require-all' => true], false);
+        $method = new \ReflectionMethod($builder, 'selectLinks');
+        $method->invoke($builder, $repositorySet, $links, true, false);
+
+        self::assertSame([], $builder->getUnmatchedRootRequirements());
     }
 
     public function testDoesNotRecordUnmatchedRootRequirementsWithRepositoriesFilter(): void
@@ -1272,7 +1289,7 @@ class PackageSelectionTest extends TestCase
             new Link('__root__', 'vendor/in-other-repository', $versionParser->parseConstraints('^1.0'), Link::TYPE_REQUIRE, '^1.0'),
         ];
 
-        $builder = new PackageSelection(new NullOutput(), 'build', [], false);
+        $builder = new PackageSelection(new NullOutput(), 'build', ['require' => ['vendor/in-other-repository' => '^1.0']], false);
         $builder->setRepositoriesFilter(['https://example.com/filtered.git']);
         $method = new \ReflectionMethod($builder, 'selectLinks');
         $method->invoke($builder, $repositorySet, $links, true, false);
