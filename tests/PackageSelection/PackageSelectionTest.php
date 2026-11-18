@@ -25,6 +25,7 @@ use Composer\Repository\ConfigurableRepositoryInterface;
 use Composer\Repository\PackageRepository;
 use Composer\Repository\RepositorySet;
 use Composer\Semver\Constraint\Constraint;
+use Composer\Semver\Constraint\ConstraintInterface;
 use Composer\Semver\Constraint\MatchAllConstraint;
 use Composer\Semver\VersionParser;
 use Composer\Util\Filesystem;
@@ -1501,6 +1502,53 @@ class PackageSelectionTest extends TestCase
         }
 
         self::assertSame($expected, $versions);
+    }
+
+    public function testOnlyBestCandidatesExcludesAllBlacklistedCandidatesAtOnce(): void
+    {
+        $repository = new ArrayRepository();
+
+        $packageA = new Package('vendor/a', '1.0.0.0', '1.0');
+        $link = new Link('vendor/a', 'vendor/b', (new VersionParser())->parseConstraints('^0.9 || ^1.0'), Link::TYPE_REQUIRE, '^0.9 || ^1.0');
+        $packageA->setRequires([$link->getTarget() => $link]);
+        $repository->addPackage($packageA);
+        $repository->addPackage(new Package('vendor/b', '0.9.0.0', '0.9.0'));
+        for ($minor = 0; $minor < 300; ++$minor) {
+            $repository->addPackage(new Package('vendor/b', '1.' . $minor . '.0.0', '1.' . $minor . '.0'));
+        }
+
+        // counts the lookups of the VersionSelector, which go through findPackages()
+        $repositorySet = new class extends RepositorySet {
+            /** @var array<string, int> */
+            public array $findPackagesCalls = [];
+
+            public function findPackages(string $name, ?ConstraintInterface $constraint = null, int $flags = 0): array
+            {
+                $this->findPackagesCalls[$name] = ($this->findPackagesCalls[$name] ?? 0) + 1;
+
+                return parent::findPackages($name, $constraint, $flags);
+            }
+        };
+        $repositorySet->addRepository($repository);
+
+        $config = [
+            'only-best-candidates' => true,
+            'require-dependencies' => true,
+            'blacklist' => ['vendor/b' => '^1.0'],
+        ];
+        $builder = new PackageSelection(new NullOutput(), 'build', $config, false);
+        $reflection = new \ReflectionClass($builder);
+        $reflection->getMethod('selectLinks')->invokeArgs($builder, [$repositorySet, [new Link('top', 'vendor/a', new Constraint('=', '1.0.0.0'), Link::TYPE_REQUIRE)], false, false]);
+
+        /** @var PackageInterface[] $selected */
+        $selected = $reflection->getProperty('selected')->getValue($builder);
+        $versions = [];
+        foreach ($selected as $package) {
+            $versions[$package->getName()] = $package->getPrettyVersion();
+        }
+
+        self::assertSame(['vendor/a' => '1.0', 'vendor/b' => '0.9.0'], $versions);
+        self::assertSame(2, $repositorySet->findPackagesCalls['vendor/b'], 'One lookup, then one excluding all blacklisted candidates');
     }
 
     /**
