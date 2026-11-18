@@ -805,6 +805,16 @@ class PackageSelection
         return $blacklisted;
     }
 
+    /**
+     * Whether a package found for a link is blacklisted, as the package it aliases if it is an alias.
+     */
+    private function isMatchBlacklisted(PackageInterface $match, Pool $pool, VersionParser $parser): bool
+    {
+        $package = $match instanceof AliasPackage ? $match->getAliasOf() : $match;
+
+        return $package instanceof BasePackage && $this->isPackageBlacklisted($package, $pool, $parser);
+    }
+
     private function isPackageBlacklisted(BasePackage $package, Pool $pool, VersionParser $parser): bool
     {
         foreach ($this->blacklist as $blacklistName => $blacklistConstraint) {
@@ -959,17 +969,20 @@ class PackageSelection
                     if (null !== $selector) {
                         $constraint = $link->getConstraint()->getPrettyString();
                         $match = $selector->findBestCandidate($name, $constraint);
-                        // fall back to the best candidate that is not blacklisted by excluding
-                        // each blacklisted best candidate from every alternative of the constraint
-                        while (false !== $match && null !== $blacklistPool) {
-                            $package = $match instanceof AliasPackage ? $match->getAliasOf() : $match;
-                            if (!$package instanceof BasePackage || !$this->isPackageBlacklisted($package, $blacklistPool, $versionParser)) {
-                                break;
+                        // fall back to the best candidate that is not blacklisted, by excluding all blacklisted
+                        // candidates from every alternative of the constraint at once
+                        if (false !== $match && null !== $blacklistPool && $this->isMatchBlacklisted($match, $blacklistPool, $versionParser)) {
+                            $poolsByName[$name] ??= $repositorySet->createPoolForPackage($name);
+                            $excludedVersions = [];
+                            foreach ([$match, ...$poolsByName[$name]->whatProvides($name, $link->getConstraint())] as $candidate) {
+                                if ($candidate->getName() === $name && !isset($excludedVersions[$candidate->getVersion()]) && $this->isMatchBlacklisted($candidate, $blacklistPool, $versionParser)) {
+                                    if ($verbose) {
+                                        $this->output->writeln('Blacklisted ' . $candidate->getPrettyName() . ' (' . $candidate->getPrettyVersion() . ')');
+                                    }
+                                    $excludedVersions[$candidate->getVersion()] = true;
+                                }
                             }
-                            if ($verbose) {
-                                $this->output->writeln('Blacklisted ' . $match->getPrettyName() . ' (' . $match->getPrettyVersion() . ')');
-                            }
-                            $exclusion = ' !=' . $match->getVersion();
+                            $exclusion = ' !=' . implode(' !=', array_keys($excludedVersions));
                             $constraint = preg_replace('{\s*\|\|?\s*}', $exclusion . ' || ', trim($constraint)) . $exclusion;
                             $match = $selector->findBestCandidate($name, $constraint);
                         }
