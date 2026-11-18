@@ -1168,14 +1168,27 @@ class BuildCommandTest extends TestCase
         }
     }
 
-    #[TestDox('execute() rejects an auth.json next to the config file that does not match the auth schema')]
-    public function testExecuteRejectsInvalidAuthJsonNextToConfigFile(): void
+    #[TestDox('execute() warns about an auth.json next to the config file that does not match the auth schema, and still loads it')]
+    public function testExecuteWarnsAboutInvalidAuthJsonNextToConfigFile(): void
     {
-        file_put_contents(vfsStream::url('satis/auth.json'), json_encode(['http-basic' => 'not-an-object']));
+        file_put_contents(vfsStream::url('satis/auth.json'), json_encode([
+            'sort-packages' => 'not-a-boolean',
+            'http-basic' => ['example.org' => ['username' => 'project-user', 'password' => 'project-pass']],
+        ]));
 
-        $this->expectException(JsonValidationException::class);
+        $this->writeConfig($this->baseSatisConfig());
+        $io = new NullIO();
+        $app = new SatisApplication();
+        (new \ReflectionProperty($app, 'io'))->setValue($app, $io);
+        $tester = new CommandTester($app->find('build'));
+        $tester->execute(['file' => $this->configPath, 'output-dir' => $this->makeOutputDir()]);
 
-        $this->executeSatis(['file' => $this->configPath, 'output-dir' => $this->makeOutputDir()], $this->baseSatisConfig());
+        self::assertSame(0, $tester->getStatusCode(), $tester->getDisplay());
+        self::assertStringContainsString(
+            '"vfs://satis/auth.json" does not match the expected JSON schema, this may result in errors and should be resolved:' . PHP_EOL . ' - sort-packages : ',
+            $tester->getDisplay()
+        );
+        self::assertSame(['username' => 'project-user', 'password' => 'project-pass'], $io->getAuthentication('example.org'));
     }
 
     #[TestDox('getConfiguration() loads auth.json when present')]

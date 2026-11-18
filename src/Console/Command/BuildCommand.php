@@ -595,7 +595,17 @@ class BuildCommand extends BaseCommand
         }
 
         $output->writeln(sprintf('<info>Loading auth config from %s</info>', $authFile->getPath()), OutputInterface::VERBOSITY_VERBOSE);
-        $authFile->validateSchema(JsonFile::AUTH_SCHEMA);
+        // like Factory::createComposer() does with the auth.json next to composer.json, warn and load it anyway
+        try {
+            $authFile->validateSchema(JsonFile::AUTH_SCHEMA);
+        } catch (JsonValidationException $e) {
+            $output->writeln(sprintf(
+                '<warning>%s, this may result in errors and should be resolved:%s - %s</warning>',
+                $e->getMessage(),
+                PHP_EOL,
+                implode(PHP_EOL . ' - ', $e->getErrors())
+            ));
+        }
 
         $configBlock = isset($config['config']) && is_array($config['config']) ? $config['config'] : [];
         foreach ($authFile->read() as $key => $value) {
