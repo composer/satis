@@ -7,7 +7,8 @@ isCommand() {
     "help" \
     "init" \
     "list" \
-    "purge"
+    "purge" \
+    "remove"
   do
     if [ -z "${cmd#"$1"}" ]; then
       return 0
