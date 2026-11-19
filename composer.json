@@ -29,10 +29,10 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/composer/satis",
+        "issues": "https://github.com/composer/satis/issues",
         "source": "https://github.com/composer/satis",
-        "forum": "https://gitter.com/composer/satis",
-        "irc": "irc://freenode.net/composer"
+        "forum": "https://gitter.im/composer/satis",
+        "irc": "ircs://irc.libera.chat:6697/composer"
     },
     "bin": [
         "bin/satis"
