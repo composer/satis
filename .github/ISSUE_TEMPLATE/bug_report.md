@@ -2,18 +2,19 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: bug
+labels: ''
+type: Bug
 assignees: ''
 ---
 
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+**To reproduce**
 Provide configuration file(s) and the exact command that you invoked.
 
 **Outcome**
-If applicable, please provide detailed verbose output (`-vvv`) of the command.
+If applicable, please include the full output of the command run with `-vvv`.
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
