@@ -4,22 +4,22 @@ A simple static Composer repository generator.
 
 ## About
 
-Satis is a tool that allows PHP developers to create a private package repository for their projects' dependencies. It provides
-increased control over package distribution, improved security, and faster package installations, by creating a static Composer
-registry that can be hosted anywhere (even via Docker, locally).
+Satis lets PHP developers create a private package repository for their projects' dependencies. It generates a static
+Composer repository that can be built locally or in a Docker container and hosted on any static web server, which gives you
+more control over package distribution, better security and faster installs.
 
 ## Run from source
 
-Satis requires a recent PHP version, it does not run with unsupported PHP versions. Check the `composer.json` file for details.
+Satis requires a supported PHP version; see the `composer.json` file for details.
 
 - Install Satis: `composer create-project --keep-vcs --no-dev composer/satis:dev-main`
-- Build a repository: `php bin/satis build <configuration-file> <output-directory>`
+- Build a repository: `php bin/satis build <configuration-file> <output-dir>`
 
 Read the more detailed instructions in the [documentation][].
 
 ## Run as Docker container
 
-> Note: use `composer/satis` for Docker Hub, `ghcr.io/composer/satis` for GitHub container registry.
+> Note: use `composer/satis` for Docker Hub, `ghcr.io/composer/satis` for GitHub Container Registry.
 
 Pull the image:
 
@@ -34,7 +34,7 @@ docker run --rm --init -it \
   --user $(id -u):$(id -g) \
   --volume $(pwd):/build \
   --volume "${COMPOSER_HOME:-$HOME/.composer}:/composer" \
-  composer/satis build <configuration-file> <output-directory>
+  composer/satis build <configuration-file> <output-dir>
 ```
 
 To clone repositories over SSH, forward your SSH agent into the container and
@@ -48,20 +48,25 @@ docker run --rm --init -it \
   --volume "$SSH_AUTH_SOCK:/ssh-agent" \
   --env SSH_AUTH_SOCK=/ssh-agent \
   --volume "$HOME/.ssh/known_hosts:/etc/ssh/ssh_known_hosts:ro" \
-  composer/satis build <configuration-file> <output-directory>
+  composer/satis build <configuration-file> <output-dir>
 ```
 
-If you want to run the image without implicitly running Satis, you have to
-override the entrypoint specified in the `Dockerfile`:
+These examples mount `$COMPOSER_HOME`, or `~/.composer` if it is not set. If
+your Composer home is elsewhere, for example `~/.config/composer` (run
+`composer config --global home` to see where it is), mount that directory
+instead.
+
+Arguments that are not a Satis command or option are run as a command in the
+container, so to open a shell instead of running Satis:
 
 ```sh
---entrypoint /bin/sh
+docker run --rm -it composer/satis sh
 ```
 
 ## Purge
 
-If you choose to archive packages as part of your build, over time you can be
-left with useless files. With the `purge` command, you can delete these files.
+If you archive packages as part of your build, archives that are no longer used
+pile up over time. The `purge` command deletes them.
 
 ```sh
 php bin/satis purge <configuration-file> <output-dir>
@@ -73,8 +78,8 @@ See [Purge](https://composer.github.io/satis/using#purge) in the documentation f
 
 ## Updating
 
-Updating Satis is as simple as running `git pull && composer install` in the
-Satis directory.
+To update Satis, run `git pull && composer install --no-dev` in the Satis
+directory.
 
 If you are running Satis as a Docker container, simply pull the latest image.
 
@@ -83,48 +88,29 @@ If you are running Satis as a Docker container, simply pull the latest image.
 Please note that this project is released with a [Contributor Code of Conduct][].
 By participating in this project you agree to abide by its terms.
 
-Fork the project, create a feature branch, and send us a pull request.
-
-If you introduce a new feature, or fix a bug, please try to include a testcase.
-
-While not required, it is appreciated if your contribution meets our coding standards.
-
-You can check these yourself by running the tools we use:
-
-```bash
-# install tooling & dependencies
-for d in tools/*; do composer --working-dir=$d install; done
-
-# run php-cs-fixer
-tools/php-cs-fixer/vendor/bin/php-cs-fixer fix
-
-# run phpstan
-tools/phpstan/vendor/bin/phpstan
-
-# alternatively, use the shortcuts
-composer phpstan
-composer php-cs-fixer[-fix]
-```
+Fork the project, create a feature branch, and send us a pull request. See
+[CONTRIBUTING.md][contributing] for how to run the tests and the code style checks.
 
 ## Authors
 
-See the list of [contributors][] who participate(d) in this project.
+See the list of [contributors][] who have contributed to this project.
 
-## Community Tools
+## Community tools
 
-- [satisfy][] - Symfony based composer repository manager with a simple web UI.
+- [satisfy][] - Symfony-based Composer repository manager with a simple web UI.
 
 ## Examples
 
-- [eventum/composer] - A simple static set of packages hosted in GitHub Pages
-- [satis.spatie.be] - A brief guide to setting up and securing a Satis repository
+- [eventum/composer] - A simple static set of packages hosted on GitHub Pages.
+- [satis.spatie.be] - A brief guide to setting up and securing a Satis repository.
 
 ## License
 
-Satis is licensed under the MIT License - see the [LICENSE][] file for details
+Satis is licensed under the MIT License; see the [LICENSE][] file for details.
 
-[documentation]: https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md
-[contributor code of conduct]: https://www.contributor-covenant.org/version/3/0/code_of_conduct/
+[documentation]: https://composer.github.io/satis/
+[contributor code of conduct]: .github/CODE_OF_CONDUCT.md
+[contributing]: .github/CONTRIBUTING.md
 [contributors]: https://github.com/composer/satis/contributors
 [satisfy]: https://github.com/project-satisfy/satisfy
 [license]: https://github.com/composer/satis/blob/main/LICENSE
