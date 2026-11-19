@@ -6,9 +6,9 @@ title: Private Packagist
 
 # Private Packagist
 
-[Private Packagist](https://packagist.com/?utm_source=composer.github.io&utm_medium=satis&utm_campaign=intro) is a commercial Composer repository service by the creators of Composer
-and Packagist.org. Like Satis, it hosts your private packages, and it adds access control, mirroring and security
-monitoring. Its revenue helps fund Composer and Packagist.org.
+[Private Packagist](https://packagist.com/?utm_source=composer.github.io&utm_medium=satis&utm_campaign=intro) is a
+commercial Composer repository service by the creators of Composer and Packagist.org. Like Satis, it hosts your private
+packages, and it adds access control, mirroring and security monitoring. Its revenue helps fund Composer and Packagist.org.
 {: .lead}
 
 Private Packagist is available as a cloud service with a 14-day free trial, or self-hosted on your own infrastructure
@@ -22,7 +22,7 @@ with a 30-day free trial.
 | Hosting               | You run the builds and serve the files                      | Managed cloud service, or self-hosted                         |
 | Access control        | Whatever your web server provides, for the whole repository | Teams, per-package permissions and per-user tokens            |
 | Separate repositories | A separate Satis configuration and build for each           | Suborganizations with their own packages, users and tokens    |
-| Mirroring             | Archives of selected packages, if configured                | Packagist.org and any other repository, metadata and archives |
+| Mirroring             | Metadata of selected packages, and archives if configured   | Packagist.org and any other repository, metadata and archives |
 | Supply chain security | Only Composer's client-side policies, set in each project   | Server-side malware blocking, cooldowns and plugin rules      |
 | Security advisories   | Not included                                                | Monitoring of your projects' `composer.lock` files            |
 | Update review         | Not included                                                | Pull request comments listing all `composer.lock` changes     |
@@ -30,8 +30,7 @@ with a 30-day free trial.
 | Support               | Community, through GitHub issues                            | Email and chat support                                        |
 | Cost                  | Free and open source                                        | Paid subscription                                             |
 
-The
-[Satis vs. Private Packagist](https://packagist.com/features/satis-vs-packagist?utm_source=composer.github.io&utm_medium=satis&utm_campaign=comparison)
+The [Satis vs. Private Packagist](https://packagist.com/features/satis-vs-packagist?utm_source=composer.github.io&utm_medium=satis&utm_campaign=comparison)
 page on packagist.com has a more detailed comparison.
 
 ## What Private Packagist adds to Satis
@@ -54,7 +53,7 @@ teams, members and permissions can be synchronized with your GitHub, GitLab or B
 With Satis, every additional repository needs its own configuration and build. In Private Packagist, suborganizations
 are additional Composer repositories in your organization, each with its own URL, authentication tokens and list of
 packages. Agencies use suborganizations to give each client access to only that client's packages, and teams use
-them to keep projects on different major versions of a framework, such as Drupal or Magento, apart.
+them to keep apart projects that are on different major versions of a framework, such as Drupal or Magento.
 
 ### Mirroring of all your dependencies
 
@@ -70,9 +69,10 @@ reported for a dependency you use.
 
 ### Supply chain security policies for your whole organization
 
-A Satis repository serves whatever its last build produced. Protection against malicious releases then depends on
-Composer's client-side dependency policies, which require Composer 2.10 or newer and can be turned off in each
-project's `composer.json`. Private Packagist enforces its security settings on the server, for every Composer version
+A Satis repository serves whatever its last build produced. Apart from versions you leave out by hand with
+[blacklist](config#blacklist), protection against malicious releases then depends on Composer's client-side dependency
+policies, which require Composer 2.10 or newer (2.11 for the cooldown) and can be turned off in each project's
+`composer.json`. Private Packagist enforces its security settings on the server, for every Composer version
 and every project:
 
 - Package versions flagged as malware are blocked within minutes of being flagged.
@@ -92,7 +92,7 @@ self-hosted editions.
 ### Package usage, install statistics and licenses
 
 Private Packagist shows which of your applications use a package, keeps version-specific install statistics, and
-lists the open source licenses of the dependencies used across your organization.
+lists the open-source licenses of the dependencies used across your organization.
 
 ### Selling packages to customers
 
@@ -119,6 +119,5 @@ Private Packagist imports your existing Satis configuration, so you do not have 
    repositories.
 3. Open _Add Package > Json Import_, paste the contents of your `satis.json` and select those credentials.
 
-Private Packagist then adds every package from your Satis configuration. The
-[setup documentation](https://packagist.com/docs/setup?utm_source=composer.github.io&utm_medium=satis&utm_campaign=setupdocs) explains the remaining steps, such as configuring Composer to
-use your new repository.
+Private Packagist then adds every package from your Satis configuration. The [setup documentation](https://packagist.com/docs/setup?utm_source=composer.github.io&utm_medium=satis&utm_campaign=setupdocs)
+explains the remaining steps, such as configuring Composer to use your new repository.
