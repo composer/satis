@@ -2,5 +2,6 @@
 
 ## Reporting a Vulnerability
 
-Please email any security vulnerabilities you discover to rob.bast@gmail.com. For sensitive content, encrypt your
-message with the PGP key published at https://robbast.nl.
+Please report security vulnerabilities privately through GitHub's
+[private vulnerability reporting](https://github.com/composer/satis/security/advisories/new). If you cannot use it,
+email rob.bast@gmail.com instead.
