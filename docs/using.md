@@ -86,6 +86,16 @@ Composer reads the metadata of tagged versions from
 `~dev.json` files: some configurations refuse URLs that contain a `~`, and
 versions such as `dev-master` then cannot be found.
 
+Add `--minify` to write these files in Composer's minified format, as
+Packagist.org does: each version only lists the fields that differ from the
+version before it, which makes the files much smaller for packages with many
+versions. Composer 2 expands them again when it reads them. `packages.json` and
+the include and provider files are not minified.
+
+```sh
+php bin/satis build --minify satis.json web/
+```
+
 ### Partial updates
 
 You can tell Satis to update only particular packages, or to process only the
@@ -396,6 +406,17 @@ Once enabled, the downloads of the archived packages, including those from
 GitHub, GitLab and Bitbucket, are replaced with a _local_ version. Packages
 that are not archived keep their original download: branches with `skip-dev`,
 packages left out by `whitelist` or `blacklist`, and metapackages.
+
+Add `--progress` to show a progress bar while Satis downloads the dist archives
+and another while it builds the archives, in place of the line it otherwise
+prints for each archived package:
+
+```sh
+php bin/satis build --progress satis.json web/
+```
+
+The bars are only shown at normal verbosity, not with `-v`, `-vv`, `-vvv` or
+`-q`. `--stats`, the former name of this option, still works but is deprecated.
 
 #### prefix-url
 
