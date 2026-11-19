@@ -28,7 +28,7 @@ use Composer\Util\Filesystem;
 use Composer\Util\SyncHelper;
 use React\Promise\PromiseInterface;
 use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ArchiveBuilder extends Builder
@@ -37,7 +37,7 @@ class ArchiveBuilder extends Builder
 
     private Composer $composer;
 
-    private InputInterface $input;
+    private bool $progress = false;
 
     private IOInterface $io;
 
@@ -62,35 +62,31 @@ class ArchiveBuilder extends Builder
 
         shuffle($packages);
 
-        $distArchiveDownloads = $this->prefetchDistArchives($helper, $downloadManager, $archiveManager, $packages, $basedir);
+        // decide once which packages to archive, as isSkippable() reports every package it skips
+        $packages = array_values(array_filter(
+            $packages,
+            static fn (PackageInterface $package): bool => $package instanceof CompletePackageInterface && !$helper->isSkippable($package)
+        ));
+
+        $verbosity = $this->output->getVerbosity();
+        // at higher verbosities the output of each package would break the progress bars
+        $renderProgress = $this->progress && OutputInterface::VERBOSITY_NORMAL === $verbosity;
+
+        $distArchiveDownloads = $this->prefetchDistArchives($downloadManager, $archiveManager, $packages, $basedir, $renderProgress);
 
         /** @var ProgressBar|null $progressBar Should only remain `null` if $renderProgress is `false` */
         $progressBar = null;
         $hasStarted = false;
-        $verbosity = $this->output->getVerbosity();
-        $renderProgress = (bool) $this->input->getOption('stats') && OutputInterface::VERBOSITY_NORMAL === $verbosity;
 
         if ($renderProgress) {
-            $packageCount = 0;
-
-            foreach ($packages as $package) {
-                if (!$helper->isSkippable($package)) {
-                    ++$packageCount;
-                }
-            }
-
-            $progressBar = new ProgressBar($this->output, $packageCount);
+            $progressBar = new ProgressBar($this->output, count($packages));
             $progressBar->setFormat(
-                ' %current%/%max% [%bar%] %percent:3s%% - Installing %packageName% (%packageVersion%)'
+                ' %current%/%max% [%bar%] %percent:3s%% - Archiving %packageName% (%packageVersion%)'
             );
         }
 
         /** @var CompletePackage $package */
         foreach ($packages as $package) {
-            if ($helper->isSkippable($package)) {
-                continue;
-            }
-
             if (!is_null($progressBar)) {
                 $progressBar->setMessage($package->getName(), 'packageName');
                 $progressBar->setMessage($package->getPrettyVersion(), 'packageVersion');
@@ -143,7 +139,10 @@ class ArchiveBuilder extends Builder
                     $this->output->setVerbosity($verbosity);
                 }
 
+                // erase the bar, so the error is not written over it, and draw it again below the error
+                $progressBar?->clear();
                 $this->skipError($exception);
+                $progressBar?->display();
             }
 
             if (!is_null($progressBar)) {
@@ -155,9 +154,7 @@ class ArchiveBuilder extends Builder
 
         if (!is_null($progressBar)) {
             $progressBar->finish();
-        }
-        if ($renderProgress) {
-            $this->output->writeln('');
+            $this->endProgressBar();
         }
     }
 
@@ -168,9 +165,12 @@ class ArchiveBuilder extends Builder
         return $this;
     }
 
-    public function setInput(InputInterface $input): self
+    /**
+     * Shows progress bars while downloading and archiving, at normal verbosity only.
+     */
+    public function setProgress(bool $progress): self
     {
-        $this->input = $input;
+        $this->progress = $progress;
 
         return $this;
     }
@@ -180,6 +180,16 @@ class ArchiveBuilder extends Builder
         $this->io = $io;
 
         return $this;
+    }
+
+    /**
+     * Ends the line of a finished progress bar, on the stream it was drawn on: like Composer's, Symfony's progress
+     * bar writes to stderr when the output has one.
+     */
+    private function endProgressBar(): void
+    {
+        $output = $this->output instanceof ConsoleOutputInterface ? $this->output->getErrorOutput() : $this->output;
+        $output->writeln('');
     }
 
     private function createChecksumCache(string $archiveDirectory): ArchiveChecksumCache
@@ -239,20 +249,16 @@ class ArchiveBuilder extends Builder
      * archive is never written concurrently. Failed downloads are not retried: their promises are returned, so
      * archive() can report the error for the respective package as usual.
      *
-     * @param array<PackageInterface> $packages
+     * @param list<CompletePackageInterface> $packages The packages to archive
      *
      * @return array<int, PromiseInterface<void>> The downloads, keyed by the object id of their package
      */
-    private function prefetchDistArchives(ArchiveBuilderHelper $helper, DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir): array
+    private function prefetchDistArchives(DownloadManager $downloadManager, ArchiveManager $archiveManager, array $packages, string $basedir, bool $renderProgress): array
     {
         $downloads = [];
         $downloadsByPath = [];
 
         foreach ($packages as $package) {
-            if (!$package instanceof CompletePackageInterface || $helper->isSkippable($package)) {
-                continue;
-            }
-
             $targetDir = sprintf('%s/%s', $basedir, $this->getIntermediatePath($package));
             $distArchivePath = $this->getDistArchivePath($archiveManager, $package, $targetDir);
             if (null === $distArchivePath || file_exists($distArchivePath) || file_exists($this->getArchivePath($archiveManager, $package, $targetDir))) {
@@ -281,11 +287,15 @@ class ArchiveBuilder extends Builder
 
         $this->output->writeln(sprintf('<info>Downloading %d dist archives</info>', count($downloadsByPath)));
         // Errors are reported by archive(), so they must not abort waiting for the other downloads
+        $progressBar = $renderProgress ? new ProgressBar($this->output) : null;
         $this->composer->getLoop()->wait(array_map(
             static fn (array $downloadsByUrl): PromiseInterface => end($downloadsByUrl)->then(null, static function (): void {
             }),
             array_values($downloadsByPath)
-        ));
+        ), $progressBar);
+        if (null !== $progressBar) {
+            $this->endProgressBar();
+        }
 
         return $downloads;
     }
