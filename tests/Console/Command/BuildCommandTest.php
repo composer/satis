@@ -1553,6 +1553,34 @@ class BuildCommandTest extends TestCase
         self::assertSame(0, $tester->getStatusCode());
     }
 
+    #[TestDox('execute() shows the archive progress with --progress')]
+    public function testExecuteShowsArchiveProgress(): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $this->writeConfig($this->baseSatisConfig(['archive' => ['directory' => 'dist'], 'output-html' => false]));
+
+        $tester = $this->createSatisTester();
+        $tester->execute(['file' => $this->configPath, 'output-dir' => $outputDir, '--skip-errors' => true, '--progress' => true]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('Archiving vendor/test-pkg (1.0.0)', $tester->getDisplay());
+        self::assertStringNotContainsString('deprecated', $tester->getDisplay());
+    }
+
+    #[TestDox('execute() treats --stats as a deprecated alias of --progress')]
+    public function testExecuteTreatsStatsAsDeprecatedProgress(): void
+    {
+        $outputDir = $this->makeOutputDir();
+        $this->writeConfig($this->baseSatisConfig(['archive' => ['directory' => 'dist'], 'output-html' => false]));
+
+        $tester = $this->createSatisTester();
+        $tester->execute(['file' => $this->configPath, 'output-dir' => $outputDir, '--skip-errors' => true, '--stats' => true]);
+
+        self::assertSame(0, $tester->getStatusCode());
+        self::assertStringContainsString('The "--stats" option is deprecated, use "--progress" instead.', $tester->getDisplay());
+        self::assertStringContainsString('Archiving vendor/test-pkg (1.0.0)', $tester->getDisplay());
+    }
+
     #[TestDox('execute() extracts archives outside the working directory when no vendor-dir is configured')]
     public function testExecuteArchivesWithoutVendorDirInWorkingDirectory(): void
     {

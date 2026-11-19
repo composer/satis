@@ -29,8 +29,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
-use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Helper\ProgressBar;
+use Symfony\Component\Console\Output\BufferedOutput;
 use Symfony\Component\Console\Output\NullOutput;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Filesystem\Filesystem;
 
 /**
@@ -41,8 +44,6 @@ class ArchiveBuilderTest extends TestCase
     protected Composer $composer;
 
     protected NullOutput $output;
-
-    protected InputInterface $input;
 
     protected string $outputDir;
 
@@ -70,6 +71,13 @@ class ArchiveBuilderTest extends TestCase
      * @var list<string>
      */
     private array $downloadDirs = [];
+
+    /**
+     * Whether each wait on the loop was given a progress bar, in the order they happened.
+     *
+     * @var list<bool>
+     */
+    private array $waitProgress = [];
 
     public function tearDown(): void
     {
@@ -123,9 +131,6 @@ class ArchiveBuilderTest extends TestCase
         $this->composer->setDownloadManager($downloadManager);
         $this->composer->setArchiveManager($archiveManager);
 
-        $this->input = $this->getMockBuilder('Symfony\Component\Console\Input\InputInterface')->disableOriginalConstructor()->getMock();
-        $this->input->method('getOption')->with('stats')->willReturn(false);
-
         $this->output = new NullOutput();
 
         $this->outputDir = $this->home . '/satis.server';
@@ -165,7 +170,6 @@ class ArchiveBuilderTest extends TestCase
         $config = array_merge_recursive($this->satisConfig, $customConfig);
 
         $builder = new ArchiveBuilder($this->output, $this->outputDir, $config, true);
-        $builder->setInput($this->input);
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
@@ -178,7 +182,6 @@ class ArchiveBuilderTest extends TestCase
         $packages = self::getPackages();
 
         $builder = new ArchiveBuilder($this->output, $this->outputDir, $this->satisConfig, true);
-        $builder->setInput($this->input);
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
@@ -240,7 +243,6 @@ class ArchiveBuilderTest extends TestCase
 
         $config = array_merge_recursive($this->satisConfig, $customConfig);
         $builder = new ArchiveBuilder($this->output, $this->outputDir, $config, true);
-        $builder->setInput($this->input);
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
@@ -269,7 +271,6 @@ class ArchiveBuilderTest extends TestCase
         $package->setDistSha1Checksum('0123abcd' . str_repeat('0', 32));
 
         $builder = new ArchiveBuilder($this->output, $this->outputDir, $this->satisConfig, false);
-        $builder->setInput($this->input);
         $builder->setComposer($this->composer);
         $builder->dump([$package]);
 
@@ -430,6 +431,94 @@ class ArchiveBuilderTest extends TestCase
         $this->createDistArchiveBuilder(false)->dump($packages);
     }
 
+    public function testDumpReportsEachSkippedPackageOnce(): void
+    {
+        $packages = self::getDistPackages();
+        $branch = clone $packages[0];
+        $branch->replaceVersion('dev-main', 'dev-main');
+        $packages[] = $branch;
+        $this->useFileDownloader(static fn (): bool => true);
+        $output = new BufferedOutput();
+
+        $this->createDistArchiveBuilder(output: $output, archiveConfig: ['skip-dev' => true])->dump($packages);
+
+        self::assertSame(1, substr_count($output->fetch(), "Skipping 'monolog/monolog dev-main' (is dev)"));
+    }
+
+    public function testDumpReportsEachSkippedPackageOnceWithProgress(): void
+    {
+        $packages = self::getDistPackages();
+        $branch = clone $packages[0];
+        $branch->replaceVersion('dev-main', 'dev-main');
+        $packages[] = $branch;
+        $this->useFileDownloader(static fn (): bool => true);
+        $output = new BufferedOutput();
+
+        $builder = $this->createDistArchiveBuilder(output: $output, archiveConfig: ['skip-dev' => true]);
+        $builder->setProgress(true);
+        $builder->dump($packages);
+
+        self::assertSame(1, substr_count($output->fetch(), "Skipping 'monolog/monolog dev-main' (is dev)"));
+    }
+
+    public function testDumpShowsNoProgressByDefault(): void
+    {
+        $this->useFileDownloader(static fn (): bool => true);
+        $output = new BufferedOutput();
+
+        $this->createDistArchiveBuilder(output: $output)->dump(self::getDistPackages());
+
+        self::assertSame([false], $this->waitProgress);
+        self::assertStringContainsString("Dumping package 'monolog/monolog' in version '1.0.0'.", $output->fetch());
+    }
+
+    public function testDumpShowsDownloadAndArchiveProgress(): void
+    {
+        $this->useFileDownloader(static fn (): bool => true);
+        $output = new BufferedOutput();
+
+        $builder = $this->createDistArchiveBuilder(output: $output);
+        $builder->setProgress(true);
+        $builder->dump(self::getDistPackages());
+
+        $display = $output->fetch();
+        self::assertSame([true], $this->waitProgress);
+        self::assertStringContainsString('Archiving monolog/monolog (1.0.0)', $display);
+        self::assertStringContainsString('3/3', $display);
+        self::assertStringNotContainsString('Installing', $display);
+        self::assertStringNotContainsString('Dumping package', $display);
+    }
+
+    public function testDumpShowsNoProgressWhenVerbose(): void
+    {
+        $this->useFileDownloader(static fn (): bool => true);
+        $output = new BufferedOutput(OutputInterface::VERBOSITY_VERBOSE);
+
+        $builder = $this->createDistArchiveBuilder(output: $output);
+        $builder->setProgress(true);
+        $builder->dump(self::getDistPackages());
+
+        self::assertSame([false], $this->waitProgress);
+        self::assertStringContainsString("Dumping package 'monolog/monolog' in version '1.0.0'.", $output->fetch());
+    }
+
+    public function testDumpClearsProgressBeforeReportingSkippedError(): void
+    {
+        $this->useFileDownloader(static fn (PackageInterface $package): bool => '1.1.0' !== $package->getPrettyVersion());
+        $stream = fopen('php://memory', 'w+');
+        self::assertIsResource($stream);
+        $output = new StreamOutput($stream, OutputInterface::VERBOSITY_NORMAL, true);
+
+        $builder = $this->createDistArchiveBuilder(output: $output);
+        $builder->setProgress(true);
+        $builder->dump(self::getDistPackages());
+
+        rewind($stream);
+        $display = (string) stream_get_contents($stream);
+        // The bar is erased (cursor to column 1, clear line) right before the error is written over it
+        self::assertMatchesRegularExpression('/\x1b\[1G\x1b\[2K(\x1b\[[0-9;]*m)*Skipping Exception \'Download of 1\.1\.0 failed\'/', $display);
+    }
+
     public function testDumpSkipsPackagesWithUnusableTargetDirIfErrorsAreSkipped(): void
     {
         $packages = self::getDistPackages();
@@ -441,7 +530,6 @@ class ArchiveBuilderTest extends TestCase
         (new Filesystem())->dumpFile($this->outputDir . '/dist/vendor/blocked', 'not a directory');
 
         $builder = new ArchiveBuilder($this->output, $this->outputDir, $this->satisConfig, true);
-        $builder->setInput($this->input);
         $builder->setComposer($this->composer);
         $builder->dump($packages);
 
@@ -473,12 +561,14 @@ class ArchiveBuilderTest extends TestCase
         return $packages;
     }
 
-    private function createDistArchiveBuilder(bool $skipErrors = true): ArchiveBuilder
+    /**
+     * @param array<string, mixed> $archiveConfig
+     */
+    private function createDistArchiveBuilder(bool $skipErrors = true, ?OutputInterface $output = null, array $archiveConfig = []): ArchiveBuilder
     {
-        $config = array_replace_recursive($this->satisConfig, ['archive' => ['rearchive' => false]]);
+        $config = array_replace_recursive($this->satisConfig, ['archive' => ['rearchive' => false] + $archiveConfig]);
 
-        $builder = new ArchiveBuilder($this->output, $this->outputDir, $config, $skipErrors);
-        $builder->setInput($this->input);
+        $builder = new ArchiveBuilder($output ?? $this->output, $this->outputDir, $config, $skipErrors);
         $builder->setComposer($this->composer);
 
         return $builder;
@@ -526,9 +616,11 @@ class ArchiveBuilderTest extends TestCase
         $downloadManager->method('getDownloader')->with('file')->willReturn($downloader);
 
         $loop = $this->createMock(Loop::class);
+        $waitProgress = &$this->waitProgress;
         $loop->method('wait')->willReturnCallback(
-            static function (array $promises) use (&$events, &$pending): void {
+            static function (array $promises, ?ProgressBar $progress = null) use (&$events, &$pending, &$waitProgress): void {
                 $events[] = 'wait ' . count($promises);
+                $waitProgress[] = null !== $progress;
                 // Completing a download can start another one, which completes during the same wait
                 while ([] !== $pending) {
                     $complete = array_shift($pending);

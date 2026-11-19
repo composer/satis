@@ -61,7 +61,8 @@ class BuildCommand extends BaseCommand
                 new InputOption('no-html-output', null, InputOption::VALUE_NONE, 'Turn off HTML view'),
                 new InputOption('html-only', null, InputOption::VALUE_NONE, 'Only rebuild the HTML view from the packages of the previous build in output-dir, without scanning repositories'),
                 new InputOption('skip-errors', null, InputOption::VALUE_NONE, 'Skip Download or Archive errors'),
-                new InputOption('stats', null, InputOption::VALUE_NONE, 'Display the download progress bar'),
+                new InputOption('progress', null, InputOption::VALUE_NONE, 'Show progress bars while downloading and archiving dist files'),
+                new InputOption('stats', null, InputOption::VALUE_NONE, 'Deprecated, use --progress instead'),
                 new InputOption('minify', null, InputOption::VALUE_NONE, 'Minify output'),
                 new InputOption('strict', null, InputOption::VALUE_NONE, 'Exit with a non-zero code when a VCS mirror failed to update, a root requirement matched no package or --skip-errors skipped an error'),
             ])
@@ -150,6 +151,10 @@ class BuildCommand extends BaseCommand
         $minify = (bool) $input->getOption('minify');
         $htmlOnly = (bool) $input->getOption('html-only');
         $strict = (bool) $input->getOption('strict');
+
+        if ((bool) $input->getOption('stats')) {
+            $output->writeln('<warning>The "--stats" option is deprecated, use "--progress" instead.</warning>');
+        }
 
         // load auth.json authentication information and pass it to the io interface
         $io = $this->getIO();
@@ -343,7 +348,7 @@ class BuildCommand extends BaseCommand
         if (isset($config['archive']['directory'])) {
             $downloads = new ArchiveBuilder($output, $outputDir, $config, $skipErrors);
             $downloads->setComposer($composer);
-            $downloads->setInput($input);
+            $downloads->setProgress((bool) $input->getOption('progress') || (bool) $input->getOption('stats'));
             $downloads->setIO($io);
 
             // Composer extracts archives into a temporary directory below the vendor-dir, which defaults to vendor/
