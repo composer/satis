@@ -8,43 +8,45 @@ title: Using
 
 ## Setup
 
-For example let's assume you have a few packages you want to reuse across your
+For example, let's assume you have a few packages you want to reuse across your
 company but don't really want to open-source. You would first define a Satis
-configuration: a json file with an arbitrary name that lists your curated
-[repositories](../05-repositories.md).
+configuration: a JSON file with an arbitrary name that lists your curated
+[repositories](https://getcomposer.org/doc/05-repositories.md).
 
-Here is an example configuration, you see that it holds a few VCS repositories,
-but those could be any types of [repositories](../05-repositories.md). Then it
-uses `"require-all": true` which selects all versions of all packages in the
-repositories you defined.
+Here is an example configuration. It holds a few VCS repositories, but they
+could be any type of [repository](https://getcomposer.org/doc/05-repositories.md).
+It uses `"require-all": true`, which selects all versions of all packages in
+the repositories you defined.
 
-The default file Satis looks for is `satis.json` in the root of the repository.
-The `name` must be a valid package name such as `acme/satis`, see
-[name](config#name).
+By default Satis looks for `satis.json` in the current working directory. The
+`name` and `homepage` keys are required. The `name` must be a valid package
+name such as `acme/satis`, see [name](config#name).
 
 ```json
 {
     "name": "acme/satis",
-    "homepage": "http://packages.example.org",
+    "homepage": "https://packages.example.org",
     "repositories": [
         { "type": "vcs", "url": "https://github.com/mycompany/privaterepo" },
-        { "type": "vcs", "url": "http://svn.example.org/private/repo" },
+        { "type": "vcs", "url": "https://svn.example.org/private/repo" },
         { "type": "vcs", "url": "https://github.com/mycompany/privaterepo2" }
     ],
     "require-all": true
 }
 ```
 
-If you want to cherry pick which packages you want, you can list all the
-packages you want to have in your satis repository inside the classic composer
-`require` key, using a `"*"` constraint to make sure all versions are selected,
-or another constraint if you want really specific versions.
+If you want to cherry-pick packages, list the ones you want in your Satis
+repository under the `require` key, as in a `composer.json`. Use a `"*"`
+constraint to select all versions, or another constraint to select specific
+ones:
 
 ```json
 {
+    "name": "acme/satis",
+    "homepage": "https://packages.example.org",
     "repositories": [
         { "type": "vcs", "url": "https://github.com/mycompany/privaterepo" },
-        { "type": "vcs", "url": "http://svn.example.org/private/repo" },
+        { "type": "vcs", "url": "https://svn.example.org/private/repo" },
         { "type": "vcs", "url": "https://github.com/mycompany/privaterepo2" }
     ],
     "require": {
@@ -55,55 +57,53 @@ or another constraint if you want really specific versions.
 }
 ```
 
-Once you've done this, you run:
+Once you've done this, run:
 
-    php bin/satis build <configuration file> <build dir>
+```sh
+php bin/satis build <configuration-file> <output-dir>
+```
 
-When you ironed out that process, what you would typically do is run this
-command as a cron job on a server. It would then update all your package info
-much like Packagist does.
+The examples below use `satis.json` as the configuration file and `web/` as the
+output directory.
+
+Once you have ironed out the process, you would typically run this command as a
+cron job on a server. It then keeps your package information up to date, much
+like Packagist does.
 
 Note that if your private packages are hosted on GitHub, your server should
-have an ssh key that gives it access to those packages, and then you should add
-the `--no-interaction` (or `-n`) flag to the command to make sure it falls back
-to ssh key authentication instead of prompting for a password. This is also a
-good trick for continuous integration servers.
+have an SSH key that gives it access to those packages, and you should add the
+`--no-interaction` (or `-n`) flag to the command so that it falls back to SSH
+key authentication instead of prompting for a password. This is also a good
+trick for continuous integration servers.
 
-Set up a virtual-host that points to that `web/` directory, let's say it is
-`packages.example.org`. Alternatively, with PHP >= 5.4.0, you can use the
-built-in CLI server `php -S localhost:port -t satis-output-dir/` for a
-temporary solution.
+Set up a virtual host that points to the output directory, say
+`packages.example.org`. For a temporary solution, you can also use PHP's
+built-in web server: `php -S localhost:8000 -t web/`.
 
 Composer reads the metadata of tagged versions from
 `p2/<vendor>/<package>.json` and that of dev versions (branches) from
 `p2/<vendor>/<package>~dev.json`. Make sure your web server serves the
 `~dev.json` files: some configurations refuse URLs that contain a `~`, and
-versions such as `dev-master` can then not be found.
+versions such as `dev-master` then cannot be found.
 
-### Partial Updates
+### Partial updates
 
-You can tell Satis to selectively update only particular packages or process
-only a repository with a given URL. This cuts down the time it takes to rebuild
-the `packages.json` file and is helpful if you use (custom) webhooks to trigger
-rebuilds whenever code is pushed into one of your repositories.
+You can tell Satis to update only particular packages, or to process only the
+repositories with a given URL. This cuts down the time it takes to rebuild the
+repository and is helpful if you use (custom) webhooks to trigger rebuilds
+whenever code is pushed to one of your repositories.
 
-To rebuild only particular packages, pass the package names on the command line
-like so:
+To rebuild only particular packages, pass the package names on the command
+line:
 
-    php bin/satis build satis.json web/ this/package that/other-package
+```sh
+php bin/satis build satis.json web/ this/package that/other-package
+```
 
-Note that this will still need to pull and scan all of your VCS repositories
-because any VCS repository might contain (on any branch) one of the selected
-packages.
-
-Repositories that Satis can read without any network access — `artifact`, `path`
-and `package` — are matched on the package names they actually contain, so they
-are picked up by a partial update without any extra configuration.
-
-For remote repository types, scanning every repository is the only way to know
-what they hold. If you want to scan only the selected package and not all VCS
-repositories, you need to declare a _name_ for all your package (this only works
-on VCS repositories type) :
+Satis cannot know which packages a remote repository (such as `vcs` or
+`composer`) holds without reading it, so for a partial update it only scans the
+remote repositories whose `name` is one of the requested packages. Give each of
+them the name of the package it contains:
 
 ```json
 {
@@ -116,7 +116,7 @@ on VCS repositories type) :
         {
             "name": "private/repo",
             "type": "vcs",
-            "url": "http://svn.example.org/private/repo"
+            "url": "https://svn.example.org/private/repo"
         },
         {
             "name": "mycompany/privaterepo2",
@@ -127,24 +127,46 @@ on VCS repositories type) :
 }
 ```
 
-If you want to scan only a single repository and update all packages found in
-it, pass the VCS repository URL as an optional argument:
+Remote repositories without a matching `name` are not scanned for the requested
+packages; they are only used to resolve dependencies when
+`require-dependencies` or `require-dev-dependencies` is enabled. If no
+repository matches, the build fails with "Could not find any repositories
+config with "name" matching your package(s) filter".
 
-    php bin/satis build --repository-url https://only.my/repo.git satis.json web/
+Repositories that Satis can read without any network access (`artifact`, `path`
+and `package`) are matched on the package names they actually contain, so they
+need no `name`.
+
+To scan only a single repository and update all packages found in it, pass its
+URL with the `--repository-url` option. Repeat the option to scan several
+repositories:
+
+```sh
+php bin/satis build --repository-url https://only.my/repo.git satis.json web/
+```
+
+The URL must be exactly the `url` of the repository in the configuration
+(a trailing slash makes a difference). By default, dependencies are still
+resolved from all repositories; add `--repository-strict` to resolve them only
+from the selected ones. `--repository-url` cannot be combined with package
+arguments or with `--branch`.
 
 The previous package metadata is merged with the refreshed packages to rebuild
-the repository indexes. Package files are only written when their contents change.
+the repository indexes. Package files are only written when their contents
+change.
 
 You can also narrow the update to a single branch or version range of specific
 packages:
 
-    php bin/satis build --branch main satis.json web/ acme/pkg
-    php bin/satis build --branch 1.x satis.json web/ acme/pkg
+```sh
+php bin/satis build --branch main satis.json web/ acme/pkg
+php bin/satis build --branch 1.x satis.json web/ acme/pkg
+```
 
-When `--branch` is given with a package filter, only the versions matching the
-given branch (e.g. `dev-main`) or constraint (e.g. `~1.0`) of the specified
-packages are refreshed. All other packages and branches are left untouched,
-preserved from the existing repository dump.
+When `--branch` is given with a package filter, only the versions of the
+specified packages that match the given branch (e.g. `dev-main`) or constraint
+(e.g. `~1.0`) are refreshed. All other packages and branches are kept as they
+are in the existing build.
 
 ### Strict builds
 
@@ -158,40 +180,43 @@ Some problems only produce a warning and the build still exits with code 0:
 
 Pass `--strict` to make the build fail on these, for example in CI:
 
-    php bin/satis build --strict satis.json web/
+```sh
+php bin/satis build --strict satis.json web/
+```
 
 The build still runs to completion and writes its output, then exits with
-code 1 and lists what went wrong. Only `require` entries of the Satis config
-count; unmatched requirements of dependencies (with `require-dependencies`)
-and platform requirements such as `php` do not. With `require-all` no
-requirement is checked, since all packages of the repositories are selected
-instead of the `require` entries. With `--repository-url` no requirement is
-checked either, since packages served by the other repositories never match
-during a partial update.
+code 1 and lists what went wrong. Only `require` entries of the Satis
+configuration count; unmatched requirements of dependencies (with
+`require-dependencies`) and platform requirements such as `php` do not. With
+`require-all` no requirement is checked, since all packages of the repositories
+are selected instead of the `require` entries. With `--repository-url` no
+requirement is checked either, since packages served by the other repositories
+never match during a partial update.
 
 A failed mirror update goes unnoticed when the same VCS repository is also
-listed in a composer.json read by the build: the one of your project when Satis
-runs as a Composer plugin, or a composer.json in the working directory
-otherwise. Satis then scans the repository as registered by that
-composer.json, and its warnings bypass `--strict`.
+listed in a `composer.json` that the build reads: your project's
+`composer.json` when Satis runs as a Composer plugin, or otherwise a
+`composer.json` in the working directory. Satis then scans the repository as
+registered by that `composer.json`, and its warnings bypass `--strict`.
 
 `--skip-errors` keeps the build going after errors that would otherwise abort
-it, such as a repository that cannot be cloned or read, a dependency lookup
-that fails or a package that cannot be archived. Combined with `--strict`, the
-build still runs to completion and writes its output, but each skipped error is
-listed as well and the build exits with code 1.
+it, such as a configuration file that does not match the schema, a repository
+that cannot be cloned or read, a dependency lookup that fails or a package that
+cannot be archived. Combined with `--strict`, the build still runs to
+completion and writes its output, but each skipped error is listed as well and
+the build exits with code 1.
 
 ## Usage
 
-In your projects all you need to add now is your own composer repository using
-the `packages.example.org` as URL, then you can require your private packages
-and everything should work smoothly. You don't need to copy all your
-repositories in every project anymore. Only that one unique repository that
-will update itself.
+In your projects, all you need to add now is your own Composer repository with
+`packages.example.org` as its URL. You can then require your private packages
+and everything should work smoothly. You no longer need to list all your
+repositories in every project, only this one repository, which keeps itself up
+to date.
 
 ```json
 {
-    "repositories": [{ "type": "composer", "url": "http://packages.example.org/" }],
+    "repositories": [{ "type": "composer", "url": "https://packages.example.org/" }],
     "require": {
         "company/package": "1.2.0",
         "company/package2": "1.5.2",
@@ -205,10 +230,11 @@ will update itself.
 A TLS certificate on your server encrypts the connection, but anyone who knows
 the URL can still read the repository. To restrict who can read it, host it
 over SSH, require a client certificate, or protect it with HTTP basic auth (see
-[Authentication](#authentication)) or a token header. In your project you can
-use the `options` parameter to specify the connection options for the server.
+[Authentication](#authentication)) or a token header. In your project, use the
+`options` parameter of the repository to set the connection options for the
+server.
 
-Example using a custom repository using SSH (requires the SSH2 PECL extension):
+Example of a repository served over SSH (requires the SSH2 PECL extension):
 
 ```json
 {
@@ -230,7 +256,7 @@ Example using a custom repository using SSH (requires the SSH2 PECL extension):
 
 > **Tip:** See [ssh2 context options] for more information.
 
-Example using SSL/TLS (HTTPS) using a client certificate:
+Example of HTTPS with a client certificate:
 
 ```json
 {
@@ -250,7 +276,7 @@ Example using SSL/TLS (HTTPS) using a client certificate:
 
 > **Tip:** See [ssl context options] for more information.
 
-Example using a custom HTTP Header field for token authentication:
+Example of a custom HTTP header for token authentication:
 
 ```json
 {
@@ -271,36 +297,43 @@ Example using a custom HTTP Header field for token authentication:
 ### Authentication
 
 When your private repositories are password protected, you can store the
-authentication details permanently. The first time Composer needs to
-authenticate against some domain it will prompt you for a username/password and
-then you will be asked whether you want to store it.
+credentials permanently. The first time Composer needs to authenticate against
+a domain, it prompts you for a username and password and asks whether to store
+them.
 
-The storage can be done either globally in the `COMPOSER_HOME/auth.json` file
-(`COMPOSER_HOME` defaults to `~/.composer` or `%APPDATA%/Composer` on Windows)
-or in an `auth.json` file next to your Satis configuration file (e.g.
+You can store them either globally in `COMPOSER_HOME/auth.json` (run
+`composer config --global home` to see where [COMPOSER_HOME] is on your
+machine) or in an `auth.json` file next to your Satis configuration file (e.g.
 `satis.json`). The credentials in the `auth.json` next to the configuration
 file take precedence over the global ones and over those in the `config` block
 of the configuration file. An `auth.json` is only read next to a configuration
 file on disk, not next to one fetched over HTTP(S). When Satis runs as a
 Composer plugin, Composer reads the `auth.json` next to your project's
-composer.json instead.
+`composer.json` instead.
 
-You can also configure these by hand using the config command if you need to
-configure a production machine to be able to run non-interactive installs. For
-example to enter credentials for example.org one could type:
+You can also set the credentials by hand with the `config` command, for
+example to set up a production machine for non-interactive builds. To set
+credentials for example.org, run:
 
-    composer config --global http-basic.example.org username password
+```sh
+composer config --global http-basic.example.org username password
+```
 
 That stores them in the global `COMPOSER_HOME/auth.json`. To store them in the
 `auth.json` next to your Satis configuration file instead, point Composer at
 that configuration file:
 
-    composer config --file=satis.json http-basic.example.org username password
+```sh
+composer config --file=satis.json http-basic.example.org username password
+```
 
 You can also pass the credentials in the `COMPOSER_AUTH` environment variable,
 as a JSON object with the contents of an `auth.json` file:
 
-    COMPOSER_AUTH='{"http-basic": {"example.org": {"username": "username", "password": "password"}}}' php bin/satis build satis.json web/
+```sh
+COMPOSER_AUTH='{"http-basic": {"example.org": {"username": "username", "password": "password"}}}' \
+  php bin/satis build satis.json web/
+```
 
 When several of these hold credentials for the same host, they take precedence
 in this order: `COMPOSER_AUTH`, then the `auth.json` next to the configuration
@@ -309,17 +342,17 @@ file, then the `config` block of the configuration file, then the global
 
 ### Downloads
 
-When GitHub, GitLab or BitBucket repositories are mirrored on your local satis, the
-build process will include the location of the downloads these platforms make
-available. This means that the repository and your setup depend on the
+When GitHub, GitLab or Bitbucket repositories are mirrored in your Satis
+repository, the build includes the location of the downloads these platforms
+provide. This means that the repository and your setup depend on the
 availability of these services.
 
-At the same time, this implies that all code which is hosted somewhere else (on
-another service or for example in Subversion) will not have downloads available
-and thus installations usually take a lot longer.
+At the same time, code that is hosted elsewhere (on another service, or for
+example in Subversion) has no downloads available, so installations usually
+take a lot longer.
 
-To enable your satis installation to create downloads for all (Git, Mercurial
-and Subversion) your packages, add the following to your `satis.json`:
+To make Satis create downloads for all your packages (Git, Mercurial and
+Subversion), add the following to your `satis.json`:
 
 ```json
 {
@@ -334,41 +367,53 @@ and Subversion) your packages, add the following to your `satis.json`:
 
 #### Options explained
 
-- `directory`: required, the location of the dist files (inside the
-  `output-dir`)
-- `format`: optional, `zip` (default) or `tar`
-- `prefix-url`: optional, location of the downloads, homepage (from
-  `satis.json`) followed by `directory` by default
-- `skip-dev`: optional, `false` by default, when enabled (`true`) satis will
-  not create downloads for branches
-- `absolute-directory`: optional, a _local_ directory where the dist files are
-  dumped instead of `output-dir`/`directory`
-- `whitelist`: optional, if set as a list of package names, satis will only
-  dump the dist files of these packages (use `*` for wildcard matching)
-- `blacklist`: optional, if set as a list of package names, satis will not
-  dump the dist files of these packages (use `*` for wildcard matching)
-- `checksum`: optional, `true` by default, when disabled (`false`) satis will
-  not provide the sha1 checksum for the dist files
+See [archive](config#archive) for the full reference.
 
-Once enabled, all downloads (include those from GitHub and BitBucket) will be
-replaced with a _local_ version.
+- `directory`: required, the directory of the dist files, inside the
+  `output-dir`. It is also part of the download URLs.
+- `format`: optional, `zip` (default) or `tar`
+- `prefix-url`: optional, the base URL of the downloads, `homepage` by default;
+  `directory` is appended to it
+- `skip-dev`: optional, `false` by default; when `true`, Satis does not create
+  downloads for branches
+- `absolute-directory`: optional, a _local_ directory where the dist files are
+  written instead of `output-dir`/`directory`. The download URLs still use
+  `directory`, so serve this directory at `<prefix-url>/<directory>`.
+- `whitelist`: optional, a list of package names; if set, Satis only creates
+  downloads for these packages (use `*` for wildcard matching)
+- `blacklist`: optional, a list of package names; Satis does not create
+  downloads for these packages (use `*` for wildcard matching)
+- `checksum`: optional, `true` by default; when `false`, Satis does not publish
+  the SHA-1 checksum of the dist files
+- `rearchive`: optional, `true` by default; when `false`, packages that already
+  have a zip or tar dist are served with that archive instead of a rebuilt one
+- `ignore-filters`: optional, `false` by default; when `true`, the archives
+  also contain the files that the package excludes from its archives
+- `override-dist-type`: optional, `false` by default; when `true`, the archive
+  file names contain the archive `format` instead of the original dist type
+
+Once enabled, the downloads of the archived packages, including those from
+GitHub, GitLab and Bitbucket, are replaced with a _local_ version. Packages
+that are not archived keep their original download: branches with `skip-dev`,
+packages left out by `whitelist` or `blacklist`, and metapackages.
 
 #### prefix-url
 
 Prefixing the URL with another host is especially helpful if the downloads end
-up in a private Amazon S3 bucket or on a CDN host. A CDN would drastically
-improve download times and therefore package installation.
+up in a private Amazon S3 bucket or on a CDN host. A CDN can greatly improve
+download times and therefore package installation.
 
-Example: A `prefix-url` of `https://my-bucket.s3.amazonaws.com` (and
-`directory` set to `dist`) creates download URLs which look like the following:
-`https://my-bucket.s3.amazonaws.com/dist/vendor-package-version-ref.zip`.
+Example: a `prefix-url` of `https://my-bucket.s3.amazonaws.com` (and
+`directory` set to `dist`) creates download URLs like
+`https://my-bucket.s3.amazonaws.com/dist/vendor/package/vendor-package-version-ref.zip`.
 
 #### Checksums and rebuilds
 
 An archive that Satis builds from a package is not byte-identical when it is
-built again, so it gets a different sha1 checksum. Lock files that recorded the
-old checksum then fail with "The checksum verification of the file failed".
-Satis only builds an archive if its file does not exist yet, so to avoid this:
+built again, so it gets a different SHA-1 checksum. Lock files that recorded
+the old checksum then fail with "The checksum verification of the file
+failed". Satis only builds an archive if its file does not exist yet, so to
+avoid this:
 
 - keep the `directory` (or `absolute-directory`) between builds, for example
   on a persistent volume when you build in CI or in a container,
@@ -405,17 +450,21 @@ commits of a branch or of packages removed from the configuration, stay in the
 archive directory. The `purge` command deletes the archives that the last build
 no longer references:
 
-    php bin/satis purge satis.json web/
+```sh
+php bin/satis purge satis.json web/
+```
 
 Add a third argument to list these archives without deleting them:
 
-    php bin/satis purge satis.json web/ dry-run
+```sh
+php bin/satis purge satis.json web/ dry-run
+```
 
 Run it with the same configuration as the build. It reads the packages of the
-last build from `output-dir`/packages.json, and refuses to delete anything when
-it finds none there. It recognises archives by the `prefix-url` or `homepage`
-(or `SATIS_HOMEPAGE`) in their URL, and only looks in
-`output-dir`/`directory`, not in `absolute-directory`.
+last build from `<output-dir>/packages.json`, and refuses to delete anything
+when it finds none there. It recognizes archives by the `prefix-url` or
+`homepage` (or `SATIS_HOMEPAGE`) in their URL, and only looks in
+`<output-dir>/<directory>`, not in `absolute-directory`.
 
 Projects whose `composer.lock` still refers to a deleted archive, typically an
 old commit of a dev version, can no longer install it and need a
@@ -423,31 +472,33 @@ old commit of a dev version, can no longer install it and need a
 
 ### Web outputs
 
-- `output-html`: optional, `true` by default, when disabled (`false`) satis
-  will not generate the `output-dir`/index.html page.
-- `twig-template`: optional, a path to a personalized [Twig] template for
-  the `output-dir`/index.html page.
-- `allow-seo-indexing`: optional, `false` by default, when enabled (`true`) satis
-  will allow the generated page to be indexed by search engines.
+- `output-html`: optional, `true` by default; when `false`, Satis does not
+  generate the `<output-dir>/index.html` page.
+- `twig-template`: optional, the path to a custom [Twig] template for the
+  `<output-dir>/index.html` page.
+- `allow-seo-indexing`: optional, `false` by default; when `true`, Satis allows
+  search engines to index the generated page.
 
 While working on a custom `twig-template`, you can regenerate only the
-`output-dir`/index.html page from the packages of the previous build, without
+`<output-dir>/index.html` page from the packages of the previous build, without
 scanning any repository:
 
-    php bin/satis build --html-only satis.json web/
+```sh
+php bin/satis build --html-only satis.json web/
+```
 
-Satis reads the packages back from the existing `packages.json` and its include,
-provider or `p2/` metadata files, and leaves those files and any archives
-untouched. As it is an explicit request for the page, `--html-only` builds it
-even when `output-html` is `false`. It fails when `output-dir` holds no previous
-build, or one built with `includes` disabled and `available-package-patterns`
-set, as its `packages.json` then lists no packages. It cannot be combined with `--no-html-output`, `--repository-url`,
+Satis reads the packages back from the existing `packages.json` and its
+include, provider or `p2/` metadata files, and leaves those files and any
+archives untouched. As it is an explicit request for the page, `--html-only`
+builds it even when `output-html` is `false`. It fails when `output-dir` holds
+no previous build, or one built with `includes` and `providers` disabled and
+`available-package-patterns` set, as its `packages.json` then lists no
+packages. It cannot be combined with `--no-html-output`, `--repository-url`,
 `--branch`, `--strict` or package arguments.
 
 ### Abandoned packages
 
-To enable your satis installation to indicate that some packages are abandoned,
-add the following to your `satis.json`:
+To mark some packages as abandoned, add the following to your `satis.json`:
 
 ```json
 {
@@ -458,12 +509,13 @@ add the following to your `satis.json`:
 }
 ```
 
-The `true` value indicates that the package is truly abandoned while the
-`"company/newpackage"` value specifies that the package is replaced by the
-`company/newpackage` package.
+The `true` value marks the package as abandoned without a replacement, while
+the `"company/newpackage"` value marks it as replaced by the
+`company/newpackage` package. Composer warns about abandoned packages when it
+installs them, and the web page marks them as well.
 
-Note that all packages set as abandoned in their own `composer.json` file will
-be marked abandoned as well.
+Packages that declare themselves abandoned in their own `composer.json` are
+marked abandoned too.
 
 ### Publication times
 
@@ -473,9 +525,9 @@ holds back versions that were published only recently. It relies on the
 refuses to update when a version from a Composer repository lacks it. Satis
 therefore adds a `published-time` to every version it builds:
 
-- A version that has not been in a previous build gets the time of the build.
-- A stable version keeps the time it was first published with, even if its tag
-  is moved to another commit.
+- A version that was not in the previous build gets the time of the build.
+- A tagged (non-dev) version keeps the time it was first published with, even
+  if its tag is moved to another commit.
 - A dev version gets the time of the build whenever its reference changes.
 - A `published-time` provided by an upstream Composer repository, such as
   Packagist, is kept.
@@ -484,9 +536,9 @@ The previous build's metadata in the `p2` directory is the only record of these
 times, so the `output-dir` must persist between builds. A version that is
 missing from the previous build is published anew, and Composer then holds it
 back for the cooldown period. This applies to every version in the first build
-after upgrading to a Satis release that adds `published-time`, in a build into
-an empty directory, and to a version that is missing from a single build while
-other versions of its package are built.
+after upgrading to a Satis release that adds `published-time`, to every version
+in a build into an empty directory, and to a version that is missing from a
+single build while other versions of its package are built.
 
 A package that is missing from a build entirely, for example because its
 repository could not be loaded with `--skip-errors`, keeps the metadata of the
@@ -495,9 +547,9 @@ publication times instead of being held back again.
 
 ### Resolving dependencies
 
-It is possible to make satis automatically resolve and add all dependencies for
-your projects. This can be used with the Downloads functionality to have a
-complete local mirror of packages. Add the following to your `satis.json`:
+Satis can automatically resolve and add all dependencies of your packages.
+Combined with [downloads](#downloads), this gives you a complete local mirror
+of the packages. Add the following to your `satis.json`:
 
 ```json
 {
@@ -506,34 +558,48 @@ complete local mirror of packages. Add the following to your `satis.json`:
 }
 ```
 
-When searching for packages, satis will attempt to resolve all the required
-packages from the listed repositories. Therefore, if you are requiring a
-package from Packagist, you will need to define it in your `satis.json`.
+Satis resolves the dependencies only from the repositories listed in the
+configuration; Packagist is not used unless you list it. So if your packages
+depend on packages from Packagist, add it to `repositories` (or to
+[repositories-dep](config#repositories-dep)):
 
-Dev dependencies are packaged only if the `require-dev-dependencies` parameter
-is set to true.
+```json
+{
+    "repositories": [{ "type": "composer", "url": "https://repo.packagist.org" }]
+}
+```
+
+Development dependencies are only added if `require-dev-dependencies` is set to
+`true`.
 
 ### Other options
 
-- `providers`: optional, `false` by default, when enabled (`true`) each
-  package will be dumped into a separate include file which will be only
-  loaded by composer when the package is really required. Speeds up composer
-  handling for repositories with huge number of packages like f.i. packagist.
-- `output-dir`: optional, defines where to output the repository files if not
-  provided as an argument when calling the `build` command.
-- `config`: optional, lets you define all config options from composer, except
-  `archive-format` and `archive-dir` as the configuration is done through
-  [archive](#downloads) instead. See docs on [config schema] for more details.
-- `notify-batch`: optional, specify a URL that will be called every time a
-  user installs a package. See [notify-batch].
-- `include-types`: optional, an array of [composer types]. When provided
-  only packages with this type will be selected by Satis.
-- `exclude-types`: optional, an array of [composer types]. Any packages
-  with a type in this array will not be selected by Satis.
+- `providers`: optional, `false` by default; when `true`, the metadata of each
+  package is written to a separate provider file, which Composer only loads
+  when it needs that package. This speeds up Composer for repositories with a
+  large number of packages.
+- `output-dir`: optional, the directory to write the repository files to when
+  it is not passed as an argument to the `build` command.
+- `config`: optional, any Composer configuration option, except
+  `archive-format` and `archive-dir`, as archives are configured with
+  [archive](#downloads) instead. See [config](config#config) for details.
+- `notify-batch`: optional, a URL that Composer calls every time a user
+  installs a package. See [notify-batch].
+- `include-types`: optional, an array of [Composer package types]. When set,
+  only packages with one of these types are included in the output.
+- `exclude-types`: optional, an array of [Composer package types]. Packages
+  with one of these types are left out of the output.
 
-[ssh2 context options]: https://secure.php.net/manual/en/wrappers.ssh2.php#refsect1-wrappers.ssh2-options
-[ssl context options]: https://secure.php.net/manual/en/context.ssl.php
+The type filters are applied after dependencies have been resolved, see
+[include-types](config#include-types).
+
+The `homepage` in the configuration can be overridden with the
+`SATIS_HOMEPAGE` environment variable, for example to build the same
+configuration for several hosts.
+
+[ssh2 context options]: https://www.php.net/manual/en/wrappers.ssh2.php#refsect1-wrappers.ssh2-options
+[ssl context options]: https://www.php.net/manual/en/context.ssl.php
 [twig]: https://twig.symfony.com/
-[config schema]: https://getcomposer.org/doc/04-schema.md#config
+[COMPOSER_HOME]: https://getcomposer.org/doc/03-cli.md#composer-home
 [notify-batch]: https://getcomposer.org/doc/05-repositories.md#notify-batch
-[composer types]: https://getcomposer.org/doc/04-schema.md#type
+[composer package types]: https://getcomposer.org/doc/04-schema.md#type
