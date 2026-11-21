@@ -15,6 +15,7 @@ namespace Composer\Satis\Console\Command;
 
 use Composer\Command\BaseCommand;
 use Composer\Json\JsonFile;
+use Composer\Package\Loader\ValidatingArrayLoader;
 use Symfony\Component\Console\Helper\FormatterHelper;
 use Symfony\Component\Console\Helper\QuestionHelper;
 use Symfony\Component\Console\Input\InputArgument;
@@ -81,8 +82,15 @@ class InitCommand extends BaseCommand
             return 1;
         }
 
+        $name = $input->getOption('name');
+        if (is_string($name) && null !== ($error = ValidatingArrayLoader::hasPackageNamingError($name))) {
+            $output->writeln('<error>Your repository name ' . $error . '</error>');
+
+            return 3;
+        }
+
         $config = [
-            'name' => $input->getOption('name'),
+            'name' => $name,
             'homepage' => $input->getOption('homepage'),
             'repositories' => [],
             'require-all' => true,
@@ -111,6 +119,10 @@ class InitCommand extends BaseCommand
         $this->prompt($input, $output, 'Repository name', 'name', function ($value) {
             if (!$value) {
                 throw new \InvalidArgumentException('Repository name should not be empty');
+            }
+
+            if (null !== ($error = ValidatingArrayLoader::hasPackageNamingError($value))) {
+                throw new \InvalidArgumentException('Your repository name ' . $error);
             }
 
             return $value;
