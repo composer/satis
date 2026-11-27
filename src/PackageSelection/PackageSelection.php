@@ -31,6 +31,7 @@ use Composer\Repository\ArrayRepository;
 use Composer\Repository\ArtifactRepository;
 use Composer\Repository\ComposerRepository;
 use Composer\Repository\ConfigurableRepositoryInterface;
+use Composer\Repository\FilterRepository;
 use Composer\Repository\PackageRepository;
 use Composer\Repository\PathRepository;
 use Composer\Repository\PlatformRepository;
@@ -230,8 +231,9 @@ class PackageSelection
             $repos = [];
             // Todo: Use a filter function instead
             foreach ($initialRepos as $repo) {
-                if ($repo instanceof ConfigurableRepositoryInterface) {
-                    $config = $repo->getRepoConfig();
+                $innerRepo = $repo instanceof FilterRepository ? $repo->getRepository() : $repo;
+                if ($innerRepo instanceof ConfigurableRepositoryInterface) {
+                    $config = $innerRepo->getRepoConfig();
                     foreach ($this->repositories as $satisRepo) {
                         // TODO configurable repo types without URL attribute
                         // This is madness and should be an empty() but phpstan-strict-rules does not like empty()
@@ -251,7 +253,7 @@ class PackageSelection
                         }
                     }
                 } else {
-                    if ($repo instanceof ArrayRepository) {
+                    if ($innerRepo instanceof ArrayRepository) {
                         $repos[] = $repo;
                     }
                 }
